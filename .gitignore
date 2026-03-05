@@ -45,3 +45,6 @@ app-example
 
 #claude
 .mcp.json
+
+*.swp
+*.swo
