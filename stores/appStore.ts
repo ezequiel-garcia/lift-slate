@@ -1,7 +1,13 @@
 import { create } from "zustand";
 
 interface AppState {
-  // UI-only state (server state lives in React Query)
+  toast: string | null;
+  showToast: (msg: string) => void;
+  hideToast: () => void;
 }
 
-export const useAppStore = create<AppState>(() => ({}));
+export const useAppStore = create<AppState>((set) => ({
+  toast: null,
+  showToast: (msg) => set({ toast: msg }),
+  hideToast: () => set({ toast: null }),
+}));

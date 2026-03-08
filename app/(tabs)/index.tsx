@@ -1,23 +1,39 @@
 import { useState } from "react";
-import { View, Text, SectionList, TextInput, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, SectionList, TextInput, Pressable, ActivityIndicator, RefreshControl } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMyLifts } from "@/hooks/useMyLifts";
 import { ExerciseRow } from "@/components/exercises/ExerciseRow";
 import { ExercisesEmptyState } from "@/components/exercises/ExercisesEmptyState";
 import { AddExerciseModal } from "@/components/exercises/AddExerciseModal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { ErrorState } from "@/components/ui/ErrorState";
 
 export default function HomeScreen() {
   const [search, setSearch] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const { unit, exerciseSummaries, sections, filtered, availableExercises, isLoading, isLoadingExercises } =
+  const { unit, exerciseSummaries, sections, filtered, availableExercises, isLoading, isLoadingExercises, isError, refetch } =
     useMyLifts(search);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }
 
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-bg justify-center">
         <ActivityIndicator color="#AAFF45" />
+      </SafeAreaView>
+    );
+  }
+
+  if (isError) {
+    return (
+      <SafeAreaView className="flex-1 bg-bg">
+        <ErrorState message="Failed to load your lifts" onRetry={() => refetch()} />
       </SafeAreaView>
     );
   }
@@ -59,6 +75,13 @@ export default function HomeScreen() {
               renderSectionHeader={({ section }) => <SectionHeader title={section.title} />}
               stickySectionHeadersEnabled={false}
               contentContainerStyle={{ paddingBottom: 100 }}
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={handleRefresh}
+                  tintColor="#AAFF45"
+                />
+              }
             />
           )}
         </>

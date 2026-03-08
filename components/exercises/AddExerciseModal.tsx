@@ -16,6 +16,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createExercise } from "@/services/exercises.service";
 import { CATEGORY_ORDER, CATEGORY_LABELS } from "@/lib/constants";
 import { ExerciseCategory, Exercise } from "@/types/exercise";
+import { useAppStore } from "@/stores/appStore";
 
 type Props = {
   visible: boolean;
@@ -36,14 +37,16 @@ export function AddExerciseModal({
   const [customCategory, setCustomCategory] = useState<ExerciseCategory | null>(null);
 
   const queryClient = useQueryClient();
+  const showToast = useAppStore((s) => s.showToast);
 
   const createMutation = useMutation({
     mutationFn: ({ name, category }: { name: string; category?: ExerciseCategory }) =>
       createExercise(name, category),
     onSuccess: (exercise) => {
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
+      showToast("Exercise added!");
       handleClose();
-      router.push(`/exercise/${exercise.id}` as never);
+      router.push(`/exercise/${exercise.id}?addMax=true` as never);
     },
   });
 
@@ -57,7 +60,7 @@ export function AddExerciseModal({
 
   const handlePickExercise = (id: string) => {
     handleClose();
-    router.push(`/exercise/${id}` as never);
+    router.push(`/exercise/${id}?addMax=true` as never);
   };
 
   const handleCreate = () => {

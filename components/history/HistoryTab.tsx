@@ -1,4 +1,4 @@
-import { FlatList, View, Text, Pressable } from "react-native";
+import { FlatList, View, Text, Pressable, RefreshControl } from "react-native";
 import { format } from "date-fns";
 import { formatWeight, fromKg, WeightUnit } from "@/lib/units";
 
@@ -13,9 +13,11 @@ type Props = {
   history: Max[];
   unit: WeightUnit;
   onAddMax: () => void;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 };
 
-export function HistoryTab({ history, unit, onAddMax }: Props) {
+export function HistoryTab({ history, unit, onAddMax, refreshing, onRefresh }: Props) {
   const prWeightKg = history.reduce((best, m) => Math.max(best, m.weight_kg), 0);
 
   const renderItem = ({ item, index }: { item: Max; index: number }) => {
@@ -77,6 +79,11 @@ export function HistoryTab({ history, unit, onAddMax }: Props) {
         ) : null
       }
       contentContainerStyle={{ paddingBottom: 100 }}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor="#AAFF45" />
+        ) : undefined
+      }
     />
   );
 }

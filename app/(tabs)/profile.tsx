@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, TextInput, Switch, Pressable, ScrollView, Alert, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, Switch, Pressable, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import Constants from "expo-constants";
@@ -84,7 +84,8 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
-      <ScrollView contentContainerStyle={{ paddingBottom: 48 }} showsVerticalScrollIndicator={false}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 48 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View className="px-4 pt-4 pb-2">
           <Text className="text-2xl font-bold text-foreground">Profile</Text>
         </View>
@@ -181,6 +182,7 @@ export default function ProfileScreen() {
           <Text className="text-muted text-xs">LiftSlate v{appVersion}</Text>
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

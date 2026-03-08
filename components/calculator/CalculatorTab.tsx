@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { View, Text, TextInput, ScrollView, Pressable } from "react-native";
+import * as Haptics from "expo-haptics";
 import { calculatePercentage, formatWeight, fromKg, WeightUnit } from "@/lib/units";
 import { COMMON_PERCENTAGES } from "@/lib/constants";
 
@@ -59,6 +60,7 @@ export function CalculatorTab({ currentMax, unit, roundingIncrementKg, onAddMax 
                 isActive ? "border-accent bg-accent/10" : "border-border bg-surface"
               }`}
               onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 setSelectedPct(pct);
                 setCustomPct("");
               }}

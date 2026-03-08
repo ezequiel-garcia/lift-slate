@@ -1,9 +1,11 @@
 import "../global.css";
+import { View } from "react-native";
 import { Stack } from "expo-router";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import { colors } from "@/lib/theme";
+import { Toast } from "@/components/ui/Toast";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,8 +20,11 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }} />
+        <View style={{ flex: 1 }}>
+          <StatusBar style="light" />
+          <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }} />
+          <Toast />
+        </View>
       </QueryClientProvider>
     </SafeAreaProvider>
   );
