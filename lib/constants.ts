@@ -8,5 +8,11 @@ export const EXERCISE_CATEGORIES = [
   { value: "accessory" as const, label: "Accessory" },
 ];
 
+export const CATEGORY_ORDER = EXERCISE_CATEGORIES.map((c) => c.value);
+
+export const CATEGORY_LABELS = Object.fromEntries(
+  EXERCISE_CATEGORIES.map((c) => [c.value, c.label]),
+) as Record<(typeof CATEGORY_ORDER)[number], string>;
+
 export const DEFAULT_ROUNDING_KG = 2.5;
 export const DEFAULT_ROUNDING_LBS = 5;

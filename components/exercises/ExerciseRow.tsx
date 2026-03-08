@@ -1,0 +1,45 @@
+import { Pressable, Text, View } from "react-native";
+import { router } from "expo-router";
+import { fromKg, formatWeight, WeightUnit } from "@/lib/units";
+
+type Trend = "up" | "down" | "same";
+
+function TrendIndicator({ trend }: { trend: Trend }) {
+  const map: Record<Trend, { symbol: string; className: string }> = {
+    up: { symbol: "↑", className: "text-accent" },
+    down: { symbol: "↓", className: "text-error" },
+    same: { symbol: "→", className: "text-muted" },
+  };
+  const { symbol, className } = map[trend];
+  return <Text className={`text-base font-semibold ${className}`}>{symbol}</Text>;
+}
+
+type Props = {
+  exerciseId: string;
+  name: string;
+  currentWeightKg: number;
+  trend: Trend;
+  unit: WeightUnit;
+};
+
+export function ExerciseRow({ exerciseId, name, currentWeightKg, trend, unit }: Props) {
+  const displayWeight = fromKg(currentWeightKg, unit);
+
+  return (
+    <Pressable
+      className="flex-row items-center justify-between px-4 py-[14px] border-b border-border"
+      style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+      onPress={() => router.push(`/exercise/${exerciseId}` as never)}
+    >
+      <Text className="flex-1 mr-2 text-base text-foreground" numberOfLines={1}>
+        {name}
+      </Text>
+      <View className="flex-row items-center gap-2">
+        <Text className="text-base font-semibold text-foreground">
+          {formatWeight(displayWeight, unit)}
+        </Text>
+        <TrendIndicator trend={trend} />
+      </View>
+    </Pressable>
+  );
+}

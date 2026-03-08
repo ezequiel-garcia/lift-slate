@@ -16,6 +16,7 @@ Strength training app. Stores athlete lift maxes, auto-calculates percentage-bas
 - React Native + Expo (managed workflow, Expo Router)
 - Supabase (Postgres + Auth + Edge Functions)
 - TypeScript (strict), Zustand (client state), TanStack React Query (server state)
+- **NativeWind v4** (Tailwind CSS for React Native) — use `className` everywhere, no `StyleSheet` unless unavoidable
 
 ## Structure
 
@@ -41,6 +42,28 @@ supabase/migrations/, functions/
 4. **Supabase queries live in `services/`.** Hooks in `hooks/` wrap them with React Query.
 5. TypeScript strict. Functional components only. async/await only.
 6. Components: PascalCase. Utils/services: camelCase.
+7. **Prefer Expo components** over raw React Native when better (`Pressable` > `TouchableOpacity`, `expo-image` > `Image`, etc.).
+8. **Screens orchestrate, they don't define.** Extract anything with a clear, nameable purpose:
+   - Data/logic → custom hook in `hooks/` (e.g. `useMyLifts.ts`)
+   - Reusable UI → `components/ui/` (e.g. `SectionHeader`)
+   - Feature UI → `components/<feature>/` (e.g. `components/exercises/ExercisesEmptyState.tsx`)
+   - Shared types → `types/exercise.ts`, `types/max.ts`, etc.
+   - Shared constants → `lib/constants.ts`
+   - Keep inline only if it's trivial JSX that only makes sense in that context.
+
+## NativeWind / Tailwind
+
+Custom colors in `tailwind.config.js` (extend these, never use hex in className):
+- `bg-bg` / `bg-surface` / `bg-surface2` — backgrounds
+- `text-foreground` / `text-muted` / `text-accent` / `text-error` — text colors
+- `border-border` — borders
+- `bg-accent` — accent fills (lime green `#AAFF45`)
+
+Avoid dynamic class string interpolation (`text-${color}`). Use full conditional classes instead.
+
+## Key Packages
+
+expo-router, @supabase/supabase-js, @tanstack/react-query, zustand, expo-secure-store, date-fns, react-native-reanimated, nativewind
 
 ## DB Tables (MVP)
 
@@ -57,10 +80,6 @@ supabase/migrations/, functions/
 ## Auth
 
 Email+password, Google. Supabase Auth with expo-secure-store adapter.
-
-## Key Packages
-
-expo-router, @supabase/supabase-js, @tanstack/react-query, zustand, expo-secure-store, date-fns, react-native-reanimated
 
 ## Env Vars (.env, not committed)
 
