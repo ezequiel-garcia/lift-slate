@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { View, Text, SectionList, TextInput, Pressable, ActivityIndicator, RefreshControl } from "react-native";
+import { View, Text, SectionList, TextInput, Pressable, ActivityIndicator, RefreshControl, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useMyLifts } from "@/hooks/useMyLifts";
+import { useDeleteExerciseMaxes } from "@/hooks/useMaxes";
 import { ExerciseRow } from "@/components/exercises/ExerciseRow";
 import { ExercisesEmptyState } from "@/components/exercises/ExercisesEmptyState";
 import { AddExerciseModal } from "@/components/exercises/AddExerciseModal";
@@ -15,6 +16,23 @@ export default function HomeScreen() {
 
   const { unit, exerciseSummaries, sections, filtered, availableExercises, isLoading, isLoadingExercises, isError, refetch } =
     useMyLifts(search);
+
+  const { mutate: deleteExerciseMaxes } = useDeleteExerciseMaxes();
+
+  function handleDeleteExercise(exerciseId: string, name: string) {
+    Alert.alert(
+      "Remove Exercise",
+      `Remove ${name} from your lifts? All recorded maxes will be deleted.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: () => deleteExerciseMaxes(exerciseId),
+        },
+      ]
+    );
+  }
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -70,6 +88,7 @@ export default function HomeScreen() {
                   currentWeightKg={item.currentWeightKg}
                   trend={item.trend}
                   unit={unit}
+                  onDelete={handleDeleteExercise}
                 />
               )}
               renderSectionHeader={({ section }) => <SectionHeader title={section.title} />}

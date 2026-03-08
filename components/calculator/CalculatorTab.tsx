@@ -3,6 +3,7 @@ import { View, Text, TextInput, ScrollView, Pressable } from "react-native";
 import * as Haptics from "expo-haptics";
 import { calculatePercentage, formatWeight, fromKg, WeightUnit } from "@/lib/units";
 import { COMMON_PERCENTAGES } from "@/lib/constants";
+import { ExerciseNotes } from "@/components/exercises/ExerciseNotes";
 
 type Max = {
   id: string;
@@ -12,13 +13,14 @@ type Max = {
 };
 
 type Props = {
+  exerciseId: string;
   currentMax: Max | null;
   unit: WeightUnit;
   roundingIncrementKg: number;
   onAddMax: () => void;
 };
 
-export function CalculatorTab({ currentMax, unit, roundingIncrementKg, onAddMax }: Props) {
+export function CalculatorTab({ exerciseId, currentMax, unit, roundingIncrementKg, onAddMax }: Props) {
   const [selectedPct, setSelectedPct] = useState<number | null>(null);
   const [customPct, setCustomPct] = useState("");
 
@@ -31,7 +33,12 @@ export function CalculatorTab({ currentMax, unit, roundingIncrementKg, onAddMax 
   const roundIncrementDisplay = formatWeight(fromKg(roundingIncrementKg, unit), unit);
 
   return (
-    <ScrollView className="flex-1" contentContainerStyle={{ padding: 16, paddingBottom: 100 }}>
+    <ScrollView
+      className="flex-1"
+      contentContainerStyle={{ padding: 16, paddingBottom: 100 }}
+      keyboardShouldPersistTaps="handled"
+      automaticallyAdjustKeyboardInsets={true}
+    >
       {/* Current 1RM */}
       <View className="items-center py-6 mb-2">
         <Text className="text-[11px] font-bold text-muted uppercase tracking-widest mb-2">
@@ -114,6 +121,8 @@ export function CalculatorTab({ currentMax, unit, roundingIncrementKg, onAddMax 
       >
         <Text className="text-accent font-semibold text-[15px]">+ Add New Max</Text>
       </Pressable>
+
+      <ExerciseNotes exerciseId={exerciseId} />
     </ScrollView>
   );
 }

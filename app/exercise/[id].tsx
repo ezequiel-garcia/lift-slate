@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
-import { View, Text, Pressable, ActivityIndicator } from "react-native";
+import { View, Text, Pressable, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { useExerciseDetail } from "@/hooks/useExerciseDetail";
+import { useDeleteExerciseMaxes } from "@/hooks/useMaxes";
 import { CalculatorTab } from "@/components/calculator/CalculatorTab";
 import { HistoryTab } from "@/components/history/HistoryTab";
 import { AddMaxModal } from "@/components/exercises/AddMaxModal";
@@ -21,10 +22,26 @@ export default function ExerciseDetailScreen() {
   }, []);
 
   const { exercise, history, profile, isLoading, isError, refetch } = useExerciseDetail(id);
+  const { mutate: deleteExerciseMaxes } = useDeleteExerciseMaxes();
 
   const unit = profile?.unit_preference ?? "kg";
   const roundingIncrementKg = profile?.rounding_increment_kg ?? 2.5;
   const currentMax = history[0] ?? null;
+
+  function handleDelete() {
+    Alert.alert(
+      "Remove Exercise",
+      `Remove ${exercise?.name ?? "this exercise"} from your lifts? All recorded maxes will be deleted.`,
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Remove",
+          style: "destructive",
+          onPress: () => { router.back(); deleteExerciseMaxes(id); },
+        },
+      ]
+    );
+  }
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -81,6 +98,7 @@ export default function ExerciseDetailScreen() {
           {/* Content */}
           {activeTab === "calculator" ? (
             <CalculatorTab
+              exerciseId={id}
               currentMax={currentMax}
               unit={unit}
               roundingIncrementKg={roundingIncrementKg}
@@ -97,6 +115,16 @@ export default function ExerciseDetailScreen() {
           )}
         </>
       )}
+
+      <View className="px-4 pb-8 pt-3 border-t border-border">
+        <Pressable
+          onPress={handleDelete}
+          className="py-3 rounded-xl items-center border border-error"
+          style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+        >
+          <Text className="text-error font-semibold text-[15px]">Remove Exercise</Text>
+        </Pressable>
+      </View>
 
       <AddMaxModal
         visible={addModalVisible}

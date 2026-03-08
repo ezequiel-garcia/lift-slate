@@ -86,3 +86,15 @@ export async function deleteMax(id: string) {
   const { error } = await supabase.from("maxes").delete().eq("id", id);
   if (error) throw error;
 }
+
+export async function deleteExerciseMaxes(exerciseId: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("maxes")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("exercise_id", exerciseId);
+  if (error) throw error;
+}
