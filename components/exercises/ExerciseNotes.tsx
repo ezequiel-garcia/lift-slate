@@ -12,11 +12,11 @@ export function ExerciseNotes({ exerciseId }: Props) {
   return (
     <View className="mt-6">
       <View className="flex-row items-center justify-between mb-2">
-        <Text className="text-[11px] font-bold text-muted uppercase tracking-widest">Notes</Text>
-        {isSaving && <Text className="text-[11px] text-muted">Saving…</Text>}
+        <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest">Notes</Text>
+        {isSaving && <Text className="text-sm text-muted">Saving…</Text>}
       </View>
       <TextInput
-        className="bg-surface border border-border rounded-xl px-4 py-3 text-foreground text-[15px]"
+        className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-[16px]"
         placeholder="Form cues, coach feedback, goals…"
         placeholderTextColor={colors.muted}
         value={draft}

@@ -4,8 +4,8 @@ type Props = { title: string };
 
 export function SectionHeader({ title }: Props) {
   return (
-    <View className="px-4 pt-4 pb-1 bg-bg">
-      <Text className="text-[11px] font-bold text-muted uppercase tracking-widest">
+    <View className="px-5 pt-8 pb-2.5 bg-bg">
+      <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest">
         {title}
       </Text>
     </View>

@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { View, Text, TextInput, Switch, Pressable, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
@@ -41,7 +42,6 @@ export default function ProfileScreen() {
   function handleRoundingBlur() {
     const parsed = parseFloat(roundingInput);
     if (isNaN(parsed) || parsed <= 0) {
-      // Reset to current value
       const roundKg = profile?.rounding_increment_kg ?? 2.5;
       setRoundingInput(String(unit === "kg" ? roundKg : fromKg(roundKg, "lbs")));
       return;
@@ -86,17 +86,17 @@ export default function ProfileScreen() {
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
       <ScrollView contentContainerStyle={{ paddingBottom: 48 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <View className="px-4 pt-4 pb-2">
-          <Text className="text-2xl font-bold text-foreground">Profile</Text>
+        <View className="px-5 pt-5 pb-1">
+          <Text className="text-[28px] font-bold text-foreground tracking-tight">Profile</Text>
         </View>
 
         <SectionHeader title="Account" />
 
-        <View className="mx-4 bg-surface border border-border rounded-2xl overflow-hidden">
+        <View className="mx-5 bg-surface rounded-2xl overflow-hidden">
           <View className="px-4 py-4">
-            <Text className="text-xs text-muted mb-1 font-medium uppercase tracking-wide">Display Name</Text>
+            <Text className="text-[13px] text-muted mb-1.5 font-semibold uppercase tracking-widest">Display Name</Text>
             <TextInput
-              className="text-foreground text-[16px]"
+              className="text-foreground text-[17px]"
               value={displayName}
               onChangeText={setDisplayName}
               onBlur={handleDisplayNameBlur}
@@ -110,33 +110,35 @@ export default function ProfileScreen() {
 
         <SectionHeader title="Units & Weights" />
 
-        <View className="mx-4 bg-surface border border-border rounded-2xl overflow-hidden">
+        <View className="mx-5 bg-surface rounded-2xl overflow-hidden">
           {/* Unit preference */}
-          <View className="px-4 py-4 border-b border-border">
-            <Text className="text-xs text-muted mb-3 font-medium uppercase tracking-wide">Unit Preference</Text>
-            <View className="flex-row gap-2">
+          <View className="px-4 py-4">
+            <Text className="text-[13px] text-muted mb-3 font-semibold uppercase tracking-widest">Unit Preference</Text>
+            <View className="flex-row bg-surface2 rounded-xl p-1">
               <Pressable
-                className={`flex-1 py-2 rounded-xl items-center ${unit === "kg" ? "bg-accent" : "bg-surface2"}`}
+                className={`flex-1 py-2.5 rounded-lg items-center ${unit === "kg" ? "bg-accent" : ""}`}
                 onPress={() => handleUnitToggle("kg")}
               >
-                <Text className={`font-semibold text-[15px] ${unit === "kg" ? "text-bg" : "text-muted"}`}>kg</Text>
+                <Text className={`font-bold text-[15px] ${unit === "kg" ? "text-bg" : "text-muted"}`}>kg</Text>
               </Pressable>
               <Pressable
-                className={`flex-1 py-2 rounded-xl items-center ${unit === "lbs" ? "bg-accent" : "bg-surface2"}`}
+                className={`flex-1 py-2.5 rounded-lg items-center ${unit === "lbs" ? "bg-accent" : ""}`}
                 onPress={() => handleUnitToggle("lbs")}
               >
-                <Text className={`font-semibold text-[15px] ${unit === "lbs" ? "text-bg" : "text-muted"}`}>lbs</Text>
+                <Text className={`font-bold text-[15px] ${unit === "lbs" ? "text-bg" : "text-muted"}`}>lbs</Text>
               </Pressable>
             </View>
           </View>
 
+          <View className="h-px bg-border mx-4" />
+
           {/* Rounding increment */}
           <View className="px-4 py-4">
-            <Text className="text-xs text-muted mb-1 font-medium uppercase tracking-wide">
+            <Text className="text-[13px] text-muted mb-1.5 font-semibold uppercase tracking-widest">
               Rounding Increment ({unit})
             </Text>
             <TextInput
-              className="text-foreground text-[16px]"
+              className="text-foreground text-[17px]"
               value={roundingInput}
               onChangeText={setRoundingInput}
               onBlur={handleRoundingBlur}
@@ -150,36 +152,35 @@ export default function ProfileScreen() {
 
         <SectionHeader title="Gym" />
 
-        <View className="mx-4 bg-surface border border-border rounded-2xl overflow-hidden">
+        <View className="mx-5 bg-surface rounded-2xl overflow-hidden">
           <View className="px-4 py-4 flex-row items-center justify-between">
             <View className="flex-1 pr-4">
-              <Text className="text-foreground text-[15px] font-medium">Allow Coach to Edit My Maxes</Text>
-              <Text className="text-muted text-[12px] mt-0.5">Coming soon in gym features</Text>
+              <Text className="text-foreground text-[16px] font-medium">Allow Coach Edits</Text>
+              <Text className="text-muted text-[13px] mt-0.5">Coming soon in gym features</Text>
             </View>
             <Switch
               value={profile?.allow_coach_edit ?? true}
               onValueChange={handleCoachEditToggle}
               trackColor={{ false: colors.border, true: colors.accent }}
-              thumbColor={colors.bg}
+              thumbColor="#fff"
               disabled={isPending}
             />
           </View>
         </View>
 
-        <SectionHeader title="" />
-
-        <View className="mx-4">
+        <View className="mt-10 mx-5">
           <Pressable
-            className="bg-surface border border-border rounded-2xl py-4 items-center"
+            className="bg-surface rounded-2xl py-3.5 items-center flex-row justify-center gap-2"
             style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
             onPress={handleSignOut}
           >
+            <Ionicons name="log-out-outline" size={18} color={colors.error} />
             <Text className="text-error font-semibold text-[15px]">Sign Out</Text>
           </Pressable>
         </View>
 
         <View className="items-center mt-8">
-          <Text className="text-muted text-xs">LiftSlate v{appVersion}</Text>
+          <Text className="text-muted text-[13px]">LiftSlate v{appVersion}</Text>
         </View>
       </ScrollView>
       </KeyboardAvoidingView>

@@ -10,10 +10,12 @@ import {
   Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createMax } from "@/services/maxes.service";
 import { WeightUnit } from "@/lib/units";
 import { useAppStore } from "@/stores/appStore";
+import { colors } from "@/lib/theme";
 
 type Props = {
   visible: boolean;
@@ -65,10 +67,19 @@ export function AddMaxModal({ visible, exerciseId, unit, onClose }: Props) {
       onRequestClose={handleClose}
     >
       <SafeAreaView className="flex-1 bg-bg" edges={["top", "bottom"]}>
-        <View className="flex-row justify-between items-center px-4 py-4 border-b border-border">
-          <Text className="text-lg font-bold text-foreground">Add New Max</Text>
-          <Pressable onPress={handleClose} hitSlop={12}>
-            <Text className="text-lg text-muted p-1">✕</Text>
+        {/* Drag handle */}
+        <View className="items-center pt-2.5 pb-1">
+          <View className="w-9 h-1 rounded-full bg-surface2" />
+        </View>
+
+        <View className="flex-row justify-between items-center px-5 pt-2 pb-4">
+          <Text className="text-xl font-bold text-foreground">Add New Max</Text>
+          <Pressable
+            onPress={handleClose}
+            hitSlop={16}
+            className="w-8 h-8 rounded-full bg-surface2 items-center justify-center"
+          >
+            <Ionicons name="close" size={18} color={colors.muted} />
           </Pressable>
         </View>
 
@@ -76,27 +87,27 @@ export function AddMaxModal({ visible, exerciseId, unit, onClose }: Props) {
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           className="flex-1"
         >
-          <View className="flex-1 p-4">
-            <Text className="text-[11px] font-bold text-muted uppercase tracking-widest mb-1">
+          <View className="flex-1 p-5">
+            <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
               1RM Weight ({unit})
             </Text>
             <TextInput
-              className="bg-surface border border-border rounded-xl px-4 py-3 text-foreground text-base mb-4"
+              className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-[18px] mb-5"
               placeholder={unit === "kg" ? "e.g. 120" : "e.g. 265"}
-              placeholderTextColor="#5A5A5A"
+              placeholderTextColor={colors.muted}
               keyboardType="decimal-pad"
               value={weight}
               onChangeText={setWeight}
               autoFocus
             />
 
-            <Text className="text-[11px] font-bold text-muted uppercase tracking-widest mb-1">
+            <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
               Notes (optional)
             </Text>
             <TextInput
-              className="bg-surface border border-border rounded-xl px-4 py-3 text-foreground text-base mb-6"
+              className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-base mb-6"
               placeholder="e.g. Competition PR, felt great"
-              placeholderTextColor="#5A5A5A"
+              placeholderTextColor={colors.muted}
               value={notes}
               onChangeText={setNotes}
               multiline
@@ -104,19 +115,19 @@ export function AddMaxModal({ visible, exerciseId, unit, onClose }: Props) {
             />
 
             <Pressable
-              className={`bg-accent rounded-xl p-4 items-center ${!canSubmit ? "opacity-40" : ""}`}
+              className={`bg-accent rounded-2xl p-4 items-center ${!canSubmit ? "opacity-40" : ""}`}
               onPress={() => mutation.mutate()}
               disabled={!canSubmit}
             >
               {mutation.isPending ? (
-                <ActivityIndicator color="#0C0C0C" />
+                <ActivityIndicator color={colors.bg} />
               ) : (
-                <Text className="text-bg font-bold text-base">Save Max</Text>
+                <Text className="text-bg font-bold text-[16px]">Save Max</Text>
               )}
             </Pressable>
 
             {mutation.isError && (
-              <Text className="text-error text-sm text-center mt-2">
+              <Text className="text-error text-base text-center mt-3">
                 Failed to save. Try again.
               </Text>
             )}

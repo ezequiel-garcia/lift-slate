@@ -2,12 +2,14 @@ import { useState, useEffect } from "react";
 import { View, Text, Pressable, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 import { useExerciseDetail } from "@/hooks/useExerciseDetail";
 import { useDeleteExerciseMaxes } from "@/hooks/useMaxes";
 import { CalculatorTab } from "@/components/calculator/CalculatorTab";
 import { HistoryTab } from "@/components/history/HistoryTab";
 import { AddMaxModal } from "@/components/exercises/AddMaxModal";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { colors } from "@/lib/theme";
 
 type Tab = "calculator" | "history";
 
@@ -52,7 +54,7 @@ export default function ExerciseDetailScreen() {
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-bg justify-center">
-        <ActivityIndicator color="#AAFF45" />
+        <ActivityIndicator color={colors.accent} />
       </SafeAreaView>
     );
   }
@@ -60,33 +62,39 @@ export default function ExerciseDetailScreen() {
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
       {/* Header */}
-      <View className="flex-row items-center px-4 py-3 border-b border-border">
-        <Pressable onPress={() => router.back()} hitSlop={12} className="w-8">
-          <Text className="text-accent text-[20px]">‹</Text>
+      <View className="flex-row items-center px-4 py-3">
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          className="w-9 h-9 rounded-full bg-surface items-center justify-center"
+        >
+          <Ionicons name="chevron-back" size={20} color={colors.text} />
         </Pressable>
-        <Text className="flex-1 text-lg font-bold text-foreground text-center" numberOfLines={1}>
+        <Text className="flex-1 text-lg font-bold text-foreground text-center mx-3" numberOfLines={1}>
           {exercise?.name ?? "Exercise"}
         </Text>
-        <View className="w-8" />
+        <Pressable onPress={handleDelete} hitSlop={12} className="w-9 h-9 items-center justify-center">
+          <Ionicons name="ellipsis-horizontal" size={20} color={colors.muted} />
+        </Pressable>
       </View>
 
       {isError ? (
         <ErrorState message="Failed to load history" onRetry={() => refetch()} />
       ) : (
         <>
-          {/* Tab bar */}
-          <View className="flex-row border-b border-border">
+          {/* Tab bar — segmented control style */}
+          <View className="mx-5 mt-1 mb-3 flex-row bg-surface rounded-xl p-1">
             {(["calculator", "history"] as Tab[]).map((tab) => (
               <Pressable
                 key={tab}
-                className={`flex-1 py-3 items-center border-b-2 ${
-                  activeTab === tab ? "border-accent" : "border-transparent"
+                className={`flex-1 py-2.5 items-center rounded-lg ${
+                  activeTab === tab ? "bg-surface2" : ""
                 }`}
                 onPress={() => setActiveTab(tab)}
               >
                 <Text
-                  className={`text-sm font-semibold ${
-                    activeTab === tab ? "text-accent" : "text-muted"
+                  className={`text-[14px] font-semibold ${
+                    activeTab === tab ? "text-foreground" : "text-muted"
                   }`}
                 >
                   {tab === "calculator" ? "Calculator" : "History"}
@@ -115,16 +123,6 @@ export default function ExerciseDetailScreen() {
           )}
         </>
       )}
-
-      <View className="px-4 pb-8 pt-3 border-t border-border">
-        <Pressable
-          onPress={handleDelete}
-          className="py-3 rounded-xl items-center border border-error"
-          style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-        >
-          <Text className="text-error font-semibold text-[15px]">Remove Exercise</Text>
-        </Pressable>
-      </View>
 
       <AddMaxModal
         visible={addModalVisible}

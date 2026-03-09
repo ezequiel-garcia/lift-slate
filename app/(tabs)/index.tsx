@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, SectionList, TextInput, Pressable, ActivityIndicator, RefreshControl, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { useMyLifts } from "@/hooks/useMyLifts";
 import { useDeleteExerciseMaxes } from "@/hooks/useMaxes";
 import { ExerciseRow } from "@/components/exercises/ExerciseRow";
@@ -8,6 +9,7 @@ import { ExercisesEmptyState } from "@/components/exercises/ExercisesEmptyState"
 import { AddExerciseModal } from "@/components/exercises/AddExerciseModal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { colors } from "@/lib/theme";
 
 export default function HomeScreen() {
   const [search, setSearch] = useState("");
@@ -43,7 +45,7 @@ export default function HomeScreen() {
   if (isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-bg justify-center">
-        <ActivityIndicator color="#AAFF45" />
+        <ActivityIndicator color={colors.accent} />
       </SafeAreaView>
     );
   }
@@ -62,20 +64,26 @@ export default function HomeScreen() {
         <ExercisesEmptyState onAdd={() => setModalVisible(true)} />
       ) : (
         <>
-          <View className="px-4 py-2">
-            <TextInput
-              className="bg-surface border border-border rounded-xl px-4 py-[10px] text-foreground text-[15px]"
-              placeholder="Search exercises..."
-              placeholderTextColor="#5A5A5A"
-              value={search}
-              onChangeText={setSearch}
-              clearButtonMode="while-editing"
-            />
+          <View className="px-5 pt-5 pb-3">
+            <Text className="text-[28px] font-bold text-foreground mb-4 tracking-tight">
+              My Lifts
+            </Text>
+            <View className="flex-row items-center bg-surface rounded-xl px-3.5">
+              <Ionicons name="search" size={18} color={colors.muted} />
+              <TextInput
+                className="flex-1 py-3 px-2.5 text-foreground text-[16px]"
+                placeholder="Search exercises..."
+                placeholderTextColor={colors.muted}
+                value={search}
+                onChangeText={setSearch}
+                clearButtonMode="while-editing"
+              />
+            </View>
           </View>
 
           {filtered.length === 0 && search ? (
-            <View className="flex-1 items-center pt-8">
-              <Text className="text-sm text-muted">No results for "{search}"</Text>
+            <View className="flex-1 items-center pt-12">
+              <Text className="text-base text-muted">No results for "{search}"</Text>
             </View>
           ) : (
             <SectionList
@@ -85,20 +93,23 @@ export default function HomeScreen() {
                 <ExerciseRow
                   exerciseId={item.exerciseId}
                   name={item.name}
+                  category={item.category}
                   currentWeightKg={item.currentWeightKg}
-                  trend={item.trend}
                   unit={unit}
                   onDelete={handleDeleteExercise}
                 />
               )}
               renderSectionHeader={({ section }) => <SectionHeader title={section.title} />}
               stickySectionHeadersEnabled={false}
-              contentContainerStyle={{ paddingBottom: 100 }}
+              contentContainerStyle={{ paddingBottom: 120 }}
+              ItemSeparatorComponent={() => (
+                <View className="h-px bg-border ml-[72px] mr-5" />
+              )}
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
                   onRefresh={handleRefresh}
-                  tintColor="#AAFF45"
+                  tintColor={colors.accent}
                 />
               }
             />
@@ -107,11 +118,19 @@ export default function HomeScreen() {
       )}
 
       <Pressable
-        className="absolute bottom-6 right-4 bg-accent rounded-full px-4 py-[10px]"
-        style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
+        className="absolute bottom-8 right-5 bg-accent rounded-2xl flex-row items-center px-5 py-3.5 gap-2"
+        style={({ pressed }) => ({
+          opacity: pressed ? 0.85 : 1,
+          shadowColor: "#B4FF4A",
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.25,
+          shadowRadius: 12,
+          elevation: 6,
+        })}
         onPress={() => setModalVisible(true)}
       >
-        <Text className="text-bg font-bold text-[15px]">+ Add Exercise</Text>
+        <Ionicons name="add" size={22} color={colors.bg} />
+        <Text className="text-bg font-bold text-[15px]">Add Exercise</Text>
       </Pressable>
 
       <AddExerciseModal

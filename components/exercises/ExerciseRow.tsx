@@ -3,18 +3,37 @@ import { router } from "expo-router";
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import Animated, { useAnimatedStyle, interpolate } from "react-native-reanimated";
 import type { SharedValue } from "react-native-reanimated";
+import { Ionicons } from "@expo/vector-icons";
 import { fromKg, formatWeight, WeightUnit } from "@/lib/units";
+import type { ExerciseCategory } from "@/types/exercise";
 
-type Trend = "up" | "down" | "same";
+const CATEGORY_ICON: Record<
+  NonNullable<ExerciseCategory>,
+  { name: React.ComponentProps<typeof Ionicons>["name"]; bg: string; color: string }
+> = {
+  squat:     { name: "body",       bg: "#131C2E", color: "#5B9BFF" },
+  press:     { name: "arrow-up",   bg: "#231810", color: "#FF9A5C" },
+  pull:      { name: "arrow-down", bg: "#1E1028", color: "#C88AFF" },
+  olympic:   { name: "trophy",     bg: "#231E0A", color: "#FFD84A" },
+  accessory: { name: "barbell",    bg: "#122210", color: "#B4FF4A" },
+};
 
-function TrendIndicator({ trend }: { trend: Trend }) {
-  const map: Record<Trend, { symbol: string; className: string }> = {
-    up: { symbol: "↑", className: "text-accent" },
-    down: { symbol: "↓", className: "text-error" },
-    same: { symbol: "→", className: "text-muted" },
-  };
-  const { symbol, className } = map[trend];
-  return <Text className={`text-base font-semibold ${className}`}>{symbol}</Text>;
+function CategoryIcon({ category }: { category: ExerciseCategory | null }) {
+  const cfg = category ? CATEGORY_ICON[category] : null;
+  return (
+    <View
+      style={{
+        width: 42,
+        height: 42,
+        borderRadius: 11,
+        backgroundColor: cfg?.bg ?? "#1A1A1E",
+        justifyContent: "center",
+        alignItems: "center",
+      }}
+    >
+      <Ionicons name={cfg?.name ?? "barbell-outline"} size={20} color={cfg?.color ?? "#555"} />
+    </View>
+  );
 }
 
 function DeleteAction({
@@ -29,13 +48,14 @@ function DeleteAction({
   }));
 
   return (
-    <Animated.View style={[style, { width: 80, justifyContent: "center", alignItems: "center" }]}>
+    <Animated.View style={[style, { width: 88, justifyContent: "center", alignItems: "center" }]}>
       <Pressable
-        className="flex-1 w-full bg-error justify-center items-center border-b border-border"
+        className="flex-1 w-full bg-error justify-center items-center"
         style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
         onPress={onDelete}
       >
-        <Text className="text-white font-semibold text-sm">Delete</Text>
+        <Ionicons name="trash-outline" size={22} color="#fff" />
+        <Text className="text-white font-medium text-xs mt-1">Delete</Text>
       </Pressable>
     </Animated.View>
   );
@@ -44,13 +64,13 @@ function DeleteAction({
 type Props = {
   exerciseId: string;
   name: string;
+  category: ExerciseCategory | null;
   currentWeightKg: number;
-  trend: Trend;
   unit: WeightUnit;
   onDelete?: (exerciseId: string, name: string) => void;
 };
 
-export function ExerciseRow({ exerciseId, name, currentWeightKg, trend, unit, onDelete }: Props) {
+export function ExerciseRow({ exerciseId, name, category, currentWeightKg, unit, onDelete }: Props) {
   const displayWeight = fromKg(currentWeightKg, unit);
 
   return (
@@ -64,19 +84,20 @@ export function ExerciseRow({ exerciseId, name, currentWeightKg, trend, unit, on
       friction={2}
     >
       <Pressable
-        className="flex-row items-center justify-between px-4 py-[14px] border-b border-border bg-bg"
+        className="flex-row items-center px-5 py-3.5 bg-bg"
         style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
         onPress={() => router.push(`/exercise/${exerciseId}` as never)}
       >
-        <Text className="flex-1 mr-2 text-base text-foreground" numberOfLines={1}>
-          {name}
-        </Text>
-        <View className="flex-row items-center gap-2">
-          <Text className="text-base font-semibold text-foreground">
-            {formatWeight(displayWeight, unit)}
+        <CategoryIcon category={category} />
+        <View className="flex-1 mx-3.5">
+          <Text className="text-[16px] font-medium text-foreground" numberOfLines={1}>
+            {name}
           </Text>
-          <TrendIndicator trend={trend} />
         </View>
+        <Text className="text-[17px] font-bold text-foreground tabular-nums">
+          {formatWeight(displayWeight, unit)}
+        </Text>
+        <Ionicons name="chevron-forward" size={16} color="#3F3F46" style={{ marginLeft: 6 }} />
       </Pressable>
     </Swipeable>
   );
