@@ -1,13 +1,10 @@
 import { supabase } from "@/lib/supabase";
 
 export async function getExerciseNote(exerciseId: string): Promise<string> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
+  // RLS scopes to own rows
   const { data, error } = await supabase
     .from("exercise_notes")
     .select("content")
-    .eq("user_id", user.id)
     .eq("exercise_id", exerciseId)
     .maybeSingle();
 
@@ -16,13 +13,13 @@ export async function getExerciseNote(exerciseId: string): Promise<string> {
 }
 
 export async function upsertExerciseNote(exerciseId: string, content: string): Promise<void> {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) throw new Error("Not authenticated");
 
   const { error } = await supabase
     .from("exercise_notes")
     .upsert(
-      { user_id: user.id, exercise_id: exerciseId, content, updated_at: new Date().toISOString() },
+      { user_id: session.user.id, exercise_id: exerciseId, content, updated_at: new Date().toISOString() },
       { onConflict: "user_id,exercise_id" },
     );
 

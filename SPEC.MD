@@ -671,7 +671,145 @@ eas submit --platform android
 
 ---
 
-## 10. App Store Checklist
+## Phase 2: Gym & Coach Features
+
+### Core Concepts
+
+- Any user can create a gym → becomes its admin. Monetization is on the gym entity (free ≤10 athletes).
+- A user can belong to only ONE gym at a time.
+- Gym tab is always visible. Shows join/create if no gym, today's workout if in a gym.
+- Admin assigns coach role to existing gym members. No self-promotion.
+- Workouts are tied to specific dates. No recurring schedules yet.
+- No workout completion/logging in Phase 2 (deferred to Phase 3).
+- No images/videos in workouts. Logo only for gym profile (Supabase Storage).
+
+### Workout Data Model
+
+Workout → Sections → Items. Coach names sections freely.
+
+```
+Workout (date: March 15, gym: CrossFit Central)
+  └─ Section: "Warm Up" (order: 1)
+  │    ├─ Item (free_text): "10 min easy row + mobility"
+  │    └─ Item (structured): Back Squat 3x5 @ 50%
+  └─ Section: "Strength" (order: 2)
+  │    ├─ Item (structured): Back Squat 5x3 @ 80%
+  │    └─ Item (structured): Bench Press 4x5 @ 70%
+  └─ Section: "MetCon" (order: 3)
+  │    └─ Item (free_text): "15 min AMRAP: 10 wall balls, 15 cal row"
+  └─ Section: "Cool Down" (order: 4)
+       └─ Item (free_text): "5 min easy row + stretching"
+```
+
+### Phase 2 DB Tables
+
+#### gyms
+
+- id (UUID, PK)
+- name (TEXT, required)
+- description (TEXT, nullable)
+- address (TEXT, nullable)
+- logo_url (TEXT, nullable — Supabase Storage)
+- invite_token (UUID, unique — permanent deep link token, auto-generated)
+- temp_invite_code (TEXT, nullable — 8-char alphanumeric, for in-person sharing)
+- temp_code_expires (TIMESTAMPTZ, nullable — code valid until this time)
+- owner_id (UUID, FK → users)
+- created_at, updated_at
+
+**Invite system:**
+
+- Deep link (permanent): `liftslate://join/{invite_token}` — always valid, admin can regenerate (invalidates old one)
+- Temp code (2hr): admin taps "Generate Code" → 8-char code shown with countdown → expires automatically. New code kills previous one.
+
+#### gym_memberships
+
+- id (UUID, PK)
+- gym_id (UUID, FK → gyms)
+- user_id (UUID, FK → users, unique — one gym only)
+- role (ENUM: 'athlete' | 'coach' | 'admin')
+- joined_at (TIMESTAMPTZ)
+
+#### gym_subscriptions
+
+- id (UUID, PK)
+- gym_id (UUID, FK → gyms, unique)
+- plan (ENUM: 'free' | 'trial' | 'pro')
+- max_athletes (INTEGER, default 10)
+- max_coaches (INTEGER, default 1)
+- trial_started_at, trial_ends_at (TIMESTAMPTZ, nullable)
+- status (ENUM: 'active' | 'trial' | 'trial_expired' | 'cancelled')
+
+#### workouts
+
+- id (UUID, PK)
+- gym_id (UUID, FK → gyms)
+- created_by (UUID, FK → users — must be coach/admin)
+- title (TEXT, nullable)
+- scheduled_date (DATE)
+- notes (TEXT, nullable — general workout notes)
+- published (BOOLEAN, default false)
+- created_at, updated_at
+
+#### workout_sections
+
+- id (UUID, PK)
+- workout_id (UUID, FK → workouts, ON DELETE CASCADE)
+- title (TEXT — e.g., "Warm Up", "Strength", "MetCon")
+- order_index (INTEGER)
+
+#### workout_items
+
+- id (UUID, PK)
+- section_id (UUID, FK → workout_sections, ON DELETE CASCADE)
+- order_index (INTEGER)
+- item_type (ENUM: 'structured' | 'free_text')
+- **If structured:**
+  - exercise_id (UUID, FK → exercises, nullable)
+  - sets (INTEGER, nullable)
+  - reps (INTEGER, nullable)
+  - percentage (DECIMAL, nullable — 0.80 = 80%)
+  - max_type_reference (ENUM, nullable — default '1rm')
+  - weight_kg (DECIMAL, nullable — fixed weight instead of percentage)
+- **If free_text:**
+  - content (TEXT, nullable)
+- notes (TEXT, nullable — item-specific coach notes)
+
+### Phase 2 RLS Policies
+
+- gyms: anyone can SELECT (for join flow); only owner can UPDATE/DELETE
+- gym_memberships: SELECT own membership + memberships in same gym; INSERT via Edge Function only
+- gym_subscriptions: SELECT/UPDATE by gym admin only; managed mostly via Edge Functions
+- workouts: SELECT if member of gym AND published=true (or coach/admin sees unpublished); INSERT/UPDATE/DELETE by coach/admin of that gym
+- workout_sections & workout_items: inherit access from parent workout's gym membership
+
+### Phase 2 Edge Functions / Postgres Functions
+
+- **join_gym_by_token(token UUID)**: validates token, checks subscription limits, creates membership. Atomic.
+- **join_gym_by_temp_code(code TEXT)**: validates code + checks expiry + subscription limits, creates membership. Atomic.
+- **generate_temp_invite_code(gym_id UUID)**: creates 8-char alphanumeric code, sets 2hr expiry, replaces previous code.
+- **manage-role**: admin promotes/demotes members (athlete↔coach). Validates admin role + coach limits.
+- **publish-workout**: sets published=true, triggers push notification to gym members.
+
+### Phase 2 Navigation
+
+```
+app/(tabs)/gym.tsx              → Gym tab (join/create OR today's workout)
+app/gym/create.tsx              → Create gym form
+app/gym/join.tsx                → Join gym (code input)
+app/gym/[id]/index.tsx          → Gym home (today's workout + info)
+app/gym/[id]/settings.tsx       → Gym settings (admin only)
+app/gym/[id]/members.tsx        → Member list + role management (admin)
+app/gym/[id]/workout/new.tsx    → Create workout (coach/admin)
+app/gym/[id]/workout/[wid].tsx  → Workout detail view
+```
+
+### Phase 2 Key Packages (additions)
+
+- expo-image-picker (gym logo upload)
+- expo-notifications (push for WOD published)
+- expo-linking (deep link handling for invite links)
+
+# App Store Checklist
 
 ### iOS
 

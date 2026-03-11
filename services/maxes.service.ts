@@ -17,26 +17,19 @@ export interface UpdateMaxInput {
 }
 
 export async function getCurrentMaxes() {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
+  // RLS scopes maxes to own rows
   const { data, error } = await supabase
     .from("maxes")
     .select("*, exercises(name, category)")
-    .eq("user_id", user.id)
     .order("recorded_at", { ascending: false });
   if (error) throw error;
   return data;
 }
 
 export async function getMaxHistory(exerciseId: string) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
   const { data, error } = await supabase
     .from("maxes")
     .select("*")
-    .eq("user_id", user.id)
     .eq("exercise_id", exerciseId)
     .order("recorded_at", { ascending: false });
   if (error) throw error;
@@ -44,13 +37,13 @@ export async function getMaxHistory(exerciseId: string) {
 }
 
 export async function createMax(input: CreateMaxInput) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) throw new Error("Not authenticated");
 
   const { data, error } = await supabase
     .from("maxes")
     .insert({
-      user_id: user.id,
+      user_id: session.user.id,
       exercise_id: input.exerciseId,
       weight_kg: toKg(input.weight, input.unit),
       recorded_at: input.recordedAt ?? new Date().toISOString(),
@@ -88,13 +81,10 @@ export async function deleteMax(id: string) {
 }
 
 export async function deleteExerciseMaxes(exerciseId: string) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
+  // RLS ensures only own rows are deleted
   const { error } = await supabase
     .from("maxes")
     .delete()
-    .eq("user_id", user.id)
     .eq("exercise_id", exerciseId);
   if (error) throw error;
 }

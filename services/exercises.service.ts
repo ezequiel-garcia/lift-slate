@@ -14,12 +14,12 @@ export async function getExercises() {
 }
 
 export async function createExercise(name: string, category?: ExerciseCategory) {
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) throw new Error("Not authenticated");
 
   const { data, error } = await supabase
     .from("exercises")
-    .insert({ name, category, created_by: user.id, is_default: false })
+    .insert({ name, category, created_by: session.user.id, is_default: false })
     .select()
     .single();
   if (error) throw error;

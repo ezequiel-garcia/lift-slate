@@ -1,8 +1,11 @@
+import { useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { colors } from "@/lib/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Redirect, Tabs } from "expo-router";
 import { Platform } from "react-native";
+import { useQueryClient } from "@tanstack/react-query";
+import { getMyGym } from "@/services/gym.service";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 
@@ -18,6 +21,12 @@ function tabIcon(name: IoniconName, focused: boolean) {
 
 export default function TabsLayout() {
   const { session, isLoading } = useAuth();
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    if (!session) return;
+    queryClient.prefetchQuery({ queryKey: ["gym", "mine"], queryFn: getMyGym });
+  }, [session]);
 
   if (isLoading) return null;
   if (!session) return <Redirect href="/(auth)/login" />;
@@ -56,6 +65,13 @@ export default function TabsLayout() {
         options={{
           title: "Calculator",
           tabBarIcon: ({ focused }) => tabIcon("calculator", focused),
+        }}
+      />
+      <Tabs.Screen
+        name="gym"
+        options={{
+          title: "Gym",
+          tabBarIcon: ({ focused }) => tabIcon("fitness", focused),
         }}
       />
       <Tabs.Screen
