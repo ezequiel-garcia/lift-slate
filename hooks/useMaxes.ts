@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getCurrentMaxes, deleteExerciseMaxes, createMax, CreateMaxInput } from "@/services/maxes.service";
+import { getCurrentMaxes, deleteExerciseMaxes, deleteMax, createMax, CreateMaxInput } from "@/services/maxes.service";
 
 export function useMaxes() {
   return useQuery({ queryKey: ["maxes"], queryFn: getCurrentMaxes });
@@ -12,6 +12,17 @@ export function useCreateMax() {
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ["maxes"] });
       queryClient.invalidateQueries({ queryKey: ["maxes", "history", vars.exerciseId] });
+    },
+  });
+}
+
+export function useDeleteMax(exerciseId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteMax(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["maxes"] });
+      queryClient.invalidateQueries({ queryKey: ["maxes", "history", exerciseId] });
     },
   });
 }

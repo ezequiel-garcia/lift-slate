@@ -1,4 +1,4 @@
-import { FlatList, View, Text, Pressable, RefreshControl } from "react-native";
+import { FlatList, View, Text, Pressable, RefreshControl, Alert } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
 import { formatWeight, fromKg, WeightUnit } from "@/lib/units";
@@ -15,11 +15,12 @@ type Props = {
   history: Max[];
   unit: WeightUnit;
   onAddMax: () => void;
+  onDeleteMax?: (id: string) => void;
   refreshing?: boolean;
   onRefresh?: () => void;
 };
 
-export function HistoryTab({ history, unit, onAddMax, refreshing, onRefresh }: Props) {
+export function HistoryTab({ history, unit, onAddMax, onDeleteMax, refreshing, onRefresh }: Props) {
   const prWeightKg = history.reduce((best, m) => Math.max(best, m.weight_kg), 0);
 
   const renderItem = ({ item, index }: { item: Max; index: number }) => {
@@ -50,7 +51,22 @@ export function HistoryTab({ history, unit, onAddMax, refreshing, onRefresh }: P
               </Text>
             )}
           </View>
-          <Text className="text-sm text-muted shrink-0">{dateStr}</Text>
+          <View className="flex-row items-center gap-3">
+            <Text className="text-sm text-muted shrink-0">{dateStr}</Text>
+            {onDeleteMax && (
+              <Pressable
+                hitSlop={8}
+                onPress={() =>
+                  Alert.alert("Delete Entry", "Remove this max entry?", [
+                    { text: "Cancel", style: "cancel" },
+                    { text: "Delete", style: "destructive", onPress: () => onDeleteMax(item.id) },
+                  ])
+                }
+              >
+                <Ionicons name="trash-outline" size={16} color={colors.muted} />
+              </Pressable>
+            )}
+          </View>
         </View>
         {item.notes ? (
           <Text className="text-sm text-muted mt-1.5">{item.notes}</Text>

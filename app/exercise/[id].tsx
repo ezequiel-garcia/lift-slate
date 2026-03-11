@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useExerciseDetail } from "@/hooks/useExerciseDetail";
-import { useDeleteExerciseMaxes } from "@/hooks/useMaxes";
+import { useDeleteExerciseMaxes, useDeleteMax } from "@/hooks/useMaxes";
 import { CalculatorTab } from "@/components/calculator/CalculatorTab";
 import { HistoryTab } from "@/components/history/HistoryTab";
 import { AddMaxModal } from "@/components/exercises/AddMaxModal";
@@ -25,6 +25,7 @@ export default function ExerciseDetailScreen() {
 
   const { exercise, history, profile, isLoading, isError, refetch } = useExerciseDetail(id);
   const { mutate: deleteExerciseMaxes } = useDeleteExerciseMaxes();
+  const { mutate: deleteMax } = useDeleteMax(id);
 
   const unit = profile?.unit_preference ?? "kg";
   const roundingIncrementKg = profile?.rounding_increment_kg ?? 2.5;
@@ -117,6 +118,7 @@ export default function ExerciseDetailScreen() {
               history={history}
               unit={unit}
               onAddMax={() => setAddModalVisible(true)}
+              onDeleteMax={(maxId) => deleteMax(maxId)}
               refreshing={refreshing}
               onRefresh={handleRefresh}
             />
