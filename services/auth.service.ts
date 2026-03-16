@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import * as Linking from "expo-linking";
 
 export async function signUp(email: string, password: string) {
   const { data, error } = await supabase.auth.signUp({ email, password });
@@ -19,6 +20,19 @@ export async function signInWithGoogle(idToken: string) {
   });
   if (error) throw error;
   return data;
+}
+
+export async function resetPassword(email: string) {
+  const redirectTo = Linking.createURL("reset-password");
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo,
+  });
+  if (error) throw error;
+}
+
+export async function updatePassword(newPassword: string) {
+  const { error } = await supabase.auth.updateUser({ password: newPassword });
+  if (error) throw error;
 }
 
 export async function signOut() {

@@ -1,7 +1,9 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import { format, addDays } from "date-fns";
+import { useCallback } from "react";
 import {
   getTodaysWorkout,
+  getWorkoutsByDate,
   getWorkoutsForWeek,
   createWorkout,
   updateWorkout,
@@ -17,6 +19,37 @@ export function useTodaysWorkout(gymId: string | undefined) {
     queryFn: () => getTodaysWorkout(gymId!),
     enabled: !!gymId,
   });
+}
+
+export function useWorkoutsByDate(gymId: string | undefined, date: string) {
+  const queryClient = useQueryClient();
+
+  // Prefetch adjacent dates so back/forward navigation is instant
+  const prefetchAdjacent = useCallback(
+    (currentDate: string) => {
+      if (!gymId) return;
+      for (const offset of [-1, 1]) {
+        const adjDate = format(addDays(new Date(currentDate), offset), "yyyy-MM-dd");
+        queryClient.prefetchQuery({
+          queryKey: ["workouts", gymId, "date", adjDate],
+          queryFn: () => getWorkoutsByDate(gymId, adjDate),
+        });
+      }
+    },
+    [gymId, queryClient]
+  );
+
+  const query = useQuery({
+    queryKey: ["workouts", gymId, "date", date],
+    queryFn: () => {
+      prefetchAdjacent(date);
+      return getWorkoutsByDate(gymId!, date);
+    },
+    enabled: !!gymId,
+    placeholderData: keepPreviousData,
+  });
+
+  return query;
 }
 
 export function useWeekWorkouts(gymId: string | undefined, startDate: string | undefined) {

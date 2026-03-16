@@ -14,12 +14,19 @@ async function getCurrentUserId() {
 export async function createGym(
   name: string,
   description?: string,
-  address?: string
+  address?: string,
+  logoUrl?: string
 ) {
   const userId = await getCurrentUserId();
   const { data, error } = await supabase
     .from("gyms")
-    .insert({ name, description: description ?? null, address: address ?? null, owner_id: userId })
+    .insert({
+      name,
+      description: description ?? null,
+      address: address ?? null,
+      logo_url: logoUrl ?? null,
+      owner_id: userId,
+    })
     .select()
     .single();
   if (error) throw error;
@@ -27,17 +34,19 @@ export async function createGym(
 }
 
 export async function getMyGym() {
-  // RLS already scopes gym_memberships to the current user — no getSession() needed
+  const userId = await getCurrentUserId();
   const { data, error } = await supabase
     .from("gym_memberships")
-    .select("gym_id, gyms(*)")
+    .select("role, gyms(*)")
+    .eq("user_id", userId)
     .single();
 
   if (error) {
     if (error.code === "PGRST116") return null;
     throw error;
   }
-  return data?.gyms ?? null;
+  if (!data?.gyms) return null;
+  return { ...data.gyms, myRole: data.role as "athlete" | "coach" | "admin" };
 }
 
 export async function getGymById(gymId: string) {

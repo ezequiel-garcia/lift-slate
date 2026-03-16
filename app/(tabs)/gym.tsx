@@ -1,14 +1,30 @@
-import { View, Text, Pressable, ActivityIndicator } from "react-native";
+import { useState, useCallback, useMemo } from "react";
+import { View, Text, Pressable, ActivityIndicator, RefreshControl, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
+import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
+import { format } from "date-fns";
 import { useMyGym } from "@/hooks/useGym";
+import { useWorkoutsByDate } from "@/hooks/useWorkouts";
+import { useMaxes } from "@/hooks/useMaxes";
+import { useProfile } from "@/hooks/useProfile";
+import { WorkoutDayView } from "@/components/gym/WorkoutDayView";
+import { DateNavigator } from "@/components/gym/DateNavigator";
 import { colors } from "@/lib/theme";
 
 export default function GymScreen() {
-  const { data: gym, isLoading, isFetched } = useMyGym();
+  const { data: gym, isLoading: gymLoading, isFetched } = useMyGym();
+  const { data: profile } = useProfile();
+  const { data: maxesData } = useMaxes();
 
-  if (isLoading && !isFetched) {
+  // Hoist date state + workout query here so it fires as soon as gym.id is available
+  // instead of waiting for InGymView to mount (eliminates render-cycle waterfall)
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const dateStr = format(selectedDate, "yyyy-MM-dd");
+  const workoutsQuery = useWorkoutsByDate(gym?.id, dateStr);
+
+  if (gymLoading && !isFetched) {
     return (
       <SafeAreaView className="flex-1 bg-bg justify-center items-center">
         <ActivityIndicator color={colors.accent} />
@@ -17,20 +33,25 @@ export default function GymScreen() {
   }
 
   if (gym) {
-    // In-gym view — to be built in Step 10
     return (
-      <SafeAreaView className="flex-1 bg-bg">
-        <View className="px-5 pt-5">
-          <Text className="text-[28px] font-bold text-foreground tracking-tight">{gym.name}</Text>
-        </View>
-      </SafeAreaView>
+      <InGymView
+        gym={gym}
+        profile={profile}
+        maxesData={maxesData}
+        selectedDate={selectedDate}
+        onDateChange={setSelectedDate}
+        workoutsQuery={workoutsQuery}
+      />
     );
   }
 
+  return <NoGymView />;
+}
+
+function NoGymView() {
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
       <View className="flex-1 px-5 justify-center">
-        {/* Icon */}
         <View className="items-center mb-8">
           <View className="w-20 h-20 rounded-3xl bg-surface items-center justify-center mb-6">
             <Ionicons name="fitness" size={36} color={colors.accent} />
@@ -43,7 +64,6 @@ export default function GymScreen() {
           </Text>
         </View>
 
-        {/* Actions */}
         <View className="gap-3">
           <Pressable
             className="bg-accent rounded-2xl py-4 items-center"
@@ -58,11 +78,117 @@ export default function GymScreen() {
             style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
             onPress={() => router.push("/gym/create")}
           >
-            <Ionicons name="add-circle-outline" size={18} color={colors.foreground} />
+            <Ionicons name="add-circle-outline" size={18} color={colors.text} />
             <Text className="text-foreground font-semibold text-[16px]">Create a Gym</Text>
           </Pressable>
         </View>
       </View>
+    </SafeAreaView>
+  );
+}
+
+function InGymView({
+  gym,
+  profile,
+  maxesData,
+  selectedDate,
+  onDateChange,
+  workoutsQuery,
+}: {
+  gym: any;
+  profile: any;
+  maxesData: any;
+  selectedDate: Date;
+  onDateChange: (date: Date) => void;
+  workoutsQuery: ReturnType<typeof useWorkoutsByDate>;
+}) {
+  const { data: workouts, isLoading, refetch } = workoutsQuery;
+  const [refreshing, setRefreshing] = useState(false);
+
+  const isAdmin = gym.myRole === "admin";
+  const unit = profile?.unit_preference ?? "kg";
+  const roundingKg = profile?.rounding_increment_kg ?? 2.5;
+
+  // Build exercise_id → latest max weight_kg map
+  const maxMap = useMemo(() => {
+    if (!maxesData) return {};
+    const map: Record<string, number> = {};
+    for (const max of maxesData) {
+      if (!map[max.exercise_id]) {
+        map[max.exercise_id] = max.weight_kg;
+      }
+    }
+    return map;
+  }, [maxesData]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
+
+  return (
+    <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+      {/* Header */}
+      <View className="flex-row items-center justify-between px-5 pt-3 pb-1">
+        <View className="flex-row items-center gap-3 flex-1">
+          {gym.logo_url ? (
+            <Image
+              source={{ uri: gym.logo_url }}
+              style={{ width: 36, height: 36, borderRadius: 10 }}
+              contentFit="cover"
+            />
+          ) : (
+            <View className="w-9 h-9 rounded-[10px] bg-surface items-center justify-center">
+              <Ionicons name="fitness" size={18} color={colors.accent} />
+            </View>
+          )}
+          <Text className="text-foreground text-xl font-bold flex-shrink" numberOfLines={1}>
+            {gym.name}
+          </Text>
+        </View>
+
+        {isAdmin && (
+          <Pressable
+            onPress={() => router.push(`/gym/${gym.id}/settings`)}
+            className="p-2"
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          >
+            <Ionicons name="settings-outline" size={22} color={colors.muted} />
+          </Pressable>
+        )}
+      </View>
+
+      {/* Date navigator */}
+      <View className="px-5">
+        <DateNavigator date={selectedDate} onDateChange={onDateChange} />
+      </View>
+
+      {/* Workout content */}
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="px-5 pb-8 flex-grow"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.accent}
+          />
+        }
+      >
+        {isLoading ? (
+          <View className="flex-1 justify-center items-center py-20">
+            <ActivityIndicator color={colors.accent} />
+          </View>
+        ) : (
+          <WorkoutDayView
+            workouts={workouts ?? []}
+            maxMap={maxMap}
+            unit={unit}
+            roundingKg={roundingKg}
+          />
+        )}
+      </ScrollView>
     </SafeAreaView>
   );
 }

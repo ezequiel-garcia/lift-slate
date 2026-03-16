@@ -132,6 +132,14 @@ export default function LoginScreen() {
 
             {!!error && <Text style={styles.error}>{error}</Text>}
 
+            <View style={styles.forgotRow}>
+              <Link href="/(auth)/forgot-password" asChild>
+                <TouchableOpacity>
+                  <Text style={styles.forgotText}>Forgot password?</Text>
+                </TouchableOpacity>
+              </Link>
+            </View>
+
             <TouchableOpacity
               style={[styles.primaryBtn, loading && styles.dimmed]}
               onPress={handleSignIn}
@@ -208,6 +216,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   error: { color: colors.error, fontSize: 14 },
+  forgotRow: { alignItems: "flex-end" },
+  forgotText: { color: colors.accent, fontSize: 14, fontWeight: "600" },
   primaryBtn: {
     backgroundColor: colors.accent,
     borderRadius: radius.md,

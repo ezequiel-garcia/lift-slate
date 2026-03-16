@@ -13,14 +13,15 @@ export function useMyGym() {
     queryKey: ["gym", "mine"],
     queryFn: getMyGym,
     staleTime: 5 * 60 * 1000, // 5 min — avoids refetch on every tab switch
+    refetchOnMount: "always", // always verify gym membership on screen mount
   });
 }
 
 export function useCreateGym() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ name, description, address }: { name: string; description?: string; address?: string }) =>
-      createGym(name, description, address),
+    mutationFn: ({ name, description, address, logoUrl }: { name: string; description?: string; address?: string; logoUrl?: string }) =>
+      createGym(name, description, address, logoUrl),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["gym"] }),
   });
 }

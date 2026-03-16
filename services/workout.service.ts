@@ -2,7 +2,9 @@ import { supabase } from "@/lib/supabase";
 import { Tables } from "@/types/database.types";
 import { addDays, format } from "date-fns";
 
-export type WorkoutItem = Tables<"workout_items">;
+export type WorkoutItem = Tables<"workout_items"> & {
+  exercises: Pick<Tables<"exercises">, "name" | "category"> | null;
+};
 export type WorkoutSection = Tables<"workout_sections"> & { items: WorkoutItem[] };
 export type WorkoutWithSections = Tables<"workouts"> & { sections: WorkoutSection[] };
 
@@ -94,7 +96,7 @@ const WORKOUT_WITH_SECTIONS_QUERY = `
   *,
   sections:workout_sections(
     *,
-    items:workout_items(* order by order_index)
+    items:workout_items(*, exercises(name, category) order by order_index)
     order by order_index
   )
 ` as const;
