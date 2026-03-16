@@ -94,12 +94,20 @@ export async function createWorkout(gymId: string, input: WorkoutInput): Promise
 
 const WORKOUT_WITH_SECTIONS_QUERY = `
   *,
-  sections:workout_sections(
-    *,
-    items:workout_items(*, exercises(name, category) order by order_index)
-    order by order_index
-  )
+  sections:workout_sections(*, items:workout_items(*, exercises(name, category)))
 ` as const;
+
+function sortWorkout(workout: WorkoutWithSections): WorkoutWithSections {
+  return {
+    ...workout,
+    sections: [...workout.sections]
+      .sort((a, b) => a.order_index - b.order_index)
+      .map((s) => ({
+        ...s,
+        items: [...s.items].sort((a, b) => a.order_index - b.order_index),
+      })),
+  };
+}
 
 export async function getWorkoutsByDate(gymId: string, date: string): Promise<WorkoutWithSections[]> {
   const { data, error } = await supabase
@@ -109,7 +117,7 @@ export async function getWorkoutsByDate(gymId: string, date: string): Promise<Wo
     .eq("scheduled_date", date)
     .order("created_at");
   if (error) throw error;
-  return (data ?? []) as WorkoutWithSections[];
+  return ((data ?? []) as WorkoutWithSections[]).map(sortWorkout);
 }
 
 export async function getWorkoutsForWeek(gymId: string, startDate: string): Promise<WorkoutWithSections[]> {
@@ -123,7 +131,7 @@ export async function getWorkoutsForWeek(gymId: string, startDate: string): Prom
     .order("scheduled_date")
     .order("created_at");
   if (error) throw error;
-  return (data ?? []) as WorkoutWithSections[];
+  return ((data ?? []) as WorkoutWithSections[]).map(sortWorkout);
 }
 
 export async function getTodaysWorkout(gymId: string): Promise<WorkoutWithSections[]> {

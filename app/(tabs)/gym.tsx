@@ -1,11 +1,13 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { View, Text, Pressable, ActivityIndicator, RefreshControl, ScrollView } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
+import { useFocusEffect } from "expo-router";
 import { useMyGym } from "@/hooks/useGym";
+import { useAppStore } from "@/stores/appStore";
 import { useWorkoutsByDate } from "@/hooks/useWorkouts";
 import { useMaxes } from "@/hooks/useMaxes";
 import { useProfile } from "@/hooks/useProfile";
@@ -18,9 +20,21 @@ export default function GymScreen() {
   const { data: profile } = useProfile();
   const { data: maxesData } = useMaxes();
 
+  const pendingGymDate = useAppStore((s) => s.pendingGymDate);
+  const clearPendingGymDate = useAppStore((s) => s.clearPendingGymDate);
+
   // Hoist date state + workout query here so it fires as soon as gym.id is available
   // instead of waiting for InGymView to mount (eliminates render-cycle waterfall)
   const [selectedDate, setSelectedDate] = useState(new Date());
+
+  useFocusEffect(
+    useCallback(() => {
+      if (pendingGymDate) {
+        setSelectedDate(pendingGymDate);
+        clearPendingGymDate();
+      }
+    }, [pendingGymDate, clearPendingGymDate])
+  );
   const dateStr = format(selectedDate, "yyyy-MM-dd");
   const workoutsQuery = useWorkoutsByDate(gym?.id, dateStr);
 
@@ -106,6 +120,7 @@ function InGymView({
   const [refreshing, setRefreshing] = useState(false);
 
   const isAdmin = gym.myRole === "admin";
+  const canCreateWorkout = gym.myRole === "admin" || gym.myRole === "coach";
   const unit = profile?.unit_preference ?? "kg";
   const roundingKg = profile?.rounding_increment_kg ?? 2.5;
 
@@ -148,15 +163,26 @@ function InGymView({
           </Text>
         </View>
 
-        {isAdmin && (
-          <Pressable
-            onPress={() => router.push(`/gym/${gym.id}/settings`)}
-            className="p-2"
-            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-          >
-            <Ionicons name="settings-outline" size={22} color={colors.muted} />
-          </Pressable>
-        )}
+        <View className="flex-row items-center">
+          {canCreateWorkout && (
+            <Pressable
+              onPress={() => router.push(`/gym/${gym.id}/workout/new`)}
+              className="p-2"
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
+              <Ionicons name="add" size={26} color={colors.accent} />
+            </Pressable>
+          )}
+          {isAdmin && (
+            <Pressable
+              onPress={() => router.push(`/gym/${gym.id}/settings`)}
+              className="p-2"
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
+              <Ionicons name="settings-outline" size={22} color={colors.muted} />
+            </Pressable>
+          )}
+        </View>
       </View>
 
       {/* Date navigator */}
