@@ -59,9 +59,17 @@ export async function getGymById(gymId: string) {
   return data;
 }
 
+export async function removeMember(membershipId: string) {
+  const { error } = await supabase
+    .from("gym_memberships")
+    .delete()
+    .eq("id", membershipId);
+  if (error) throw error;
+}
+
 export async function updateGym(
   gymId: string,
-  updates: Partial<Pick<Tables<"gyms">, "name" | "description" | "address">>
+  updates: Partial<Pick<Tables<"gyms">, "name" | "description" | "address" | "logo_url">>
 ) {
   const { data, error } = await supabase
     .from("gyms")

@@ -6,6 +6,9 @@ import {
   leaveGym,
   getGymMembers,
   getGymSubscription,
+  deleteGym,
+  removeMember,
+  regenerateInviteToken,
 } from "@/services/gym.service";
 
 export function useMyGym() {
@@ -56,5 +59,29 @@ export function useGymSubscription(gymId: string | undefined) {
     queryKey: ["gym", gymId, "subscription"],
     queryFn: () => getGymSubscription(gymId!),
     enabled: !!gymId,
+  });
+}
+
+export function useDeleteGym() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (gymId: string) => deleteGym(gymId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["gym"] }),
+  });
+}
+
+export function useRemoveMember() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (membershipId: string) => removeMember(membershipId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["gym"] }),
+  });
+}
+
+export function useRegenerateInviteToken() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (gymId: string) => regenerateInviteToken(gymId),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["gym"] }),
   });
 }
