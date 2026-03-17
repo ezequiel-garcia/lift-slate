@@ -7,6 +7,9 @@ interface AppState {
   pendingGymDate: Date | null;
   setPendingGymDate: (date: Date) => void;
   clearPendingGymDate: () => void;
+  pendingInviteToken: string | null;
+  setPendingInviteToken: (token: string) => void;
+  clearPendingInviteToken: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -16,4 +19,7 @@ export const useAppStore = create<AppState>((set) => ({
   pendingGymDate: null,
   setPendingGymDate: (date) => set({ pendingGymDate: date }),
   clearPendingGymDate: () => set({ pendingGymDate: null }),
+  pendingInviteToken: null,
+  setPendingInviteToken: (token) => set({ pendingInviteToken: token }),
+  clearPendingInviteToken: () => set({ pendingInviteToken: null }),
 }));

@@ -45,6 +45,6 @@ export function useGenerateTempCode() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (gymId: string) => generateTempCode(gymId),
-    onSuccess: (_data, gymId) => queryClient.invalidateQueries({ queryKey: ["gym", gymId] }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["gym"] }),
   });
 }

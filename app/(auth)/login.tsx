@@ -17,6 +17,7 @@ import * as WebBrowser from "expo-web-browser";
 import * as authService from "@/services/auth.service";
 import * as profileService from "@/services/profile.service";
 import { colors, spacing, radius } from "@/lib/theme";
+import { useAppStore } from "@/stores/appStore";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -65,13 +66,24 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const pendingInviteToken = useAppStore((s) => s.pendingInviteToken);
+  const clearPendingInviteToken = useAppStore((s) => s.clearPendingInviteToken);
+
+  function getPostLoginRoute(hasDisplayName: boolean) {
+    if (pendingInviteToken) {
+      clearPendingInviteToken();
+      return `/gym/join?token=${pendingInviteToken}` as const;
+    }
+    return hasDisplayName ? "/(tabs)" : "/(auth)/onboarding";
+  }
+
   const handleGoogleSuccess = (idToken: string) => {
     setLoading(true);
     authService
       .signInWithGoogle(idToken)
       .then(() => profileService.getProfile())
       .then((profile) => {
-        router.replace(profile.display_name ? "/(tabs)" : "/(auth)/onboarding");
+        router.replace(getPostLoginRoute(!!profile.display_name));
       })
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
@@ -86,7 +98,8 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       await authService.signIn(email, password);
-      router.replace("/(tabs)");
+      const profile = await profileService.getProfile();
+      router.replace(getPostLoginRoute(!!profile.display_name));
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : "Sign in failed.");
     } finally {
