@@ -43,7 +43,7 @@ function RoleBadge({ role }: { role: Role }) {
 }
 
 function MemberAvatar({ member }: { member: GymMember }) {
-  if (member.users.avatar_url) {
+  if (member.users?.avatar_url) {
     return (
       <Image
         source={{ uri: member.users.avatar_url }}
@@ -52,7 +52,7 @@ function MemberAvatar({ member }: { member: GymMember }) {
       />
     );
   }
-  const initial = (member.users.display_name ?? member.users.email ?? "?")[0].toUpperCase();
+  const initial = (member.users?.display_name ?? member.users?.email ?? "?")[0].toUpperCase();
   return (
     <View className="w-10 h-10 rounded-full bg-surface2 items-center justify-center">
       <Text className="text-foreground font-bold text-[15px]">{initial}</Text>
@@ -77,8 +77,8 @@ export default function GymMembersScreen() {
       const q = search.toLowerCase();
       return (
         !q ||
-        (m.users.display_name ?? "").toLowerCase().includes(q) ||
-        (m.users.email ?? "").toLowerCase().includes(q)
+        (m.users?.display_name ?? "").toLowerCase().includes(q) ||
+        (m.users?.email ?? "").toLowerCase().includes(q)
       );
     }) ?? [];
 
@@ -90,7 +90,7 @@ export default function GymMembersScreen() {
     const label = newRole === "coach" ? "Make Coach" : "Make Athlete";
     Alert.alert(
       label,
-      `Make ${member.users.display_name ?? "this member"} a ${newRole}?`,
+      `Make ${member.users?.display_name ?? "this member"} a ${newRole}?`,
       [
         { text: "Cancel", style: "cancel" },
         { text: label, onPress: () => updateRole({ membershipId: member.id, newRole }) },
@@ -101,7 +101,7 @@ export default function GymMembersScreen() {
   function handleRemove(member: GymMember) {
     Alert.alert(
       "Remove Member",
-      `Remove ${member.users.display_name ?? member.users.email} from the gym? They will need to rejoin with an invite link.`,
+      `Remove ${member.users?.display_name ?? member.users?.email ?? "this member"} from the gym? They will need to rejoin with an invite link.`,
       [
         { text: "Cancel", style: "cancel" },
         {
@@ -178,10 +178,10 @@ export default function GymMembersScreen() {
 
               <View className="flex-1 min-w-0">
                 <Text className="text-foreground font-semibold text-[15px]" numberOfLines={1}>
-                  {member.users.display_name ?? "Unknown"}
+                  {member.users?.display_name ?? "Unknown"}
                 </Text>
                 <Text className="text-muted text-[13px]" numberOfLines={1}>
-                  {member.users.email}
+                  {member.users?.email}
                 </Text>
               </View>
 
