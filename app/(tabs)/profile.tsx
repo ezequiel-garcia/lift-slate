@@ -156,7 +156,7 @@ export default function ProfileScreen() {
           <View className="px-4 py-4 flex-row items-center justify-between">
             <View className="flex-1 pr-4">
               <Text className="text-foreground text-[16px] font-medium">Allow Coach Edits</Text>
-              <Text className="text-muted text-[13px] mt-0.5">Coming soon in gym features</Text>
+              <Text className="text-muted text-[13px] mt-0.5">Let coaches view and edit your maxes</Text>
             </View>
             <Switch
               value={profile?.allow_coach_edit ?? true}

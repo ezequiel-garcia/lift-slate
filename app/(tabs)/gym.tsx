@@ -173,23 +173,23 @@ function InGymView({
               <Ionicons name="add" size={26} color={colors.accent} />
             </Pressable>
           )}
+          {canCreateWorkout && (
+            <Pressable
+              onPress={() => router.push(`/gym/${gym.id}/members`)}
+              className="p-2"
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
+              <Ionicons name="people-outline" size={22} color={colors.muted} />
+            </Pressable>
+          )}
           {isAdmin && (
-            <>
-              <Pressable
-                onPress={() => router.push(`/gym/${gym.id}/members`)}
-                className="p-2"
-                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-              >
-                <Ionicons name="people-outline" size={22} color={colors.muted} />
-              </Pressable>
-              <Pressable
-                onPress={() => router.push(`/gym/${gym.id}/settings`)}
-                className="p-2"
-                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-              >
-                <Ionicons name="settings-outline" size={22} color={colors.muted} />
-              </Pressable>
-            </>
+            <Pressable
+              onPress={() => router.push(`/gym/${gym.id}/settings`)}
+              className="p-2"
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
+              <Ionicons name="settings-outline" size={22} color={colors.muted} />
+            </Pressable>
           )}
         </View>
       </View>

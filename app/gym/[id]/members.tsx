@@ -71,6 +71,7 @@ export default function GymMembersScreen() {
   const [search, setSearch] = useState("");
 
   const isAdmin = gym?.myRole === "admin";
+  const isCoachOrAdmin = gym?.myRole === "coach" || gym?.myRole === "admin";
 
   const filtered =
     members?.filter((m) => {
@@ -168,53 +169,64 @@ export default function GymMembersScreen() {
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
         >
-          {filtered.map((member, idx) => (
-            <View
-              key={member.id}
-              className="bg-surface rounded-2xl px-4 py-3 flex-row items-center gap-3"
-              style={{ marginBottom: idx < filtered.length - 1 ? 8 : 0 }}
-            >
-              <MemberAvatar member={member} />
+          {filtered.map((member, idx) => {
+            const canViewMaxes = isCoachOrAdmin && member.role !== "admin";
+            return (
+              <Pressable
+                key={member.id}
+                className="bg-surface rounded-2xl px-4 py-3 flex-row items-center gap-3"
+                style={[
+                  { marginBottom: idx < filtered.length - 1 ? 8 : 0 },
+                ]}
+                onPress={canViewMaxes ? () => router.push(`/gym/${gymId}/athlete/${member.user_id}`) : undefined}
+                disabled={!canViewMaxes}
+              >
+                <MemberAvatar member={member} />
 
-              <View className="flex-1 min-w-0">
-                <Text className="text-foreground font-semibold text-[15px]" numberOfLines={1}>
-                  {member.users?.display_name ?? "Unknown"}
-                </Text>
-                <Text className="text-muted text-[13px]" numberOfLines={1}>
-                  {member.users?.email}
-                </Text>
-              </View>
-
-              <RoleBadge role={member.role as Role} />
-
-              {isAdmin && member.role !== "admin" && (
-                <View className="flex-row gap-1 ml-1">
-                  <Pressable
-                    onPress={() => handleRoleToggle(member)}
-                    disabled={updatingRole || removing}
-                    className="p-2"
-                    style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-                    hitSlop={4}
-                  >
-                    <Ionicons
-                      name={member.role === "coach" ? "person-outline" : "ribbon-outline"}
-                      size={18}
-                      color={colors.muted}
-                    />
-                  </Pressable>
-                  <Pressable
-                    onPress={() => handleRemove(member)}
-                    disabled={updatingRole || removing}
-                    className="p-2"
-                    style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-                    hitSlop={4}
-                  >
-                    <Ionicons name="person-remove-outline" size={18} color={colors.error} />
-                  </Pressable>
+                <View className="flex-1 min-w-0">
+                  <Text className="text-foreground font-semibold text-[15px]" numberOfLines={1}>
+                    {member.users?.display_name ?? "Unknown"}
+                  </Text>
+                  <Text className="text-muted text-[13px]" numberOfLines={1}>
+                    {member.users?.email}
+                  </Text>
                 </View>
-              )}
-            </View>
-          ))}
+
+                <RoleBadge role={member.role as Role} />
+
+                {isAdmin && member.role !== "admin" && (
+                  <View className="flex-row gap-1 ml-1">
+                    <Pressable
+                      onPress={() => handleRoleToggle(member)}
+                      disabled={updatingRole || removing}
+                      className="p-2"
+                      style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                      hitSlop={4}
+                    >
+                      <Ionicons
+                        name={member.role === "coach" ? "person-outline" : "ribbon-outline"}
+                        size={18}
+                        color={colors.muted}
+                      />
+                    </Pressable>
+                    <Pressable
+                      onPress={() => handleRemove(member)}
+                      disabled={updatingRole || removing}
+                      className="p-2"
+                      style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                      hitSlop={4}
+                    >
+                      <Ionicons name="person-remove-outline" size={18} color={colors.error} />
+                    </Pressable>
+                  </View>
+                )}
+
+                {canViewMaxes && !isAdmin && (
+                  <Ionicons name="chevron-forward" size={16} color="#3F3F46" style={{ marginLeft: 4 }} />
+                )}
+              </Pressable>
+            );
+          })}
 
           {filtered.length === 0 && (
             <View className="items-center py-12">

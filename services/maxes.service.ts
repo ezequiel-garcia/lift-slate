@@ -80,6 +80,53 @@ export async function deleteMax(id: string) {
   if (error) throw error;
 }
 
+// --- Coach/Admin athlete access ---
+
+export async function getAthleteMaxes(userId: string) {
+  const { data, error } = await supabase
+    .from("maxes")
+    .select("*, exercises(name, category)")
+    .eq("user_id", userId)
+    .order("recorded_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+export async function createAthleteMax(userId: string, input: CreateMaxInput) {
+  const { data, error } = await supabase
+    .from("maxes")
+    .insert({
+      user_id: userId,
+      exercise_id: input.exerciseId,
+      weight_kg: toKg(input.weight, input.unit),
+      recorded_at: input.recordedAt ?? new Date().toISOString(),
+      notes: input.notes ?? null,
+      source: "coach",
+    })
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateAthleteMax(id: string, input: UpdateMaxInput) {
+  const updates: Record<string, unknown> = {};
+  if (input.weight !== undefined && input.unit !== undefined) {
+    updates.weight_kg = toKg(input.weight, input.unit);
+  }
+  if (input.recordedAt !== undefined) updates.recorded_at = input.recordedAt;
+  if (input.notes !== undefined) updates.notes = input.notes;
+
+  const { data, error } = await supabase
+    .from("maxes")
+    .update(updates)
+    .eq("id", id)
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export async function deleteExerciseMaxes(exerciseId: string) {
   // RLS ensures only own rows are deleted
   const { error } = await supabase

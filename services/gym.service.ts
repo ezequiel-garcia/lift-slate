@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { Tables } from "@/types/database.types";
 
 export type GymMember = Tables<"gym_memberships"> & {
-  users: Pick<Tables<"users">, "id" | "display_name" | "email" | "avatar_url">;
+  users: Pick<Tables<"users">, "id" | "display_name" | "email" | "avatar_url" | "allow_coach_edit" | "unit_preference">;
 };
 
 async function getCurrentUserId() {
@@ -89,7 +89,7 @@ export async function deleteGym(gymId: string) {
 export async function getGymMembers(gymId: string): Promise<GymMember[]> {
   const { data, error } = await supabase
     .from("gym_memberships")
-    .select("*, users(id, display_name, email, avatar_url)")
+    .select("*, users(id, display_name, email, avatar_url, allow_coach_edit, unit_preference)")
     .eq("gym_id", gymId)
     .order("joined_at", { ascending: true });
   if (error) throw error;
