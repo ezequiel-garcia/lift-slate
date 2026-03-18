@@ -1,12 +1,12 @@
 import { useState, useCallback, useMemo, useEffect } from "react";
-import { View, Text, Pressable, ActivityIndicator, RefreshControl, ScrollView } from "react-native";
+import { View, Text, Pressable, ActivityIndicator, RefreshControl, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
 import { useFocusEffect } from "expo-router";
-import { useMyGym } from "@/hooks/useGym";
+import { useMyGym, useLeaveGym } from "@/hooks/useGym";
 import { useAppStore } from "@/stores/appStore";
 import { useWorkoutsByDate } from "@/hooks/useWorkouts";
 import { useMaxes } from "@/hooks/useMaxes";
@@ -118,9 +118,24 @@ function InGymView({
 }) {
   const { data: workouts, isLoading, refetch } = workoutsQuery;
   const [refreshing, setRefreshing] = useState(false);
+  const { mutate: leaveGym, isPending: isLeaving } = useLeaveGym();
 
   const isAdmin = gym.myRole === "admin";
   const canCreateWorkout = gym.myRole === "admin" || gym.myRole === "coach";
+
+  function handleLeaveGym() {
+    if (!gym.membershipId) return;
+    Alert.alert("Leave Gym", `Are you sure you want to leave ${gym.name}?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Leave",
+        style: "destructive",
+        onPress: () => leaveGym(gym.membershipId, {
+          onError: (err: Error) => Alert.alert("Error", err.message),
+        }),
+      },
+    ]);
+  }
   const unit = profile?.unit_preference ?? "kg";
   const roundingKg = profile?.rounding_increment_kg ?? 2.5;
 
@@ -189,6 +204,16 @@ function InGymView({
               style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
             >
               <Ionicons name="settings-outline" size={22} color={colors.muted} />
+            </Pressable>
+          )}
+          {!isAdmin && (
+            <Pressable
+              onPress={handleLeaveGym}
+              disabled={isLeaving}
+              className="p-2"
+              style={({ pressed }) => ({ opacity: pressed || isLeaving ? 0.6 : 1 })}
+            >
+              <Ionicons name="exit-outline" size={22} color={colors.error} />
             </Pressable>
           )}
         </View>

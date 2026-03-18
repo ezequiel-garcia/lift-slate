@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
+import { useMyGym, useLeaveGym } from "@/hooks/useGym";
 import { signOut } from "@/services/auth.service";
 import { fromKg, toKg, WeightUnit } from "@/lib/units";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -14,6 +15,8 @@ import { colors } from "@/lib/theme";
 export default function ProfileScreen() {
   const { data: profile, isLoading } = useProfile();
   const { mutate: update, isPending } = useUpdateProfile();
+  const { data: gym, isLoading: gymLoading } = useMyGym();
+  const { mutate: leaveGym, isPending: isLeaving } = useLeaveGym();
 
   const unit = (profile?.unit_preference ?? "kg") as WeightUnit;
 
@@ -52,6 +55,20 @@ export default function ProfileScreen() {
 
   function handleCoachEditToggle(value: boolean) {
     update({ allow_coach_edit: value });
+  }
+
+  function handleLeaveGym() {
+    if (!gym?.membershipId) return;
+    Alert.alert("Leave Gym", `Are you sure you want to leave ${gym.name}?`, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Leave",
+        style: "destructive",
+        onPress: () => leaveGym(gym.membershipId!, {
+          onError: (err) => Alert.alert("Error", err.message),
+        }),
+      },
+    ]);
   }
 
   async function handleSignOut() {
@@ -153,6 +170,34 @@ export default function ProfileScreen() {
         <SectionHeader title="Gym" />
 
         <View className="mx-5 bg-surface rounded-2xl overflow-hidden">
+          {gymLoading ? (
+            <View className="px-4 py-4 items-center">
+              <ActivityIndicator color={colors.accent} />
+            </View>
+          ) : gym ? (
+            <>
+              <View className="px-4 py-4 flex-row items-center justify-between">
+                <View className="flex-1 pr-4">
+                  <Text className="text-foreground text-[16px] font-medium">{gym.name}</Text>
+                  <Text className="text-muted text-[13px] mt-0.5 capitalize">{gym.myRole}</Text>
+                </View>
+                <Pressable
+                  onPress={handleLeaveGym}
+                  disabled={isLeaving || gym.myRole === "admin"}
+                  style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+                >
+                  <Text className={`text-[14px] font-semibold ${gym.myRole === "admin" ? "text-muted" : "text-error"}`}>
+                    {gym.myRole === "admin" ? "Owner" : "Leave"}
+                  </Text>
+                </Pressable>
+              </View>
+              <View className="h-px bg-border mx-4" />
+            </>
+          ) : (
+            <View className="px-4 py-4">
+              <Text className="text-muted text-[15px]">Not part of a gym</Text>
+            </View>
+          )}
           <View className="px-4 py-4 flex-row items-center justify-between">
             <View className="flex-1 pr-4">
               <Text className="text-foreground text-[16px] font-medium">Allow Coach Edits</Text>

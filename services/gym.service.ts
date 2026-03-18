@@ -37,7 +37,7 @@ export async function getMyGym() {
   const userId = await getCurrentUserId();
   const { data, error } = await supabase
     .from("gym_memberships")
-    .select("role, gyms(*)")
+    .select("id, role, gyms(*)")
     .eq("user_id", userId)
     .single();
 
@@ -46,7 +46,7 @@ export async function getMyGym() {
     throw error;
   }
   if (!data?.gyms) return null;
-  return { ...data.gyms, myRole: data.role as "athlete" | "coach" | "admin" };
+  return { ...data.gyms, myRole: data.role as "athlete" | "coach" | "admin", membershipId: data.id };
 }
 
 export async function getGymById(gymId: string) {
