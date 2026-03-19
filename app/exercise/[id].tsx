@@ -9,9 +9,15 @@ import { CalculatorTab } from "@/components/calculator/CalculatorTab";
 import { HistoryTab } from "@/components/history/HistoryTab";
 import { AddMaxModal } from "@/components/exercises/AddMaxModal";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { colors } from "@/lib/theme";
 
 type Tab = "calculator" | "history";
+
+const TAB_SEGMENTS = [
+  { value: "calculator" as const, label: "Calculator" },
+  { value: "history" as const, label: "History" },
+];
 
 export default function ExerciseDetailScreen() {
   const { id, addMax } = useLocalSearchParams<{ id: string; addMax?: string }>();
@@ -67,14 +73,14 @@ export default function ExerciseDetailScreen() {
         <Pressable
           onPress={() => router.back()}
           hitSlop={12}
-          className="w-9 h-9 rounded-full bg-surface items-center justify-center"
+          className="w-10 h-10 rounded-full bg-surface items-center justify-center"
         >
-          <Ionicons name="chevron-back" size={20} color={colors.text} />
+          <Ionicons name="chevron-back" size={20} color={colors.foreground} />
         </Pressable>
         <Text className="flex-1 text-lg font-bold text-foreground text-center mx-3" numberOfLines={1}>
           {exercise?.name ?? "Exercise"}
         </Text>
-        <Pressable onPress={handleDelete} hitSlop={12} className="w-9 h-9 items-center justify-center">
+        <Pressable onPress={handleDelete} hitSlop={12} className="w-10 h-10 items-center justify-center">
           <Ionicons name="ellipsis-horizontal" size={20} color={colors.muted} />
         </Pressable>
       </View>
@@ -83,25 +89,13 @@ export default function ExerciseDetailScreen() {
         <ErrorState message="Failed to load history" onRetry={() => refetch()} />
       ) : (
         <>
-          {/* Tab bar — segmented control style */}
-          <View className="mx-5 mt-1 mb-3 flex-row bg-surface rounded-xl p-1">
-            {(["calculator", "history"] as Tab[]).map((tab) => (
-              <Pressable
-                key={tab}
-                className={`flex-1 py-2.5 items-center rounded-lg ${
-                  activeTab === tab ? "bg-surface2" : ""
-                }`}
-                onPress={() => setActiveTab(tab)}
-              >
-                <Text
-                  className={`text-[14px] font-semibold ${
-                    activeTab === tab ? "text-foreground" : "text-muted"
-                  }`}
-                >
-                  {tab === "calculator" ? "Calculator" : "History"}
-                </Text>
-              </Pressable>
-            ))}
+          {/* Tab bar */}
+          <View className="mx-5 mt-1 mb-3">
+            <SegmentedControl
+              segments={TAB_SEGMENTS}
+              selected={activeTab}
+              onChange={setActiveTab}
+            />
           </View>
 
           {/* Content */}

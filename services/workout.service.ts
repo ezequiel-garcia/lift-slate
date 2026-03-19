@@ -51,6 +51,7 @@ export async function createWorkout(gymId: string, input: WorkoutInput): Promise
       title: input.title ?? null,
       scheduled_date: input.scheduledDate,
       notes: input.notes ?? null,
+      published: true,
     })
     .select()
     .single();
@@ -195,21 +196,5 @@ export async function updateWorkout(workoutId: string, input: WorkoutInput): Pro
 
 export async function deleteWorkout(workoutId: string): Promise<void> {
   const { error } = await supabase.from("workouts").delete().eq("id", workoutId);
-  if (error) throw error;
-}
-
-export async function publishWorkout(workoutId: string): Promise<void> {
-  const { error } = await supabase
-    .from("workouts")
-    .update({ published: true })
-    .eq("id", workoutId);
-  if (error) throw error;
-}
-
-export async function unpublishWorkout(workoutId: string): Promise<void> {
-  const { error } = await supabase
-    .from("workouts")
-    .update({ published: false })
-    .eq("id", workoutId);
   if (error) throw error;
 }

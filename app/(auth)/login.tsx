@@ -2,13 +2,10 @@ import { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  ActivityIndicator,
-  StyleSheet,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useRouter } from "expo-router";
@@ -16,8 +13,9 @@ import * as Google from "expo-auth-session/providers/google";
 import * as WebBrowser from "expo-web-browser";
 import * as authService from "@/services/auth.service";
 import * as profileService from "@/services/profile.service";
-import { colors, spacing, radius } from "@/lib/theme";
 import { useAppStore } from "@/stores/appStore";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 WebBrowser.maybeCompleteAuthSession();
 
@@ -26,7 +24,6 @@ const GOOGLE_IOS = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
 const GOOGLE_ANDROID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
 const GOOGLE_CONFIGURED = !!(GOOGLE_WEB || GOOGLE_IOS || GOOGLE_ANDROID);
 
-// Isolated component so the hook is never called when IDs are absent
 function GoogleButton({
   onSuccess,
   onError,
@@ -49,13 +46,12 @@ function GoogleButton({
   }, [response]);
 
   return (
-    <TouchableOpacity
-      style={[styles.socialBtn, (!request || disabled) && styles.dimmed]}
+    <Button
+      label="Continue with Google"
+      variant="secondary"
       onPress={() => promptAsync()}
       disabled={!request || disabled}
-    >
-      <Text style={styles.socialBtnText}>Continue with Google</Text>
-    </TouchableOpacity>
+    />
   );
 }
 
@@ -108,70 +104,67 @@ export default function LoginScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-bg">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
+        className="flex-1"
       >
         <ScrollView
-          contentContainerStyle={styles.content}
+          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingTop: 56, paddingBottom: 32 }}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.logo}>
-            <Text style={styles.logoMark}>LS</Text>
-            <Text style={styles.logoName}>LIFTSLATE</Text>
+          {/* Logo */}
+          <View className="items-center mb-14">
+            <Text className="text-[52px] font-extrabold text-accent" style={{ letterSpacing: -2 }}>
+              LS
+            </Text>
+            <Text className="text-caption uppercase text-muted" style={{ letterSpacing: 7, marginTop: 2 }}>
+              LIFTSLATE
+            </Text>
           </View>
 
-          <View style={styles.form}>
-            <TextInput
-              style={styles.input}
+          {/* Form */}
+          <View className="gap-4">
+            <Input
               placeholder="Email"
-              placeholderTextColor={colors.muted}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
               autoComplete="email"
             />
-            <TextInput
-              style={styles.input}
+            <Input
               placeholder="Password"
-              placeholderTextColor={colors.muted}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
               autoComplete="current-password"
             />
 
-            {!!error && <Text style={styles.error}>{error}</Text>}
+            {!!error && <Text className="text-error text-sm">{error}</Text>}
 
-            <View style={styles.forgotRow}>
+            <View className="items-end">
               <Link href="/(auth)/forgot-password" asChild>
-                <TouchableOpacity>
-                  <Text style={styles.forgotText}>Forgot password?</Text>
-                </TouchableOpacity>
+                <Pressable hitSlop={8}>
+                  <Text className="text-accent text-sm font-semibold">Forgot password?</Text>
+                </Pressable>
               </Link>
             </View>
 
-            <TouchableOpacity
-              style={[styles.primaryBtn, loading && styles.dimmed]}
+            <Button
+              label="Sign In"
               onPress={handleSignIn}
+              loading={loading}
               disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color={colors.bg} />
-              ) : (
-                <Text style={styles.primaryBtnText}>Sign In</Text>
-              )}
-            </TouchableOpacity>
+            />
           </View>
 
           {GOOGLE_CONFIGURED && (
             <>
-              <View style={styles.divider}>
-                <View style={styles.dividerLine} />
-                <Text style={styles.dividerLabel}>or</Text>
-                <View style={styles.dividerLine} />
+              <View className="flex-row items-center my-8 gap-4">
+                <View className="flex-1 h-px bg-border" />
+                <Text className="text-muted text-caption">or</Text>
+                <View className="flex-1 h-px bg-border" />
               </View>
               <GoogleButton
                 onSuccess={handleGoogleSuccess}
@@ -181,12 +174,12 @@ export default function LoginScreen() {
             </>
           )}
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>Don't have an account? </Text>
+          <View className="flex-row justify-center mt-8">
+            <Text className="text-muted text-subtext">Don't have an account? </Text>
             <Link href="/(auth)/signup" asChild>
-              <TouchableOpacity>
-                <Text style={styles.footerLink}>Sign up</Text>
-              </TouchableOpacity>
+              <Pressable hitSlop={8}>
+                <Text className="text-accent text-subtext font-semibold">Sign up</Text>
+              </Pressable>
             </Link>
           </View>
         </ScrollView>
@@ -194,74 +187,3 @@ export default function LoginScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xxl,
-    paddingBottom: spacing.xl,
-  },
-  logo: { alignItems: "center", marginBottom: 56 },
-  logoMark: {
-    fontSize: 52,
-    fontWeight: "800",
-    color: colors.accent,
-    letterSpacing: -2,
-  },
-  logoName: {
-    fontSize: 12,
-    fontWeight: "700",
-    color: colors.muted,
-    letterSpacing: 7,
-    marginTop: 2,
-  },
-  form: { gap: spacing.md },
-  input: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 15,
-    color: colors.text,
-    fontSize: 16,
-  },
-  error: { color: colors.error, fontSize: 14 },
-  forgotRow: { alignItems: "flex-end" },
-  forgotText: { color: colors.accent, fontSize: 14, fontWeight: "600" },
-  primaryBtn: {
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 16,
-    alignItems: "center",
-    marginTop: spacing.sm,
-  },
-  primaryBtnText: { color: colors.bg, fontSize: 16, fontWeight: "700" },
-  dimmed: { opacity: 0.45 },
-  divider: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: spacing.xl,
-    gap: spacing.md,
-  },
-  dividerLine: { flex: 1, height: 1, backgroundColor: colors.border },
-  dividerLabel: { color: colors.muted, fontSize: 13 },
-  socialBtn: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingVertical: 16,
-    alignItems: "center",
-  },
-  socialBtnText: { color: colors.text, fontSize: 16, fontWeight: "600" },
-  footer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    marginTop: spacing.xl,
-  },
-  footerText: { color: colors.muted, fontSize: 14 },
-  footerLink: { color: colors.accent, fontSize: 14, fontWeight: "600" },
-});

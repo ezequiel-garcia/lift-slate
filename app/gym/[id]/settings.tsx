@@ -19,6 +19,9 @@ import * as ImagePicker from "expo-image-picker";
 import { format } from "date-fns";
 
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { colors } from "@/lib/theme";
 import {
   useMyGym,
@@ -208,16 +211,16 @@ export default function GymSettingsScreen() {
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
+        className="flex-1"
       >
         {/* Header */}
         <View className="flex-row items-center px-4 pt-2 pb-1">
           <Pressable
             onPress={() => router.back()}
-            className="p-2 -ml-2"
+            className="w-10 h-10 items-center justify-center -ml-1"
             style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
           >
-            <Ionicons name="chevron-back" size={24} color={colors.text} />
+            <Ionicons name="chevron-back" size={24} color={colors.foreground} />
           </Pressable>
           <Text className="text-foreground text-xl font-bold ml-1">Gym Settings</Text>
         </View>
@@ -228,7 +231,7 @@ export default function GymSettingsScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* === GYM INFO === */}
-          <SectionHeader title="Gym Info" />
+          <SectionHeader title="Gym Info" icon="information-circle-outline" />
 
           {/* Logo */}
           <Pressable
@@ -252,23 +255,19 @@ export default function GymSettingsScreen() {
               <Text className="text-foreground font-semibold text-[15px]">
                 {uploadingLogo ? "Uploading..." : "Change Logo"}
               </Text>
-              <Text className="text-muted text-[13px] mt-0.5">Tap to pick a new image</Text>
+              <Text className="text-muted text-caption mt-0.5">Tap to pick a new image</Text>
             </View>
             {uploadingLogo && <ActivityIndicator size="small" color={colors.accent} />}
           </Pressable>
 
-          <View className="mx-5 bg-surface rounded-2xl overflow-hidden">
+          <Card className="mx-5">
             <View className="px-4 py-4">
-              <Text className="text-[13px] text-muted mb-1.5 font-semibold uppercase tracking-widest">
-                Gym Name
-              </Text>
-              <TextInput
-                className="text-foreground text-[17px]"
+              <Input
+                label="Gym Name"
                 value={name}
                 onChangeText={setName}
                 onBlur={handleNameBlur}
                 placeholder="Gym name"
-                placeholderTextColor={colors.muted}
                 returnKeyType="done"
               />
             </View>
@@ -276,16 +275,12 @@ export default function GymSettingsScreen() {
             <View className="h-px bg-border mx-4" />
 
             <View className="px-4 py-4">
-              <Text className="text-[13px] text-muted mb-1.5 font-semibold uppercase tracking-widest">
-                Description
-              </Text>
-              <TextInput
-                className="text-foreground text-[17px]"
+              <Input
+                label="Description"
                 value={description}
                 onChangeText={setDescription}
                 onBlur={handleDescriptionBlur}
                 placeholder="Optional"
-                placeholderTextColor={colors.muted}
                 multiline
                 returnKeyType="done"
               />
@@ -294,36 +289,32 @@ export default function GymSettingsScreen() {
             <View className="h-px bg-border mx-4" />
 
             <View className="px-4 py-4">
-              <Text className="text-[13px] text-muted mb-1.5 font-semibold uppercase tracking-widest">
-                Address
-              </Text>
-              <TextInput
-                className="text-foreground text-[17px]"
+              <Input
+                label="Address"
                 value={address}
                 onChangeText={setAddress}
                 onBlur={handleAddressBlur}
                 placeholder="Optional"
-                placeholderTextColor={colors.muted}
                 returnKeyType="done"
               />
             </View>
-          </View>
+          </Card>
 
           {/* === INVITE MANAGEMENT === */}
-          <SectionHeader title="Invite Management" />
+          <SectionHeader title="Invite Management" icon="link-outline" />
 
-          <View className="mx-5 bg-surface rounded-2xl overflow-hidden">
+          <Card className="mx-5">
             {/* Permanent link */}
             <View className="px-4 py-4">
-              <Text className="text-[13px] text-muted mb-2 font-semibold uppercase tracking-widest">
+              <Text className="text-label uppercase tracking-wider text-muted mb-2">
                 Permanent Link
               </Text>
-              <Text className="text-muted text-[13px] mb-3 leading-relaxed">
+              <Text className="text-muted text-caption mb-3 leading-relaxed">
                 Anyone with this link can join your gym (subject to subscription limits).
               </Text>
               {deepLink ? (
                 <Text
-                  className="text-foreground text-[13px] bg-surface2 px-3 py-2.5 rounded-xl mb-3"
+                  className="text-foreground text-caption bg-surface2 px-3 py-2.5 rounded-xl mb-3"
                   numberOfLines={1}
                   selectable
                 >
@@ -331,25 +322,24 @@ export default function GymSettingsScreen() {
                 </Text>
               ) : null}
               <View className="flex-row gap-2">
-                <Pressable
-                  onPress={handleShareLink}
-                  disabled={!gym.invite_token}
-                  className="flex-1 bg-accent rounded-xl py-3 items-center flex-row justify-center gap-1.5"
-                  style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-                >
-                  <Ionicons name="share-outline" size={16} color={colors.bg} />
-                  <Text className="text-bg font-bold text-[14px]">Share Link</Text>
-                </Pressable>
-                <Pressable
-                  onPress={handleRegenerateToken}
-                  disabled={regeneratingToken}
-                  className="flex-1 bg-surface2 rounded-xl py-3 items-center"
-                  style={({ pressed }) => ({ opacity: pressed || regeneratingToken ? 0.6 : 1 })}
-                >
-                  <Text className="text-foreground font-semibold text-[14px]">
-                    {regeneratingToken ? "Regenerating..." : "Regenerate"}
-                  </Text>
-                </Pressable>
+                <View className="flex-1">
+                  <Button
+                    label="Share Link"
+                    size="md"
+                    onPress={handleShareLink}
+                    disabled={!gym.invite_token}
+                    icon={<Ionicons name="share-outline" size={16} color={colors.bg} />}
+                  />
+                </View>
+                <View className="flex-1">
+                  <Button
+                    label={regeneratingToken ? "Regenerating..." : "Regenerate"}
+                    variant="secondary"
+                    size="md"
+                    onPress={handleRegenerateToken}
+                    disabled={regeneratingToken}
+                  />
+                </View>
               </View>
             </View>
 
@@ -357,10 +347,10 @@ export default function GymSettingsScreen() {
 
             {/* Temp code */}
             <View className="px-4 py-4">
-              <Text className="text-[13px] text-muted mb-2 font-semibold uppercase tracking-widest">
+              <Text className="text-label uppercase tracking-wider text-muted mb-2">
                 Temporary Code
               </Text>
-              <Text className="text-muted text-[13px] mb-3 leading-relaxed">
+              <Text className="text-muted text-caption mb-3 leading-relaxed">
                 Share a short code valid for 2 hours. Great for in-person sign-ups.
               </Text>
               {hasActiveCode && (
@@ -371,45 +361,33 @@ export default function GymSettingsScreen() {
                   >
                     {gym.temp_invite_code}
                   </Text>
-                  <Text className="text-muted text-[13px] mt-1">{countdown}</Text>
+                  <Text className="text-muted text-caption mt-1">{countdown}</Text>
                 </View>
               )}
-              <Pressable
+              <Button
+                label={generatingCode ? "Generating..." : hasActiveCode ? "Generate New Code" : "Generate Code"}
+                variant="secondary"
                 onPress={handleGenerateCode}
                 disabled={generatingCode}
-                className="bg-surface2 rounded-xl py-3 items-center"
-                style={({ pressed }) => ({ opacity: pressed || generatingCode ? 0.6 : 1 })}
-              >
-                <Text className="text-foreground font-semibold text-[15px]">
-                  {generatingCode
-                    ? "Generating..."
-                    : hasActiveCode
-                    ? "Generate New Code"
-                    : "Generate Code"}
-                </Text>
-              </Pressable>
+              />
             </View>
-          </View>
+          </Card>
 
           {/* === SUBSCRIPTION === */}
-          <SectionHeader title="Subscription" />
+          <SectionHeader title="Subscription" icon="card-outline" />
           <SubscriptionSection gymId={gym.id} />
 
           {/* === DANGER ZONE === */}
-          <SectionHeader title="Danger Zone" />
+          <SectionHeader title="Danger Zone" icon="warning-outline" />
           <View className="mx-5 mb-4">
-            <Pressable
+            <Button
+              label={deleting ? "Deleting..." : "Delete Gym"}
+              variant="destructive"
               onPress={handleDeleteGym}
               disabled={deleting}
-              className="bg-surface rounded-2xl py-3.5 items-center flex-row justify-center gap-2 border border-error"
-              style={({ pressed }) => ({ opacity: pressed || deleting ? 0.7 : 1 })}
-            >
-              <Ionicons name="trash-outline" size={16} color={colors.error} />
-              <Text className="text-error font-semibold text-[15px]">
-                {deleting ? "Deleting..." : "Delete Gym"}
-              </Text>
-            </Pressable>
-            <Text className="text-muted text-[12px] text-center mt-2">
+              icon={<Ionicons name="trash-outline" size={16} color={colors.error} />}
+            />
+            <Text className="text-muted text-caption text-center mt-2">
               Removes all members, workouts, and gym data permanently.
             </Text>
           </View>
@@ -440,15 +418,15 @@ function SubscriptionSection({ gymId }: { gymId: string }) {
   const atCoachLimit = coachCount >= sub.max_coaches;
 
   return (
-    <View className="mx-5 bg-surface rounded-2xl overflow-hidden">
+    <Card className="mx-5">
       <View className="px-4 py-4">
         <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-foreground font-semibold text-[16px]">{planLabel} Plan</Text>
+          <Text className="text-foreground font-semibold text-body">{planLabel} Plan</Text>
           <View
             className={`px-2.5 py-1 rounded-full ${sub.plan === "pro" ? "bg-accent" : "bg-surface2"}`}
           >
             <Text
-              className={`text-[12px] font-bold ${sub.plan === "pro" ? "text-bg" : "text-muted"}`}
+              className={`text-tiny font-bold ${sub.plan === "pro" ? "text-bg" : "text-muted"}`}
             >
               {planLabel.toUpperCase()}
             </Text>
@@ -456,24 +434,24 @@ function SubscriptionSection({ gymId }: { gymId: string }) {
         </View>
 
         {isTrialActive && (
-          <Text className="text-muted text-[13px] mb-3">
+          <Text className="text-muted text-caption mb-3">
             Trial ends {format(new Date(sub.trial_ends_at!), "MMM d, yyyy")}
           </Text>
         )}
 
         <View className="gap-2">
           <View className="flex-row justify-between items-center">
-            <Text className="text-muted text-[14px]">Athletes</Text>
+            <Text className="text-muted text-subtext">Athletes</Text>
             <Text
-              className={`text-[14px] font-semibold ${atAthleteLimit ? "text-error" : "text-foreground"}`}
+              className={`text-subtext font-semibold ${atAthleteLimit ? "text-error" : "text-foreground"}`}
             >
               {athleteCount} / {sub.max_athletes}
             </Text>
           </View>
           <View className="flex-row justify-between items-center">
-            <Text className="text-muted text-[14px]">Coaches</Text>
+            <Text className="text-muted text-subtext">Coaches</Text>
             <Text
-              className={`text-[14px] font-semibold ${atCoachLimit ? "text-error" : "text-foreground"}`}
+              className={`text-subtext font-semibold ${atCoachLimit ? "text-error" : "text-foreground"}`}
             >
               {coachCount} / {sub.max_coaches}
             </Text>
@@ -482,13 +460,13 @@ function SubscriptionSection({ gymId }: { gymId: string }) {
 
         {(atAthleteLimit || atCoachLimit) && sub.plan !== "pro" && (
           <View className="mt-3 bg-surface2 rounded-xl px-3 py-2.5">
-            <Text className="text-accent text-[13px] font-semibold">
+            <Text className="text-accent text-caption font-semibold">
               Upgrade to Pro for unlimited members
             </Text>
-            <Text className="text-muted text-[12px] mt-0.5">Billing coming in a future update</Text>
+            <Text className="text-muted text-caption mt-0.5">Billing coming in a future update</Text>
           </View>
         )}
       </View>
-    </View>
+    </Card>
   );
 }

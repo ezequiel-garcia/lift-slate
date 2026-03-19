@@ -1,25 +1,59 @@
-import { useState } from "react";
-import { View, Text, SectionList, TextInput, Pressable, ActivityIndicator, RefreshControl, Alert } from "react-native";
+import { useState, useCallback } from "react";
+import { View, Text, SectionList, Pressable, RefreshControl, Alert, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  useReducedMotion,
+  FadeIn,
+} from "react-native-reanimated";
 import { useMyLifts } from "@/hooks/useMyLifts";
 import { useDeleteExerciseMaxes } from "@/hooks/useMaxes";
 import { ExerciseRow } from "@/components/exercises/ExerciseRow";
-import { ExercisesEmptyState } from "@/components/exercises/ExercisesEmptyState";
 import { AddExerciseModal } from "@/components/exercises/AddExerciseModal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ErrorState } from "@/components/ui/ErrorState";
-import { colors } from "@/lib/theme";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { ExerciseListSkeleton } from "@/components/ui/Skeleton";
+import { colors, animation } from "@/lib/theme";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function HomeScreen() {
   const [search, setSearch] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const reduceMotion = useReducedMotion();
 
   const { unit, exerciseSummaries, sections, filtered, availableExercises, isLoading, isLoadingExercises, isError, refetch } =
     useMyLifts(search);
 
   const { mutate: deleteExerciseMaxes } = useDeleteExerciseMaxes();
+
+  // FAB scroll behavior
+  const fabTranslateY = useSharedValue(0);
+  const lastScrollY = useSharedValue(0);
+
+  const fabStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: fabTranslateY.value }],
+  }));
+
+  const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y;
+    if (reduceMotion) return;
+    if (y > lastScrollY.value + 10 && y > 50) {
+      // scrolling down — hide FAB
+      fabTranslateY.value = withTiming(100, { duration: animation.duration.normal });
+    } else if (y < lastScrollY.value - 10 || y < 50) {
+      // scrolling up — show FAB
+      fabTranslateY.value = withTiming(0, { duration: animation.duration.normal });
+    }
+    lastScrollY.value = y;
+  }, [reduceMotion]);
 
   function handleDeleteExercise(exerciseId: string, name: string) {
     Alert.alert(
@@ -44,8 +78,11 @@ export default function HomeScreen() {
 
   if (isLoading) {
     return (
-      <SafeAreaView className="flex-1 bg-bg justify-center">
-        <ActivityIndicator color={colors.accent} />
+      <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+        <View className="px-5 pt-5 pb-3">
+          <Text className="text-title text-foreground tracking-tight">My Lifts</Text>
+        </View>
+        <ExerciseListSkeleton count={6} />
       </SafeAreaView>
     );
   }
@@ -61,29 +98,34 @@ export default function HomeScreen() {
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
       {exerciseSummaries.length === 0 ? (
-        <ExercisesEmptyState onAdd={() => setModalVisible(true)} />
+        <EmptyState
+          icon="barbell-outline"
+          title="No lifts yet"
+          description={"Track your 1RMs to auto-calculate\ntraining weights"}
+          action={
+            <Button
+              label="Add your first exercise"
+              onPress={() => setModalVisible(true)}
+            />
+          }
+        />
       ) : (
         <>
           <View className="px-5 pt-5 pb-3">
-            <Text className="text-[28px] font-bold text-foreground mb-4 tracking-tight">
+            <Text className="text-title text-foreground mb-4 tracking-tight">
               My Lifts
             </Text>
-            <View className="flex-row items-center bg-surface rounded-xl px-3.5">
-              <Ionicons name="search" size={18} color={colors.muted} />
-              <TextInput
-                className="flex-1 py-3 px-2.5 text-foreground text-[16px]"
-                placeholder="Search exercises..."
-                placeholderTextColor={colors.muted}
-                value={search}
-                onChangeText={setSearch}
-                clearButtonMode="while-editing"
-              />
-            </View>
+            <Input
+              placeholder="Search exercises..."
+              value={search}
+              onChangeText={setSearch}
+              leftIcon={<Ionicons name="search" size={18} color={colors.muted} />}
+            />
           </View>
 
           {filtered.length === 0 && search ? (
             <View className="flex-1 items-center pt-12">
-              <Text className="text-base text-muted">No results for "{search}"</Text>
+              <Text className="text-body text-muted">No results for "{search}"</Text>
             </View>
           ) : (
             <SectionList
@@ -105,6 +147,8 @@ export default function HomeScreen() {
               ItemSeparatorComponent={() => (
                 <View className="h-px bg-border ml-[72px] mr-5" />
               )}
+              onScroll={handleScroll}
+              scrollEventThrottle={16}
               refreshControl={
                 <RefreshControl
                   refreshing={refreshing}
@@ -117,21 +161,25 @@ export default function HomeScreen() {
         </>
       )}
 
-      <Pressable
-        className="absolute bottom-8 right-5 bg-accent rounded-2xl flex-row items-center px-5 py-3.5 gap-2"
-        style={({ pressed }) => ({
-          opacity: pressed ? 0.85 : 1,
-          shadowColor: "#B4FF4A",
-          shadowOffset: { width: 0, height: 4 },
-          shadowOpacity: 0.25,
-          shadowRadius: 12,
-          elevation: 6,
-        })}
-        onPress={() => setModalVisible(true)}
-      >
-        <Ionicons name="add" size={22} color={colors.bg} />
-        <Text className="text-bg font-bold text-[15px]">Add Exercise</Text>
-      </Pressable>
+      {exerciseSummaries.length > 0 && (
+        <AnimatedPressable
+          className="absolute bottom-8 right-5 bg-accent rounded-2xl flex-row items-center px-5 py-3.5 gap-2"
+          style={[
+            fabStyle,
+            {
+              shadowColor: "#B4FF4A",
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.25,
+              shadowRadius: 12,
+              elevation: 6,
+            },
+          ]}
+          onPress={() => setModalVisible(true)}
+        >
+          <Ionicons name="add" size={22} color={colors.bg} />
+          <Text className="text-bg font-bold text-[15px]">Add Exercise</Text>
+        </AnimatedPressable>
+      )}
 
       <AddExerciseModal
         visible={modalVisible}

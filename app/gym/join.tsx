@@ -24,6 +24,7 @@ import {
 import { GymPreview } from "@/services/invite.service";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/stores/appStore";
+import { Button } from "@/components/ui/Button";
 
 export default function JoinGymScreen() {
   const { token } = useLocalSearchParams<{ token?: string }>();
@@ -31,7 +32,6 @@ export default function JoinGymScreen() {
   const setPendingInviteToken = useAppStore((s) => s.setPendingInviteToken);
   const [code, setCode] = useState("");
 
-  // All hooks must be called unconditionally before any early returns
   const tokenQuery = useGymPreviewByToken(!authLoading && !!session ? token : undefined);
   const codeQuery = useGymPreviewByTempCode(!authLoading && !!session && code.length === 8 ? code : undefined);
   const { mutate: joinByToken, isPending: joiningByToken } = useJoinGymByToken();
@@ -55,7 +55,6 @@ export default function JoinGymScreen() {
 
   const joining = joiningByToken || joiningByCode;
 
-  // Active preview: token takes priority if present
   const activePreview: GymPreview | undefined = token ? tokenQuery.data : codeQuery.data;
   const previewError = token ? tokenQuery.error : code.length === 8 ? codeQuery.error : null;
   const previewLoading = token ? tokenQuery.isLoading : codeQuery.isLoading && code.length === 8;
@@ -91,16 +90,16 @@ export default function JoinGymScreen() {
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
+        className="flex-1"
       >
         {/* Header */}
         <View className="flex-row items-center px-4 pt-2 pb-1">
           <Pressable
             onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)/gym")}
-            className="p-2 -ml-2"
+            className="w-10 h-10 items-center justify-center -ml-1"
             style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
           >
-            <Ionicons name="chevron-back" size={24} color={colors.text} />
+            <Ionicons name="chevron-back" size={24} color={colors.foreground} />
           </Pressable>
           <Text className="text-foreground text-xl font-bold ml-1">Join a Gym</Text>
         </View>
@@ -114,16 +113,16 @@ export default function JoinGymScreen() {
           {token && (
             <View className="bg-surface2 rounded-2xl px-4 py-3 flex-row items-center gap-3 mb-6">
               <Ionicons name="link" size={18} color={colors.accent} />
-              <Text className="text-muted text-[13px] flex-1">
+              <Text className="text-muted text-caption flex-1">
                 You opened an invite link
               </Text>
             </View>
           )}
 
-          {/* Code entry (shown when no token, or alongside token for flexibility) */}
+          {/* Code entry */}
           {!token && (
             <View className="mb-6">
-              <Text className="text-[13px] text-muted mb-2 font-semibold uppercase tracking-widest">
+              <Text className="text-label uppercase tracking-wider text-muted mb-2">
                 Enter Invite Code
               </Text>
               <TextInput
@@ -137,7 +136,7 @@ export default function JoinGymScreen() {
                 maxLength={8}
                 returnKeyType="done"
               />
-              <Text className="text-muted text-[12px] text-center mt-2">
+              <Text className="text-muted text-caption text-center mt-2">
                 8-character code from your coach or gym admin
               </Text>
             </View>
@@ -153,7 +152,7 @@ export default function JoinGymScreen() {
           {previewError && !previewLoading && (
             <View className="bg-surface rounded-2xl px-4 py-5 flex-row items-center gap-3">
               <Ionicons name="alert-circle-outline" size={20} color={colors.error} />
-              <Text className="text-error text-[14px] flex-1">
+              <Text className="text-error text-subtext flex-1">
                 {token ? "Invalid or expired invite link." : "Invalid or expired code."}
               </Text>
             </View>
@@ -162,49 +161,40 @@ export default function JoinGymScreen() {
           {activePreview && !previewLoading && (
             <View className="bg-surface rounded-2xl overflow-hidden">
               <View className="px-4 py-5">
-                {/* Gym icon + name */}
                 <View className="flex-row items-center gap-3 mb-3">
-                  <View className="w-12 h-12 rounded-[12px] bg-surface2 items-center justify-center">
+                  <View className="w-12 h-12 rounded-xl bg-surface2 items-center justify-center">
                     <Ionicons name="fitness" size={24} color={colors.accent} />
                   </View>
                   <View className="flex-1">
-                    <Text className="text-foreground text-[20px] font-bold">
+                    <Text className="text-foreground text-heading font-bold">
                       {activePreview.name}
                     </Text>
-                    <Text className="text-muted text-[13px]">
+                    <Text className="text-muted text-caption">
                       {activePreview.member_count} member{activePreview.member_count !== 1 ? "s" : ""}
                     </Text>
                   </View>
                 </View>
 
                 {activePreview.description && (
-                  <Text className="text-muted text-[14px] leading-relaxed mb-4">
+                  <Text className="text-muted text-subtext leading-relaxed mb-4">
                     {activePreview.description}
                   </Text>
                 )}
 
-                <Pressable
+                <Button
+                  label={`Join ${activePreview.name}`}
                   onPress={handleJoin}
+                  loading={joining}
                   disabled={joining}
-                  className="bg-accent rounded-xl py-4 items-center"
-                  style={({ pressed }) => ({ opacity: pressed || joining ? 0.85 : 1 })}
-                >
-                  {joining ? (
-                    <ActivityIndicator color={colors.bg} />
-                  ) : (
-                    <Text className="text-bg font-bold text-[16px]">
-                      Join {activePreview.name}
-                    </Text>
-                  )}
-                </Pressable>
+                />
               </View>
             </View>
           )}
 
-          {/* Divider + alternative method hint */}
+          {/* Alternative method hint */}
           {!token && (
             <View className="mt-8 items-center gap-3">
-              <Text className="text-muted text-[13px]">
+              <Text className="text-muted text-caption text-center">
                 Have an invite link? Ask your coach to share it — it will open this screen automatically.
               </Text>
             </View>

@@ -2,12 +2,10 @@ import { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
   Pressable,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Image } from "expo-image";
@@ -17,6 +15,8 @@ import { Ionicons } from "@expo/vector-icons";
 import { useCreateGym } from "@/hooks/useGym";
 import { uploadGymLogo } from "@/services/storage.service";
 import { useAppStore } from "@/stores/appStore";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { colors } from "@/lib/theme";
 
 export default function CreateGymScreen() {
@@ -99,12 +99,12 @@ export default function CreateGymScreen() {
       <View className="flex-row items-center px-4 py-3">
         <Pressable
           onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)/gym")}
-          className="w-9 h-9 rounded-full bg-surface items-center justify-center"
+          className="w-10 h-10 rounded-full bg-surface items-center justify-center"
           style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
         >
-          <Ionicons name="chevron-back" size={20} color={colors.text} />
+          <Ionicons name="chevron-back" size={20} color={colors.foreground} />
         </Pressable>
-        <Text className="flex-1 text-center text-foreground text-lg font-bold -ml-9">
+        <Text className="flex-1 text-center text-foreground text-lg font-bold -ml-10">
           Create Gym
         </Text>
       </View>
@@ -140,68 +140,43 @@ export default function CreateGymScreen() {
 
           {/* Form */}
           <View className="gap-4">
-            <View className="gap-1.5">
-              <Text className="text-muted text-xs uppercase tracking-wider font-semibold">
-                Gym Name *
-              </Text>
-              <TextInput
-                className="bg-surface border border-border rounded-xl px-4 py-3.5 text-foreground text-base"
-                placeholder="e.g. Iron Temple"
-                placeholderTextColor={colors.muted}
-                value={name}
-                onChangeText={setName}
-                autoCapitalize="words"
-                autoFocus
-              />
-            </View>
-
-            <View className="gap-1.5">
-              <Text className="text-muted text-xs uppercase tracking-wider font-semibold">
-                Description
-              </Text>
-              <TextInput
-                className="bg-surface border border-border rounded-xl px-4 py-3.5 text-foreground text-base min-h-[100px]"
-                placeholder="Tell athletes about your gym..."
-                placeholderTextColor={colors.muted}
-                value={description}
-                onChangeText={setDescription}
-                multiline
-                textAlignVertical="top"
-              />
-            </View>
-
-            <View className="gap-1.5">
-              <Text className="text-muted text-xs uppercase tracking-wider font-semibold">
-                Address
-              </Text>
-              <TextInput
-                className="bg-surface border border-border rounded-xl px-4 py-3.5 text-foreground text-base"
-                placeholder="123 Main St, City"
-                placeholderTextColor={colors.muted}
-                value={address}
-                onChangeText={setAddress}
-                autoCapitalize="words"
-              />
-            </View>
+            <Input
+              label="Gym Name *"
+              placeholder="e.g. Iron Temple"
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+              autoFocus
+            />
+            <Input
+              label="Description"
+              placeholder="Tell athletes about your gym..."
+              value={description}
+              onChangeText={setDescription}
+              multiline
+              style={{ minHeight: 100, textAlignVertical: "top" }}
+            />
+            <Input
+              label="Address"
+              placeholder="123 Main St, City"
+              value={address}
+              onChangeText={setAddress}
+              autoCapitalize="words"
+            />
           </View>
 
           {!!error && (
             <Text className="text-error text-sm mt-4">{error}</Text>
           )}
 
-          {/* Submit */}
-          <Pressable
-            className={`bg-accent rounded-2xl py-4 items-center mt-6 ${loading ? "opacity-45" : ""}`}
-            onPress={handleCreate}
-            disabled={loading}
-            style={({ pressed }) => (!loading && pressed ? { opacity: 0.85 } : {})}
-          >
-            {loading ? (
-              <ActivityIndicator color={colors.bg} />
-            ) : (
-              <Text className="text-bg font-bold text-base">Create Gym</Text>
-            )}
-          </Pressable>
+          <View className="mt-6">
+            <Button
+              label="Create Gym"
+              onPress={handleCreate}
+              loading={loading}
+              disabled={loading}
+            />
+          </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>

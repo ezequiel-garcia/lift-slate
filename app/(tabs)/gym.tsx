@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo, useEffect } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { View, Text, Pressable, ActivityIndicator, RefreshControl, ScrollView, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
@@ -8,11 +8,13 @@ import { format } from "date-fns";
 import { useFocusEffect } from "expo-router";
 import { useMyGym, useLeaveGym } from "@/hooks/useGym";
 import { useAppStore } from "@/stores/appStore";
-import { useWorkoutsByDate } from "@/hooks/useWorkouts";
+import { useWorkoutsByDate, useDeleteWorkout } from "@/hooks/useWorkouts";
 import { useMaxes } from "@/hooks/useMaxes";
 import { useProfile } from "@/hooks/useProfile";
 import { WorkoutDayView } from "@/components/gym/WorkoutDayView";
 import { DateNavigator } from "@/components/gym/DateNavigator";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
 import { colors } from "@/lib/theme";
 
 export default function GymScreen() {
@@ -23,8 +25,6 @@ export default function GymScreen() {
   const pendingGymDate = useAppStore((s) => s.pendingGymDate);
   const clearPendingGymDate = useAppStore((s) => s.clearPendingGymDate);
 
-  // Hoist date state + workout query here so it fires as soon as gym.id is available
-  // instead of waiting for InGymView to mount (eliminates render-cycle waterfall)
   const [selectedDate, setSelectedDate] = useState(new Date());
 
   useFocusEffect(
@@ -65,38 +65,22 @@ export default function GymScreen() {
 function NoGymView() {
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
-      <View className="flex-1 px-5 justify-center">
-        <View className="items-center mb-8">
-          <View className="w-20 h-20 rounded-3xl bg-surface items-center justify-center mb-6">
-            <Ionicons name="fitness" size={36} color={colors.accent} />
+      <EmptyState
+        icon="fitness-outline"
+        title="Join your gym community"
+        description="Connect with your gym to view workouts, track progress alongside teammates, and get guidance from coaches."
+        action={
+          <View className="gap-3">
+            <Button label="Join a Gym" onPress={() => router.push("/gym/join")} />
+            <Button
+              label="Create a Gym"
+              variant="secondary"
+              onPress={() => router.push("/gym/create")}
+              icon={<Ionicons name="add-circle-outline" size={18} color={colors.foreground} />}
+            />
           </View>
-          <Text className="text-[28px] font-bold text-foreground tracking-tight text-center">
-            Join your gym community
-          </Text>
-          <Text className="text-muted text-[15px] text-center mt-3 leading-relaxed">
-            Connect with your gym to view workouts, track progress alongside teammates, and get guidance from coaches.
-          </Text>
-        </View>
-
-        <View className="gap-3">
-          <Pressable
-            className="bg-accent rounded-2xl py-4 items-center"
-            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-            onPress={() => router.push("/gym/join")}
-          >
-            <Text className="text-bg font-bold text-[16px]">Join a Gym</Text>
-          </Pressable>
-
-          <Pressable
-            className="bg-surface rounded-2xl py-4 items-center flex-row justify-center gap-2"
-            style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-            onPress={() => router.push("/gym/create")}
-          >
-            <Ionicons name="add-circle-outline" size={18} color={colors.text} />
-            <Text className="text-foreground font-semibold text-[16px]">Create a Gym</Text>
-          </Pressable>
-        </View>
-      </View>
+        }
+      />
     </SafeAreaView>
   );
 }
@@ -119,6 +103,7 @@ function InGymView({
   const { data: workouts, isLoading, refetch } = workoutsQuery;
   const [refreshing, setRefreshing] = useState(false);
   const { mutate: leaveGym, isPending: isLeaving } = useLeaveGym();
+  const { mutate: deleteWorkout } = useDeleteWorkout();
 
   const isAdmin = gym.myRole === "admin";
   const canCreateWorkout = gym.myRole === "admin" || gym.myRole === "coach";
@@ -139,7 +124,6 @@ function InGymView({
   const unit = profile?.unit_preference ?? "kg";
   const roundingKg = profile?.rounding_increment_kg ?? 2.5;
 
-  // Build exercise_id → latest max weight_kg map
   const maxMap = useMemo(() => {
     if (!maxesData) return {};
     const map: Record<string, number> = {};
@@ -182,7 +166,7 @@ function InGymView({
           {canCreateWorkout && (
             <Pressable
               onPress={() => router.push(`/gym/${gym.id}/workout/new`)}
-              className="p-2"
+              className="w-11 h-11 items-center justify-center"
               style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
             >
               <Ionicons name="add" size={26} color={colors.accent} />
@@ -191,7 +175,7 @@ function InGymView({
           {canCreateWorkout && (
             <Pressable
               onPress={() => router.push(`/gym/${gym.id}/members`)}
-              className="p-2"
+              className="w-11 h-11 items-center justify-center"
               style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
             >
               <Ionicons name="people-outline" size={22} color={colors.muted} />
@@ -200,7 +184,7 @@ function InGymView({
           {isAdmin && (
             <Pressable
               onPress={() => router.push(`/gym/${gym.id}/settings`)}
-              className="p-2"
+              className="w-11 h-11 items-center justify-center"
               style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
             >
               <Ionicons name="settings-outline" size={22} color={colors.muted} />
@@ -210,7 +194,7 @@ function InGymView({
             <Pressable
               onPress={handleLeaveGym}
               disabled={isLeaving}
-              className="p-2"
+              className="w-11 h-11 items-center justify-center"
               style={({ pressed }) => ({ opacity: pressed || isLeaving ? 0.6 : 1 })}
             >
               <Ionicons name="exit-outline" size={22} color={colors.error} />
@@ -246,6 +230,9 @@ function InGymView({
             maxMap={maxMap}
             unit={unit}
             roundingKg={roundingKg}
+            gymId={gym.id}
+            canEditWorkout={canCreateWorkout}
+            onDeleteWorkout={(id) => deleteWorkout(id)}
           />
         )}
       </ScrollView>

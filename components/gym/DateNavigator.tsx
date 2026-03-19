@@ -20,27 +20,28 @@ export function DateNavigator({ date, onDateChange }: Props) {
     <View className="flex-row items-center justify-between px-1 py-2">
       <Pressable
         onPress={() => onDateChange(addDays(date, -1))}
-        className="p-2"
+        className="w-11 h-11 items-center justify-center rounded-full"
         style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
       >
-        <Ionicons name="chevron-back" size={18} color={colors.muted} />
+        <Ionicons name="chevron-back" size={20} color={colors.muted} />
       </Pressable>
 
       <Pressable
         onPress={() => onDateChange(new Date())}
+        className="px-4 py-2"
         style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
       >
-        <Text className={`text-sm font-semibold ${isToday(date) ? "text-accent" : "text-foreground"}`}>
+        <Text className={`text-base font-semibold ${isToday(date) ? "text-accent" : "text-foreground"}`}>
           {formatLabel(date)}
         </Text>
       </Pressable>
 
       <Pressable
         onPress={() => onDateChange(addDays(date, 1))}
-        className="p-2"
+        className="w-11 h-11 items-center justify-center rounded-full"
         style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
       >
-        <Ionicons name="chevron-forward" size={18} color={colors.muted} />
+        <Ionicons name="chevron-forward" size={20} color={colors.muted} />
       </Pressable>
     </View>
   );

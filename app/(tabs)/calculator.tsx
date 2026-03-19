@@ -1,14 +1,20 @@
 import { useState } from "react";
-import { View, Text, ScrollView, Pressable, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useProfile } from "@/hooks/useProfile";
 import { FromOneRMForm } from "@/components/calculator/FromOneRMForm";
 import { ReverseForm } from "@/components/calculator/ReverseForm";
 import { PercentageTable } from "@/components/calculator/PercentageTable";
 import { SaveMaxModal } from "@/components/calculator/SaveMaxModal";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { fromKg, toKg, roundToPlate } from "@/lib/units";
 
 type Mode = "from1rm" | "reverse";
+
+const MODE_SEGMENTS = [
+  { value: "from1rm" as const, label: "From 1RM" },
+  { value: "reverse" as const, label: "Estimate 1RM" },
+];
 
 export default function QuickCalculatorScreen() {
   const { data: profile } = useProfile();
@@ -59,29 +65,18 @@ export default function QuickCalculatorScreen() {
           automaticallyAdjustKeyboardInsets
         >
           <View className="px-5 pt-5 pb-4">
-            <Text className="text-[28px] font-bold text-foreground tracking-tight">
+            <Text className="text-title text-foreground tracking-tight">
               Calculator
             </Text>
           </View>
 
           {/* Mode Toggle */}
-          <View className="flex-row mx-5 mb-6 bg-surface rounded-xl p-1">
-            <Pressable
-              className={`flex-1 py-2.5 rounded-lg items-center ${mode === "from1rm" ? "bg-surface2" : ""}`}
-              onPress={() => setMode("from1rm")}
-            >
-              <Text className={`text-[14px] font-semibold ${mode === "from1rm" ? "text-foreground" : "text-muted"}`}>
-                From 1RM
-              </Text>
-            </Pressable>
-            <Pressable
-              className={`flex-1 py-2.5 rounded-lg items-center ${mode === "reverse" ? "bg-surface2" : ""}`}
-              onPress={() => setMode("reverse")}
-            >
-              <Text className={`text-[14px] font-semibold ${mode === "reverse" ? "text-foreground" : "text-muted"}`}>
-                Estimate 1RM
-              </Text>
-            </Pressable>
+          <View className="mx-5 mb-6">
+            <SegmentedControl
+              segments={MODE_SEGMENTS}
+              selected={mode}
+              onChange={setMode}
+            />
           </View>
 
           <View className="px-5">

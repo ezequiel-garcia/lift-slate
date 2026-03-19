@@ -1,16 +1,18 @@
-import { useState } from "react";
-import { View, Text, TextInput, Pressable, ScrollView, Alert } from "react-native";
+import { useState, useEffect } from "react";
+import { View, Text, TextInput, Pressable, ScrollView, Alert, ActivityIndicator } from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { addDays, format } from "date-fns";
-import { useCreateWorkout, usePublishWorkout } from "@/hooks/useWorkouts";
+import { addDays, format, parseISO } from "date-fns";
+import { useCreateWorkout, useUpdateWorkout, usePublishWorkout } from "@/hooks/useWorkouts";
 import { useProfile } from "@/hooks/useProfile";
 import { useAppStore } from "@/stores/appStore";
 import { colors } from "@/lib/theme";
+import { Button } from "@/components/ui/Button";
 import { WorkoutSectionCard } from "@/components/workout/WorkoutSectionCard";
 import { WorkoutPreviewModal } from "@/components/workout/WorkoutPreviewModal";
-import { SectionFormData } from "@/components/workout/types";
+import { SectionFormData, ItemFormData } from "@/components/workout/types";
+import { supabase } from "@/lib/supabase";
 
 function newSection(): SectionFormData {
   return {
@@ -20,20 +22,76 @@ function newSection(): SectionFormData {
   };
 }
 
+async function fetchWorkout(workoutId: string) {
+  const { data, error } = await supabase
+    .from("workouts")
+    .select(`*, sections:workout_sections(*, items:workout_items(*, exercises(name, category)))`)
+    .eq("id", workoutId)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
 export default function NewWorkoutScreen() {
-  const { id: gymId } = useLocalSearchParams<{ id: string }>();
+  const { id: gymId, workoutId } = useLocalSearchParams<{ id: string; workoutId?: string }>();
+  const isEditMode = !!workoutId;
+
   const { data: profile } = useProfile();
   const unit = (profile?.unit_preference ?? "kg") as "kg" | "lbs";
 
   const createWorkout = useCreateWorkout();
+  const updateWorkout = useUpdateWorkout();
   const publishWorkout = usePublishWorkout();
   const setPendingGymDate = useAppStore((s) => s.setPendingGymDate);
 
+  const [loading, setLoading] = useState(isEditMode);
   const [scheduledDate, setScheduledDate] = useState(() => addDays(new Date(), 1));
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [sections, setSections] = useState<SectionFormData[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [isPublished, setIsPublished] = useState(false);
+
+  useEffect(() => {
+    if (!isEditMode || !workoutId) return;
+
+    fetchWorkout(workoutId)
+      .then((workout) => {
+        setTitle(workout.title ?? "");
+        setNotes(workout.notes ?? "");
+        setIsPublished(workout.published ?? false);
+        setScheduledDate(parseISO(workout.scheduled_date));
+
+        const sorted = [...(workout.sections ?? [])].sort(
+          (a: any, b: any) => a.order_index - b.order_index
+        );
+
+        setSections(
+          sorted.map((section: any) => ({
+            localId: section.id,
+            title: section.title,
+            items: [...(section.items ?? [])]
+              .sort((a: any, b: any) => a.order_index - b.order_index)
+              .map((item: any): ItemFormData => ({
+                localId: item.id,
+                itemType: item.item_type,
+                exerciseId: item.exercise_id ?? undefined,
+                exerciseName: item.exercises?.name ?? undefined,
+                sets: item.sets?.toString() ?? undefined,
+                reps: item.reps?.toString() ?? undefined,
+                weightMode: item.percentage ? "percentage" : "none",
+                percentage: item.percentage?.toString() ?? undefined,
+                maxTypeReference: item.max_type_reference ?? undefined,
+                weightKg: item.weight_kg?.toString() ?? undefined,
+                content: item.content ?? undefined,
+                notes: item.notes ?? undefined,
+              })),
+          }))
+        );
+      })
+      .catch(() => Alert.alert("Error", "Failed to load workout."))
+      .finally(() => setLoading(false));
+  }, [workoutId, isEditMode]);
 
   function updateSection(index: number, updated: SectionFormData) {
     setSections((prev) => {
@@ -93,7 +151,11 @@ export default function NewWorkoutScreen() {
   async function handleSaveDraft() {
     if (!gymId) return;
     try {
-      await createWorkout.mutateAsync({ gymId, input: buildWorkoutInput() });
+      if (isEditMode && workoutId) {
+        await updateWorkout.mutateAsync({ workoutId, input: buildWorkoutInput() });
+      } else {
+        await createWorkout.mutateAsync({ gymId, input: buildWorkoutInput() });
+      }
       setPendingGymDate(scheduledDate);
       router.back();
     } catch {
@@ -104,8 +166,15 @@ export default function NewWorkoutScreen() {
   async function handlePublish() {
     if (!gymId) return;
     try {
-      const workout = await createWorkout.mutateAsync({ gymId, input: buildWorkoutInput() });
-      await publishWorkout.mutateAsync(workout.id);
+      if (isEditMode && workoutId) {
+        await updateWorkout.mutateAsync({ workoutId, input: buildWorkoutInput() });
+        if (!isPublished) {
+          await publishWorkout.mutateAsync(workoutId);
+        }
+      } else {
+        const workout = await createWorkout.mutateAsync({ gymId, input: buildWorkoutInput() });
+        await publishWorkout.mutateAsync(workout.id);
+      }
       setPendingGymDate(scheduledDate);
       router.back();
     } catch {
@@ -113,18 +182,35 @@ export default function NewWorkoutScreen() {
     }
   }
 
-  const isSaving = createWorkout.isPending || publishWorkout.isPending;
+  const isSaving =
+    createWorkout.isPending || updateWorkout.isPending || publishWorkout.isPending;
   const formattedDate = format(scheduledDate, "EEE, MMM d");
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-bg justify-center items-center" edges={["top"]}>
+        <ActivityIndicator color={colors.accent} />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
       {/* Header */}
       <View className="flex-row items-center justify-between px-4 py-3 border-b border-border">
-        <Pressable onPress={() => router.back()} className="p-1">
-          <Ionicons name="close" size={24} color={colors.text} />
+        <Pressable
+          onPress={() => router.back()}
+          className="w-10 h-10 items-center justify-center"
+        >
+          <Ionicons name="close" size={24} color={colors.foreground} />
         </Pressable>
-        <Text className="text-foreground text-base font-semibold">New Workout</Text>
-        <Pressable onPress={() => setShowPreview(true)} className="p-1">
+        <Text className="text-foreground text-base font-semibold">
+          {isEditMode ? "Edit Workout" : "New Workout"}
+        </Text>
+        <Pressable
+          onPress={() => setShowPreview(true)}
+          className="w-10 h-10 items-center justify-center"
+        >
           <Ionicons name="eye-outline" size={22} color={colors.accent} />
         </Pressable>
       </View>
@@ -136,22 +222,22 @@ export default function NewWorkoutScreen() {
       >
         {/* Date picker */}
         <View className="bg-surface rounded-2xl p-4 border border-border mb-4">
-          <Text className="text-muted text-xs font-semibold uppercase tracking-wider mb-3">
+          <Text className="text-label uppercase tracking-wider text-muted mb-3">
             Scheduled Date
           </Text>
           <View className="flex-row items-center justify-between">
             <Pressable
-              className="w-10 h-10 bg-surface2 rounded-xl items-center justify-center"
+              className="w-11 h-11 bg-surface2 rounded-xl items-center justify-center"
               onPress={() => setScheduledDate((d) => addDays(d, -1))}
             >
-              <Ionicons name="chevron-back" size={20} color={colors.text} />
+              <Ionicons name="chevron-back" size={20} color={colors.foreground} />
             </Pressable>
             <Text className="text-foreground text-base font-semibold">{formattedDate}</Text>
             <Pressable
-              className="w-10 h-10 bg-surface2 rounded-xl items-center justify-center"
+              className="w-11 h-11 bg-surface2 rounded-xl items-center justify-center"
               onPress={() => setScheduledDate((d) => addDays(d, 1))}
             >
-              <Ionicons name="chevron-forward" size={20} color={colors.text} />
+              <Ionicons name="chevron-forward" size={20} color={colors.foreground} />
             </Pressable>
           </View>
         </View>
@@ -205,29 +291,26 @@ export default function NewWorkoutScreen() {
       </ScrollView>
 
       {/* Bottom actions */}
-      <View
-        className="absolute bottom-0 left-0 right-0 px-4 pb-10 pt-4 bg-bg border-t border-border flex-row gap-3"
-      >
-        <Pressable
-          className="flex-1 bg-surface rounded-2xl py-4 items-center border border-border"
-          onPress={handleSaveDraft}
-          disabled={isSaving}
-          style={{ opacity: isSaving ? 0.6 : 1 }}
-        >
-          <Text className="text-foreground text-base font-semibold">
-            {createWorkout.isPending && !publishWorkout.isPending ? "Saving..." : "Save Draft"}
-          </Text>
-        </Pressable>
-        <Pressable
-          className="flex-1 bg-accent rounded-2xl py-4 items-center"
-          onPress={handlePublish}
-          disabled={isSaving}
-          style={{ opacity: isSaving ? 0.6 : 1 }}
-        >
-          <Text className="text-bg text-base font-semibold">
-            {isSaving ? "Publishing..." : "Publish"}
-          </Text>
-        </Pressable>
+      <View className="absolute bottom-0 left-0 right-0 px-4 pb-10 pt-4 bg-bg border-t border-border flex-row gap-3">
+        <View className="flex-1">
+          <Button
+            label={
+              (createWorkout.isPending || updateWorkout.isPending) && !publishWorkout.isPending
+                ? "Saving..."
+                : "Save Draft"
+            }
+            variant="secondary"
+            onPress={handleSaveDraft}
+            disabled={isSaving}
+          />
+        </View>
+        <View className="flex-1">
+          <Button
+            label={isSaving ? "Publishing..." : isPublished ? "Update & Keep Published" : "Publish"}
+            onPress={handlePublish}
+            disabled={isSaving}
+          />
+        </View>
       </View>
 
       <WorkoutPreviewModal

@@ -8,7 +8,6 @@ import {
   createWorkout,
   updateWorkout,
   deleteWorkout,
-  publishWorkout,
   WorkoutInput,
 } from "@/services/workout.service";
 
@@ -81,14 +80,6 @@ export function useDeleteWorkout() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (workoutId: string) => deleteWorkout(workoutId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["workouts"] }),
-  });
-}
-
-export function usePublishWorkout() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: (workoutId: string) => publishWorkout(workoutId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["workouts"] }),
   });
 }

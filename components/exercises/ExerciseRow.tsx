@@ -1,7 +1,12 @@
 import { Pressable, Text, View } from "react-native";
 import { router } from "expo-router";
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
-import Animated, { useAnimatedStyle, interpolate } from "react-native-reanimated";
+import Animated, {
+  useAnimatedStyle,
+  interpolate,
+  FadeIn,
+  useReducedMotion,
+} from "react-native-reanimated";
 import type { SharedValue } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { fromKg, formatWeight, WeightUnit } from "@/lib/units";
@@ -68,37 +73,47 @@ type Props = {
   currentWeightKg: number;
   unit: WeightUnit;
   onDelete?: (exerciseId: string, name: string) => void;
+  index?: number;
 };
 
-export function ExerciseRow({ exerciseId, name, category, currentWeightKg, unit, onDelete }: Props) {
+export function ExerciseRow({ exerciseId, name, category, currentWeightKg, unit, onDelete, index = 0 }: Props) {
   const displayWeight = fromKg(currentWeightKg, unit);
+  const reduceMotion = useReducedMotion();
 
   return (
-    <Swipeable
-      renderRightActions={(progress) =>
-        onDelete ? (
-          <DeleteAction progress={progress} onDelete={() => onDelete(exerciseId, name)} />
-        ) : null
+    <Animated.View
+      entering={
+        reduceMotion
+          ? undefined
+          : FadeIn.delay(Math.min(index, 8) * 40).duration(300)
       }
-      overshootFriction={8}
-      friction={2}
     >
-      <Pressable
-        className="flex-row items-center px-5 py-3.5 bg-bg"
-        style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-        onPress={() => router.push(`/exercise/${exerciseId}` as never)}
+      <Swipeable
+        renderRightActions={(progress) =>
+          onDelete ? (
+            <DeleteAction progress={progress} onDelete={() => onDelete(exerciseId, name)} />
+          ) : null
+        }
+        overshootFriction={8}
+        friction={2}
       >
-        <CategoryIcon category={category} />
-        <View className="flex-1 mx-3.5">
-          <Text className="text-[16px] font-medium text-foreground" numberOfLines={1}>
-            {name}
+        <Pressable
+          className="flex-row items-center px-5 py-3.5 bg-bg"
+          style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+          onPress={() => router.push(`/exercise/${exerciseId}` as never)}
+        >
+          <CategoryIcon category={category} />
+          <View className="flex-1 mx-3.5">
+            <Text className="text-body font-medium text-foreground" numberOfLines={1}>
+              {name}
+            </Text>
+          </View>
+          <Text className="text-[17px] font-bold text-foreground tabular-nums">
+            {formatWeight(displayWeight, unit)}
           </Text>
-        </View>
-        <Text className="text-[17px] font-bold text-foreground tabular-nums">
-          {formatWeight(displayWeight, unit)}
-        </Text>
-        <Ionicons name="chevron-forward" size={16} color="#3F3F46" style={{ marginLeft: 6 }} />
-      </Pressable>
-    </Swipeable>
+          <Ionicons name="chevron-forward" size={16} color="#3F3F46" style={{ marginLeft: 6 }} />
+        </Pressable>
+      </Swipeable>
+    </Animated.View>
   );
 }

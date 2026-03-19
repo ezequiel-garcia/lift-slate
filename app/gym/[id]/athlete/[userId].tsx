@@ -6,15 +6,13 @@ import {
   Pressable,
   ActivityIndicator,
   RefreshControl,
-  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 
 import { colors } from "@/lib/theme";
-import { fromKg, formatWeight, WeightUnit } from "@/lib/units";
+import { WeightUnit } from "@/lib/units";
 import { CATEGORY_ORDER, CATEGORY_LABELS } from "@/lib/constants";
 import { useAthleteMaxes } from "@/hooks/useMaxes";
 import { useGymMembers } from "@/hooks/useGym";
@@ -25,6 +23,8 @@ import { AddAthleteMaxModal } from "@/components/gym/AddAthleteMaxModal";
 import { EditAthleteMaxModal } from "@/components/gym/EditAthleteMaxModal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ErrorState } from "@/components/ui/ErrorState";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { Button } from "@/components/ui/Button";
 
 type Section = { title: string; data: ExerciseSummary[] };
 
@@ -44,7 +44,6 @@ export default function AthleteMaxesScreen() {
   const isCoachOrAdmin = gym?.myRole === "coach" || gym?.myRole === "admin";
   const canEdit = isCoachOrAdmin && allowCoachEdit;
 
-  // Build exercise summaries from maxes (same logic as useMyLifts)
   const exerciseSummaries: ExerciseSummary[] = (() => {
     if (!maxes) return [];
     type Entry = { current: number; name: string; category: ExerciseSummary["category"] };
@@ -116,16 +115,16 @@ export default function AthleteMaxesScreen() {
       <View className="flex-row items-center px-4 pt-2 pb-3">
         <Pressable
           onPress={() => router.back()}
-          className="p-2 -ml-2"
+          className="w-10 h-10 items-center justify-center -ml-1"
           style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
         >
-          <Ionicons name="chevron-back" size={24} color={colors.text} />
+          <Ionicons name="chevron-back" size={24} color={colors.foreground} />
         </Pressable>
         <View className="flex-1 ml-1">
           <Text className="text-foreground text-xl font-bold" numberOfLines={1}>
             {athleteName}
           </Text>
-          <Text className="text-muted text-[13px]">
+          <Text className="text-muted text-caption">
             {canEdit ? "Tap a lift to edit" : allowCoachEdit ? "View only" : "Editing disabled by athlete"}
           </Text>
         </View>
@@ -139,23 +138,20 @@ export default function AthleteMaxesScreen() {
       {isError ? (
         <ErrorState message="Failed to load athlete maxes" onRetry={() => refetch()} />
       ) : exerciseSummaries.length === 0 ? (
-        <View className="flex-1 items-center justify-center px-8">
-          <Ionicons name={allowCoachEdit ? "barbell-outline" : "lock-closed-outline"} size={48} color={colors.muted} />
-          <Text className="text-muted text-base text-center mt-4">
-            {allowCoachEdit
+        <EmptyState
+          icon={allowCoachEdit ? "barbell-outline" : "lock-closed-outline"}
+          title={allowCoachEdit ? "No lifts recorded" : "Editing disabled"}
+          description={
+            allowCoachEdit
               ? `${athleteName} hasn't recorded any lifts yet.`
-              : `${athleteName} has disabled coach access to their lifts.`}
-          </Text>
-          {canEdit && (
-            <Pressable
-              className="mt-6 bg-accent rounded-2xl px-6 py-3"
-              style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}
-              onPress={() => setAddModalVisible(true)}
-            >
-              <Text className="text-bg font-bold text-[15px]">Add First Max</Text>
-            </Pressable>
-          )}
-        </View>
+              : `${athleteName} has disabled coach access to their lifts.`
+          }
+          action={
+            canEdit ? (
+              <Button label="Add First Max" onPress={() => setAddModalVisible(true)} />
+            ) : undefined
+          }
+        />
       ) : (
         <SectionList
           sections={sections}

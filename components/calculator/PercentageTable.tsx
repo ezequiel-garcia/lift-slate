@@ -1,4 +1,5 @@
 import { View, Text } from "react-native";
+import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { COMMON_PERCENTAGES } from "@/lib/constants";
 import { calculatePercentage, formatWeight } from "@/lib/units";
@@ -11,9 +12,14 @@ type Props = {
 };
 
 export function PercentageTable({ oneRMKg, unit, roundingIncrementKg }: Props) {
+  const reduceMotion = useReducedMotion();
+
   return (
-    <View className="bg-surface rounded-2xl overflow-hidden mb-2">
-      <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest px-4 pt-4 pb-3">
+    <Animated.View
+      entering={reduceMotion ? undefined : FadeIn.duration(300)}
+      className="bg-surface rounded-2xl overflow-hidden mb-2"
+    >
+      <Text className="text-label uppercase tracking-wider text-muted px-4 pt-4 pb-3">
         Percentages
       </Text>
       {COMMON_PERCENTAGES.map((pct, i) => {
@@ -35,6 +41,6 @@ export function PercentageTable({ oneRMKg, unit, roundingIncrementKg }: Props) {
           </View>
         );
       })}
-    </View>
+    </Animated.View>
   );
 }

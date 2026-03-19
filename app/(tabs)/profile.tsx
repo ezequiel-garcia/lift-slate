@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, TextInput, Switch, Pressable, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Switch, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -10,6 +10,9 @@ import { useMyGym, useLeaveGym } from "@/hooks/useGym";
 import { signOut } from "@/services/auth.service";
 import { fromKg, toKg, WeightUnit } from "@/lib/units";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { Card } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 import { colors } from "@/lib/theme";
 
 export default function ProfileScreen() {
@@ -101,49 +104,45 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={{ flex: 1 }}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1">
       <ScrollView contentContainerStyle={{ paddingBottom: 48 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View className="px-5 pt-5 pb-1">
-          <Text className="text-[28px] font-bold text-foreground tracking-tight">Profile</Text>
+          <Text className="text-title text-foreground tracking-tight">Profile</Text>
         </View>
 
-        <SectionHeader title="Account" />
+        <SectionHeader title="Account" icon="person-outline" />
 
-        <View className="mx-5 bg-surface rounded-2xl overflow-hidden">
+        <Card className="mx-5">
           <View className="px-4 py-4">
-            <Text className="text-[13px] text-muted mb-1.5 font-semibold uppercase tracking-widest">Display Name</Text>
-            <TextInput
-              className="text-foreground text-[17px]"
+            <Input
+              label="Display Name"
               value={displayName}
               onChangeText={setDisplayName}
               onBlur={handleDisplayNameBlur}
               placeholder="Your name"
-              placeholderTextColor={colors.muted}
               returnKeyType="done"
               autoCapitalize="words"
             />
           </View>
-        </View>
+        </Card>
 
-        <SectionHeader title="Units & Weights" />
+        <SectionHeader title="Units & Weights" icon="scale-outline" />
 
-        <View className="mx-5 bg-surface rounded-2xl overflow-hidden">
+        <Card className="mx-5">
           {/* Unit preference */}
           <View className="px-4 py-4">
-            <Text className="text-[13px] text-muted mb-3 font-semibold uppercase tracking-widest">Unit Preference</Text>
+            <Text className="text-label uppercase tracking-wider text-muted mb-3">Unit Preference</Text>
             <View className="flex-row bg-surface2 rounded-xl p-1">
-              <Pressable
-                className={`flex-1 py-2.5 rounded-lg items-center ${unit === "kg" ? "bg-accent" : ""}`}
-                onPress={() => handleUnitToggle("kg")}
-              >
-                <Text className={`font-bold text-[15px] ${unit === "kg" ? "text-bg" : "text-muted"}`}>kg</Text>
-              </Pressable>
-              <Pressable
-                className={`flex-1 py-2.5 rounded-lg items-center ${unit === "lbs" ? "bg-accent" : ""}`}
-                onPress={() => handleUnitToggle("lbs")}
-              >
-                <Text className={`font-bold text-[15px] ${unit === "lbs" ? "text-bg" : "text-muted"}`}>lbs</Text>
-              </Pressable>
+              {(["kg", "lbs"] as WeightUnit[]).map((u) => (
+                <View key={u} className={`flex-1 py-2.5 rounded-lg items-center ${unit === u ? "bg-accent" : ""}`}>
+                  <Text
+                    className={`font-bold text-[15px] ${unit === u ? "text-bg" : "text-muted"}`}
+                    onPress={() => handleUnitToggle(u)}
+                  >
+                    {u}
+                  </Text>
+                </View>
+              ))}
             </View>
           </View>
 
@@ -151,25 +150,21 @@ export default function ProfileScreen() {
 
           {/* Rounding increment */}
           <View className="px-4 py-4">
-            <Text className="text-[13px] text-muted mb-1.5 font-semibold uppercase tracking-widest">
-              Rounding Increment ({unit})
-            </Text>
-            <TextInput
-              className="text-foreground text-[17px]"
+            <Input
+              label={`Rounding Increment (${unit})`}
               value={roundingInput}
               onChangeText={setRoundingInput}
               onBlur={handleRoundingBlur}
               keyboardType="decimal-pad"
               returnKeyType="done"
               placeholder={unit === "kg" ? "2.5" : "5"}
-              placeholderTextColor={colors.muted}
             />
           </View>
-        </View>
+        </Card>
 
-        <SectionHeader title="Gym" />
+        <SectionHeader title="Gym" icon="fitness-outline" />
 
-        <View className="mx-5 bg-surface rounded-2xl overflow-hidden">
+        <Card className="mx-5">
           {gymLoading ? (
             <View className="px-4 py-4 items-center">
               <ActivityIndicator color={colors.accent} />
@@ -178,18 +173,21 @@ export default function ProfileScreen() {
             <>
               <View className="px-4 py-4 flex-row items-center justify-between">
                 <View className="flex-1 pr-4">
-                  <Text className="text-foreground text-[16px] font-medium">{gym.name}</Text>
-                  <Text className="text-muted text-[13px] mt-0.5 capitalize">{gym.myRole}</Text>
+                  <Text className="text-foreground text-body font-medium">{gym.name}</Text>
+                  <Text className="text-muted text-caption mt-0.5 capitalize">{gym.myRole}</Text>
                 </View>
-                <Pressable
-                  onPress={handleLeaveGym}
-                  disabled={isLeaving || gym.myRole === "admin"}
-                  style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-                >
-                  <Text className={`text-[14px] font-semibold ${gym.myRole === "admin" ? "text-muted" : "text-error"}`}>
-                    {gym.myRole === "admin" ? "Owner" : "Leave"}
-                  </Text>
-                </Pressable>
+                {gym.myRole !== "admin" && (
+                  <Button
+                    label="Leave"
+                    variant="destructive"
+                    size="sm"
+                    onPress={handleLeaveGym}
+                    disabled={isLeaving}
+                  />
+                )}
+                {gym.myRole === "admin" && (
+                  <Text className="text-muted text-sm font-medium">Owner</Text>
+                )}
               </View>
               <View className="h-px bg-border mx-4" />
             </>
@@ -200,8 +198,8 @@ export default function ProfileScreen() {
           )}
           <View className="px-4 py-4 flex-row items-center justify-between">
             <View className="flex-1 pr-4">
-              <Text className="text-foreground text-[16px] font-medium">Allow Coach Edits</Text>
-              <Text className="text-muted text-[13px] mt-0.5">Let coaches view and edit your maxes</Text>
+              <Text className="text-foreground text-body font-medium">Allow Coach Edits</Text>
+              <Text className="text-muted text-caption mt-0.5">Let coaches view and edit your maxes</Text>
             </View>
             <Switch
               value={profile?.allow_coach_edit ?? true}
@@ -211,21 +209,19 @@ export default function ProfileScreen() {
               disabled={isPending}
             />
           </View>
-        </View>
+        </Card>
 
         <View className="mt-10 mx-5">
-          <Pressable
-            className="bg-surface rounded-2xl py-3.5 items-center flex-row justify-center gap-2"
-            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+          <Button
+            label="Sign Out"
+            variant="destructive"
             onPress={handleSignOut}
-          >
-            <Ionicons name="log-out-outline" size={18} color={colors.error} />
-            <Text className="text-error font-semibold text-[15px]">Sign Out</Text>
-          </Pressable>
+            icon={<Ionicons name="log-out-outline" size={18} color={colors.error} />}
+          />
         </View>
 
         <View className="items-center mt-8">
-          <Text className="text-muted text-[13px]">LiftSlate v{appVersion}</Text>
+          <Text className="text-muted text-caption">LiftSlate v{appVersion}</Text>
         </View>
       </ScrollView>
       </KeyboardAvoidingView>
