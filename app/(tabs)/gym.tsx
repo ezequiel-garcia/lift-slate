@@ -15,6 +15,7 @@ import { WorkoutDayView } from "@/components/gym/WorkoutDayView";
 import { DateNavigator } from "@/components/gym/DateNavigator";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
+import { ActionSheet } from "@/components/ui/ActionSheet";
 import { colors } from "@/lib/theme";
 
 export default function GymScreen() {
@@ -102,6 +103,7 @@ function InGymView({
 }) {
   const { data: workouts, isLoading, refetch } = workoutsQuery;
   const [refreshing, setRefreshing] = useState(false);
+  const [showMoreSheet, setShowMoreSheet] = useState(false);
   const { mutate: leaveGym, isPending: isLeaving } = useLeaveGym();
   const { mutate: deleteWorkout } = useDeleteWorkout();
 
@@ -172,34 +174,13 @@ function InGymView({
               <Ionicons name="add" size={26} color={colors.accent} />
             </Pressable>
           )}
-          {canCreateWorkout && (
-            <Pressable
-              onPress={() => router.push(`/gym/${gym.id}/members`)}
-              className="w-11 h-11 items-center justify-center"
-              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-            >
-              <Ionicons name="people-outline" size={22} color={colors.muted} />
-            </Pressable>
-          )}
-          {isAdmin && (
-            <Pressable
-              onPress={() => router.push(`/gym/${gym.id}/settings`)}
-              className="w-11 h-11 items-center justify-center"
-              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-            >
-              <Ionicons name="settings-outline" size={22} color={colors.muted} />
-            </Pressable>
-          )}
-          {!isAdmin && (
-            <Pressable
-              onPress={handleLeaveGym}
-              disabled={isLeaving}
-              className="w-11 h-11 items-center justify-center"
-              style={({ pressed }) => ({ opacity: pressed || isLeaving ? 0.6 : 1 })}
-            >
-              <Ionicons name="exit-outline" size={22} color={colors.error} />
-            </Pressable>
-          )}
+          <Pressable
+            onPress={() => setShowMoreSheet(true)}
+            className="w-11 h-11 items-center justify-center"
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          >
+            <Ionicons name="ellipsis-horizontal" size={22} color={colors.muted} />
+          </Pressable>
         </View>
       </View>
 
@@ -236,6 +217,24 @@ function InGymView({
           />
         )}
       </ScrollView>
+
+      <ActionSheet
+        visible={showMoreSheet}
+        title={gym.name}
+        onClose={() => setShowMoreSheet(false)}
+        options={[
+          ...(canCreateWorkout
+            ? [{ label: "Members", onPress: () => router.push(`/gym/${gym.id}/members`) }]
+            : []),
+          ...(isAdmin
+            ? [{ label: "Settings", onPress: () => router.push(`/gym/${gym.id}/settings`) }]
+            : []),
+          ...(!isAdmin
+            ? [{ label: "Leave Gym", destructive: true, onPress: handleLeaveGym }]
+            : []),
+          { label: "Cancel", cancel: true, onPress: () => {} },
+        ]}
+      />
     </SafeAreaView>
   );
 }

@@ -31,7 +31,7 @@ export function DateNavigator({ date, onDateChange }: Props) {
         className="px-4 py-2"
         style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
       >
-        <Text className={`text-base font-semibold ${isToday(date) ? "text-accent" : "text-foreground"}`}>
+        <Text className="text-base font-semibold text-foreground">
           {formatLabel(date)}
         </Text>
       </Pressable>

@@ -1,9 +1,11 @@
-import { View, Text, Pressable, Alert } from "react-native";
+import { useState } from "react";
+import { View, Text, Pressable } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { WorkoutWithSections, WorkoutItem } from "@/services/workout.service";
 import { calculatePercentage, formatWeight, fromKg, WeightUnit } from "@/lib/units";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ActionSheet } from "@/components/ui/ActionSheet";
 import { colors } from "@/lib/theme";
 
 type MaxMap = Record<string, number>;
@@ -104,9 +106,9 @@ export function WorkoutDayView({
   canEditWorkout,
   onDeleteWorkout,
 }: Props) {
-  const visibleWorkouts = workouts;
+  const [activeWorkoutId, setActiveWorkoutId] = useState<string | null>(null);
 
-  if (visibleWorkouts.length === 0) {
+  if (workouts.length === 0) {
     return (
       <EmptyState
         icon="barbell-outline"
@@ -116,49 +118,31 @@ export function WorkoutDayView({
     );
   }
 
-  function confirmDelete(workoutId: string, title: string | null) {
-    Alert.alert(
-      "Delete Workout",
-      `Delete "${title || "this workout"}"? This cannot be undone.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: () => onDeleteWorkout?.(workoutId) },
-      ]
-    );
-  }
+  const activeWorkout = workouts.find((w) => w.id === activeWorkoutId) ?? null;
 
   return (
     <View className="gap-6">
-      {visibleWorkouts.map((workout) => (
+      {workouts.map((workout) => {
+        const title = workout.title || "Workout";
+        return (
         <View key={workout.id}>
           {/* Workout header */}
           <View className="flex-row items-start justify-between mb-2">
             <View className="flex-1 gap-1">
-              {!!workout.title && (
-                <Text className="text-foreground text-xl font-bold">{workout.title}</Text>
-              )}
+              <Text className="text-foreground text-xl font-bold">{title}</Text>
               {!!workout.notes && (
                 <Text className="text-muted text-sm">{workout.notes}</Text>
               )}
             </View>
 
             {canEditWorkout && (
-              <View className="flex-row items-center gap-1 ml-2 mt-0.5">
-                <Pressable
-                  onPress={() => router.push(`/gym/${gymId}/workout/new?workoutId=${workout.id}`)}
-                  className="w-9 h-9 items-center justify-center rounded-lg bg-surface"
-                  style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-                >
-                  <Ionicons name="pencil-outline" size={18} color={colors.foreground} />
-                </Pressable>
-                <Pressable
-                  onPress={() => confirmDelete(workout.id, workout.title)}
-                  className="w-9 h-9 items-center justify-center rounded-lg bg-surface"
-                  style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-                >
-                  <Ionicons name="trash-outline" size={18} color={colors.error} />
-                </Pressable>
-              </View>
+              <Pressable
+                onPress={() => setActiveWorkoutId(workout.id)}
+                className="w-9 h-9 items-center justify-center ml-2 mt-0.5"
+                style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+              >
+                <Ionicons name="ellipsis-horizontal" size={20} color={colors.muted} />
+              </Pressable>
             )}
           </View>
 
@@ -185,7 +169,25 @@ export function WorkoutDayView({
             </View>
           ))}
         </View>
-      ))}
+      )})}
+
+      <ActionSheet
+        visible={!!activeWorkoutId}
+        title={activeWorkout?.title || "Workout"}
+        onClose={() => setActiveWorkoutId(null)}
+        options={[
+          {
+            label: "Edit",
+            onPress: () => router.push(`/gym/${gymId}/workout/new?workoutId=${activeWorkoutId}`),
+          },
+          {
+            label: "Delete",
+            destructive: true,
+            onPress: () => onDeleteWorkout?.(activeWorkoutId!),
+          },
+          { label: "Cancel", cancel: true, onPress: () => {} },
+        ]}
+      />
     </View>
   );
 }
