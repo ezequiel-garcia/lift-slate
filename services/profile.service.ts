@@ -2,10 +2,12 @@ import { supabase } from "@/lib/supabase";
 import { WeightUnit } from "@/lib/units";
 
 export async function getProfile() {
-  // RLS scopes users to own row — no getSession() needed
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
   const { data, error } = await supabase
     .from("users")
     .select("*")
+    .eq("id", user.id)
     .single();
   if (error) throw error;
   return data;
