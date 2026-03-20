@@ -33,7 +33,7 @@ async function fetchWorkout(workoutId: string) {
 }
 
 export default function NewWorkoutScreen() {
-  const { id: gymId, workoutId } = useLocalSearchParams<{ id: string; workoutId?: string }>();
+  const { id: gymId, workoutId, date } = useLocalSearchParams<{ id: string; workoutId?: string; date?: string }>();
   const isEditMode = !!workoutId;
 
   const { data: profile } = useProfile();
@@ -44,7 +44,9 @@ export default function NewWorkoutScreen() {
   const setPendingGymDate = useAppStore((s) => s.setPendingGymDate);
 
   const [loading, setLoading] = useState(isEditMode);
-  const [scheduledDate, setScheduledDate] = useState(() => addDays(new Date(), 1));
+  const [scheduledDate, setScheduledDate] = useState(() =>
+    date ? parseISO(date) : addDays(new Date(), 1)
+  );
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [sections, setSections] = useState<SectionFormData[]>([]);

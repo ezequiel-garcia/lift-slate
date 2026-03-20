@@ -17,6 +17,7 @@ interface Props {
   roundingKg: number;
   gymId?: string;
   canEditWorkout?: boolean;
+  selectedDate?: string;
   onDeleteWorkout?: (workoutId: string) => void;
 }
 
@@ -104,6 +105,7 @@ export function WorkoutDayView({
   roundingKg,
   gymId,
   canEditWorkout,
+  selectedDate,
   onDeleteWorkout,
 }: Props) {
   const [activeWorkoutId, setActiveWorkoutId] = useState<string | null>(null);
@@ -113,7 +115,26 @@ export function WorkoutDayView({
       <EmptyState
         icon="barbell-outline"
         title="No workout posted"
-        description="Check back later or browse other days."
+        description={
+          canEditWorkout
+            ? "No workout scheduled for this day."
+            : "Check back later or browse other days."
+        }
+        action={
+          canEditWorkout && gymId ? (
+            <Pressable
+              onPress={() =>
+                router.push(
+                  `/gym/${gymId}/workout/new${selectedDate ? `?date=${selectedDate}` : ""}`
+                )
+              }
+              className="bg-accent rounded-2xl py-3 items-center"
+              style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
+            >
+              <Text className="text-bg font-bold text-base">Add Workout</Text>
+            </Pressable>
+          ) : undefined
+        }
       />
     );
   }

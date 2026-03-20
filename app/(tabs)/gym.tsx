@@ -213,6 +213,7 @@ function InGymView({
             roundingKg={roundingKg}
             gymId={gym.id}
             canEditWorkout={canCreateWorkout}
+            selectedDate={format(selectedDate, "yyyy-MM-dd")}
             onDeleteWorkout={(id) => deleteWorkout(id)}
           />
         )}
