@@ -41,6 +41,9 @@ export function PercentageTable({ oneRMKg, unit, roundingIncrementKg }: Props) {
           </View>
         );
       })}
+      <Text className="text-xs text-muted px-4 pb-4">
+        Exact weight → rounded to nearest plate
+      </Text>
     </Animated.View>
   );
 }

@@ -71,13 +71,18 @@ export default function QuickCalculatorScreen() {
           </View>
 
           {/* Mode Toggle */}
-          <View className="mx-5 mb-6">
+          <View className="mx-5 mb-2">
             <SegmentedControl
               segments={MODE_SEGMENTS}
               selected={mode}
               onChange={setMode}
             />
           </View>
+          <Text className="text-sm text-muted mx-5 mb-5">
+            {mode === "from1rm"
+              ? "Enter your max to see training weights at each percentage."
+              : "Calculate your max from a weight you lifted at a known percentage."}
+          </Text>
 
           <View className="px-5">
             {mode === "from1rm" ? (

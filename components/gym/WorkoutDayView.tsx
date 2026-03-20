@@ -77,7 +77,7 @@ function StructuredItem({
           onPress={() => router.push(`/exercise/${item.exercise_id}?addMax=true`)}
           style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
         >
-          <Text className="text-accent text-xs mt-1">+ Add your max</Text>
+          <Text className="text-accent text-xs mt-1">+ Add 1RM to calculate weight</Text>
         </Pressable>
       )}
       {!!item.notes && (

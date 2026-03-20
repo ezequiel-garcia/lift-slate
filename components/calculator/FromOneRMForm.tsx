@@ -12,7 +12,7 @@ export function FromOneRMForm({ unit, input, onChangeInput, showError }: Props) 
   return (
     <View className="mb-5">
       <Input
-        label={`Your 1RM (${unit})`}
+        label={`1RM – Your Max (${unit})`}
         placeholder={unit === "kg" ? "e.g. 120" : "e.g. 265"}
         keyboardType="decimal-pad"
         value={input}
