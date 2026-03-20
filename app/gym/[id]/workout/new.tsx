@@ -4,7 +4,7 @@ import { useLocalSearchParams, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { addDays, format, parseISO } from "date-fns";
-import { useCreateWorkout, useUpdateWorkout, usePublishWorkout } from "@/hooks/useWorkouts";
+import { useCreateWorkout, useUpdateWorkout } from "@/hooks/useWorkouts";
 import { useProfile } from "@/hooks/useProfile";
 import { useAppStore } from "@/stores/appStore";
 import { colors } from "@/lib/theme";
@@ -41,7 +41,6 @@ export default function NewWorkoutScreen() {
 
   const createWorkout = useCreateWorkout();
   const updateWorkout = useUpdateWorkout();
-  const publishWorkout = usePublishWorkout();
   const setPendingGymDate = useAppStore((s) => s.setPendingGymDate);
 
   const [loading, setLoading] = useState(isEditMode);
@@ -50,7 +49,6 @@ export default function NewWorkoutScreen() {
   const [notes, setNotes] = useState("");
   const [sections, setSections] = useState<SectionFormData[]>([]);
   const [showPreview, setShowPreview] = useState(false);
-  const [isPublished, setIsPublished] = useState(false);
 
   useEffect(() => {
     if (!isEditMode || !workoutId) return;
@@ -59,7 +57,6 @@ export default function NewWorkoutScreen() {
       .then((workout) => {
         setTitle(workout.title ?? "");
         setNotes(workout.notes ?? "");
-        setIsPublished(workout.published ?? false);
         setScheduledDate(parseISO(workout.scheduled_date));
 
         const sorted = [...(workout.sections ?? [])].sort(
@@ -148,7 +145,7 @@ export default function NewWorkoutScreen() {
     };
   }
 
-  async function handleSaveDraft() {
+  async function handleSave() {
     if (!gymId) return;
     try {
       if (isEditMode && workoutId) {
@@ -163,27 +160,7 @@ export default function NewWorkoutScreen() {
     }
   }
 
-  async function handlePublish() {
-    if (!gymId) return;
-    try {
-      if (isEditMode && workoutId) {
-        await updateWorkout.mutateAsync({ workoutId, input: buildWorkoutInput() });
-        if (!isPublished) {
-          await publishWorkout.mutateAsync(workoutId);
-        }
-      } else {
-        const workout = await createWorkout.mutateAsync({ gymId, input: buildWorkoutInput() });
-        await publishWorkout.mutateAsync(workout.id);
-      }
-      setPendingGymDate(scheduledDate);
-      router.back();
-    } catch {
-      Alert.alert("Error", "Failed to publish workout. Please try again.");
-    }
-  }
-
-  const isSaving =
-    createWorkout.isPending || updateWorkout.isPending || publishWorkout.isPending;
+  const isSaving = createWorkout.isPending || updateWorkout.isPending;
   const formattedDate = format(scheduledDate, "EEE, MMM d");
 
   if (loading) {
@@ -291,26 +268,12 @@ export default function NewWorkoutScreen() {
       </ScrollView>
 
       {/* Bottom actions */}
-      <View className="absolute bottom-0 left-0 right-0 px-4 pb-10 pt-4 bg-bg border-t border-border flex-row gap-3">
-        <View className="flex-1">
-          <Button
-            label={
-              (createWorkout.isPending || updateWorkout.isPending) && !publishWorkout.isPending
-                ? "Saving..."
-                : "Save Draft"
-            }
-            variant="secondary"
-            onPress={handleSaveDraft}
-            disabled={isSaving}
-          />
-        </View>
-        <View className="flex-1">
-          <Button
-            label={isSaving ? "Publishing..." : isPublished ? "Update & Keep Published" : "Publish"}
-            onPress={handlePublish}
-            disabled={isSaving}
-          />
-        </View>
+      <View className="absolute bottom-0 left-0 right-0 px-4 pb-10 pt-4 bg-bg border-t border-border">
+        <Button
+          label={isSaving ? "Saving..." : isEditMode ? "Update Workout" : "Save Workout"}
+          onPress={handleSave}
+          disabled={isSaving}
+        />
       </View>
 
       <WorkoutPreviewModal

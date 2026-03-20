@@ -53,7 +53,8 @@ function MemberAvatar({ member }: { member: GymMember }) {
       />
     );
   }
-  const initial = (member.users?.display_name ?? member.users?.email ?? "?")[0].toUpperCase();
+  const name = member.users?.display_name || member.users?.email || "?";
+  const initial = (name[0] ?? "?").toUpperCase();
   return (
     <View className="w-10 h-10 rounded-full bg-surface2 items-center justify-center">
       <Text className="text-foreground font-bold text-[15px]">{initial}</Text>
