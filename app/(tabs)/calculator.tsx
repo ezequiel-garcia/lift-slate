@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { View, Text, ScrollView, KeyboardAvoidingView, Platform } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
 import { useProfile } from "@/hooks/useProfile";
 import { FromOneRMForm } from "@/components/calculator/FromOneRMForm";
 import { ReverseForm } from "@/components/calculator/ReverseForm";
@@ -8,6 +9,7 @@ import { PercentageTable } from "@/components/calculator/PercentageTable";
 import { SaveMaxModal } from "@/components/calculator/SaveMaxModal";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { fromKg, toKg, roundToPlate } from "@/lib/units";
+import { colors } from "@/lib/theme";
 
 type Mode = "from1rm" | "reverse";
 
@@ -71,27 +73,41 @@ export default function QuickCalculatorScreen() {
           </View>
 
           {/* Mode Toggle */}
-          <View className="mx-5 mb-2">
+          <View className="mx-5 mb-5">
             <SegmentedControl
               segments={MODE_SEGMENTS}
               selected={mode}
               onChange={setMode}
             />
           </View>
-          <Text className="text-sm text-muted mx-5 mb-5">
-            {mode === "from1rm"
-              ? "Enter your max to see training weights at each percentage."
-              : "Calculate your max from a weight you lifted at a known percentage."}
-          </Text>
 
           <View className="px-5">
             {mode === "from1rm" ? (
-              <FromOneRMForm
-                unit={unit}
-                input={oneRMInput}
-                onChangeInput={setOneRMInput}
-                showError={oneRMInput.length > 0 && !oneRMValid}
-              />
+              <>
+                <FromOneRMForm
+                  unit={unit}
+                  input={oneRMInput}
+                  onChangeInput={setOneRMInput}
+                  showError={oneRMInput.length > 0 && !oneRMValid}
+                />
+                {oneRMValid ? (
+                  <PercentageTable
+                    oneRMKg={oneRMKg!}
+                    unit={unit}
+                    roundingIncrementKg={roundingIncrementKg}
+                  />
+                ) : (
+                  <View className="bg-surface rounded-2xl p-8 items-center">
+                    <Ionicons name="barbell-outline" size={36} color={colors.muted} style={{ marginBottom: 12 }} />
+                    <Text className="text-base font-semibold text-foreground mb-2 text-center">
+                      Enter your 1RM
+                    </Text>
+                    <Text className="text-sm text-muted text-center">
+                      See exact and rounded training weights.
+                    </Text>
+                  </View>
+                )}
+              </>
             ) : (
               <ReverseForm
                 unit={unit}
@@ -107,10 +123,11 @@ export default function QuickCalculatorScreen() {
                 estimatedOneRMRounded={estimatedOneRMRounded}
                 canSave={estimatedOneRMKg != null}
                 onSave={() => setSaveModalOpen(true)}
+                showPlaceholder={!weightValid || !pctValid}
               />
             )}
 
-            {tableOneRMKg != null && (
+            {mode === "reverse" && tableOneRMKg != null && (
               <PercentageTable
                 oneRMKg={tableOneRMKg}
                 unit={unit}

@@ -1,4 +1,6 @@
 import { View, Text, Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { UnitPill } from "@/components/calculator/FromOneRMForm";
 import * as Haptics from "expo-haptics";
 import { formatWeight } from "@/lib/units";
 import { colors } from "@/lib/theme";
@@ -21,6 +23,7 @@ type Props = {
   estimatedOneRMRounded: number | null;
   canSave: boolean;
   onSave: () => void;
+  showPlaceholder: boolean;
 };
 
 export function ReverseForm({
@@ -37,6 +40,7 @@ export function ReverseForm({
   estimatedOneRMRounded,
   canSave,
   onSave,
+  showPlaceholder,
 }: Props) {
   const displayPct = customPctInput ? parseFloat(customPctInput) : selectedChip;
 
@@ -44,12 +48,13 @@ export function ReverseForm({
     <>
       <View className="mb-5">
         <Input
-          label={`Weight Lifted (${unit})`}
+          label="Weight Lifted"
           placeholder={unit === "kg" ? "e.g. 100" : "e.g. 225"}
           keyboardType="decimal-pad"
           value={weightInput}
           onChangeText={onChangeWeight}
           error={showWeightError ? "Enter a weight greater than 0" : undefined}
+          rightElement={<UnitPill unit={unit} />}
         />
       </View>
 
@@ -90,29 +95,42 @@ export function ReverseForm({
       {!showPctError && <Text className="text-muted text-xs mb-5">Enter 1–100</Text>}
       {showPctError && <View className="mb-2" />}
 
-      {estimatedOneRMRaw != null && estimatedOneRMRounded != null && (
-        <View className="bg-surface rounded-2xl p-5 mb-6">
-          <Text className="text-label uppercase tracking-wider text-muted mb-2">
-            Estimated 1RM
+      {showPlaceholder ? (
+        <View className="bg-surface rounded-2xl p-8 mb-6 items-center">
+          <Ionicons name="analytics-outline" size={36} color={colors.muted} style={{ marginBottom: 12 }} />
+          <Text className="text-base font-semibold text-foreground mb-2 text-center">
+            Estimate your 1RM
           </Text>
-          <Text className="text-display text-accent" style={{ letterSpacing: -2 }}>
-            {formatWeight(estimatedOneRMRounded, unit)}
+          <Text className="text-sm text-muted text-center">
+            Enter a weight and pick a %.
           </Text>
-          <Text className="text-sm text-muted mt-1">
-            exact {formatWeight(parseFloat(estimatedOneRMRaw.toFixed(1)), unit)}
-          </Text>
-          {weightInput && displayPct != null && !isNaN(displayPct) && (
-            <Text className="text-xs text-muted mt-1">
-              Based on {weightInput} {unit} at {displayPct}%
-            </Text>
+        </View>
+      ) : (
+        <>
+          {estimatedOneRMRaw != null && estimatedOneRMRounded != null && (
+            <View className="bg-surface rounded-2xl p-5 mb-6">
+              <Text className="text-label uppercase tracking-wider text-muted mb-2">
+                Estimated 1RM
+              </Text>
+              <Text className="text-display text-accent" style={{ letterSpacing: -2 }}>
+                {formatWeight(estimatedOneRMRounded, unit)}
+              </Text>
+              <Text className="text-sm text-muted mt-1">
+                exact {formatWeight(parseFloat(estimatedOneRMRaw.toFixed(1)), unit)}
+              </Text>
+              {weightInput && displayPct != null && !isNaN(displayPct) && (
+                <Text className="text-xs text-muted mt-1">
+                  Based on {weightInput} {unit} at {displayPct}%
+                </Text>
+              )}
+            </View>
           )}
-        </View>
-      )}
-
-      {canSave && (
-        <View className="mb-6">
-          <Button label="Save as 1RM" onPress={onSave} />
-        </View>
+          {canSave && (
+            <View className="mb-6">
+              <Button label="Save as 1RM" onPress={onSave} />
+            </View>
+          )}
+        </>
       )}
     </>
   );

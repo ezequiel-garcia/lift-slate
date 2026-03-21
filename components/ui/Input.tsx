@@ -14,9 +14,10 @@ type Props = TextInputProps & {
   label?: string;
   error?: string;
   leftIcon?: React.ReactNode;
+  rightElement?: React.ReactNode;
 };
 
-export function Input({ label, error, leftIcon, style, ...rest }: Props) {
+export function Input({ label, error, leftIcon, rightElement, style, ...rest }: Props) {
   const [isFocused, setIsFocused] = useState(false);
   const focusProgress = useSharedValue(0);
 
@@ -61,6 +62,7 @@ export function Input({ label, error, leftIcon, style, ...rest }: Props) {
           style={style}
           {...rest}
         />
+        {rightElement && <View className="ml-2.5">{rightElement}</View>}
       </AnimatedView>
       {error && (
         <Text className="text-error text-sm mt-1.5">{error}</Text>
