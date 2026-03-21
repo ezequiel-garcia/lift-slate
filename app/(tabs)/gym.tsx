@@ -1,22 +1,28 @@
-import { useState, useCallback, useMemo } from "react";
-import { View, Text, Pressable, ActivityIndicator, RefreshControl, ScrollView, Alert } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
-import { Image } from "expo-image";
-import { Ionicons } from "@expo/vector-icons";
-import { format } from "date-fns";
-import { useFocusEffect } from "expo-router";
-import { useMyGym, useLeaveGym } from "@/hooks/useGym";
-import { useAppStore } from "@/stores/appStore";
-import { useWorkoutsByDate, useDeleteWorkout } from "@/hooks/useWorkouts";
+import { DateNavigator } from "@/components/gym/DateNavigator";
+import { WorkoutDayView } from "@/components/gym/WorkoutDayView";
+import { Button } from "@/components/ui/Button";
+import { EmptyState } from "@/components/ui/EmptyState";
+import { useLeaveGym, useMyGym } from "@/hooks/useGym";
 import { useMaxes } from "@/hooks/useMaxes";
 import { useProfile } from "@/hooks/useProfile";
-import { WorkoutDayView } from "@/components/gym/WorkoutDayView";
-import { DateNavigator } from "@/components/gym/DateNavigator";
-import { EmptyState } from "@/components/ui/EmptyState";
-import { Button } from "@/components/ui/Button";
-import { ActionSheet } from "@/components/ui/ActionSheet";
+import { useDeleteWorkout, useWorkoutsByDate } from "@/hooks/useWorkouts";
 import { colors } from "@/lib/theme";
+import { useAppStore } from "@/stores/appStore";
+import { Ionicons } from "@expo/vector-icons";
+import { format, isToday } from "date-fns";
+import { Image } from "expo-image";
+import { router, useFocusEffect } from "expo-router";
+import { useCallback, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  Text,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function GymScreen() {
   const { data: gym, isLoading: gymLoading, isFetched } = useMyGym();
@@ -27,14 +33,16 @@ export default function GymScreen() {
   const clearPendingGymDate = useAppStore((s) => s.clearPendingGymDate);
 
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [browsingOtherDays, setBrowsingOtherDays] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       if (pendingGymDate) {
         setSelectedDate(pendingGymDate);
+        setBrowsingOtherDays(true);
         clearPendingGymDate();
       }
-    }, [pendingGymDate, clearPendingGymDate])
+    }, [pendingGymDate, clearPendingGymDate]),
   );
   const dateStr = format(selectedDate, "yyyy-MM-dd");
   const workoutsQuery = useWorkoutsByDate(gym?.id, dateStr);
@@ -56,6 +64,8 @@ export default function GymScreen() {
         selectedDate={selectedDate}
         onDateChange={setSelectedDate}
         workoutsQuery={workoutsQuery}
+        browsingOtherDays={browsingOtherDays}
+        onToggleBrowse={() => setBrowsingOtherDays(true)}
       />
     );
   }
@@ -72,17 +82,84 @@ function NoGymView() {
         description="Connect with your gym to view workouts, track progress alongside teammates, and get guidance from coaches."
         action={
           <View className="gap-3">
-            <Button label="Join a Gym" onPress={() => router.push("/gym/join")} />
+            <Button
+              label="Join a Gym"
+              onPress={() => router.push("/gym/join")}
+            />
             <Button
               label="Create a Gym"
               variant="secondary"
               onPress={() => router.push("/gym/create")}
-              icon={<Ionicons name="add-circle-outline" size={18} color={colors.foreground} />}
+              icon={
+                <Ionicons
+                  name="add-circle-outline"
+                  size={18}
+                  color={colors.foreground}
+                />
+              }
             />
           </View>
         }
       />
     </SafeAreaView>
+  );
+}
+
+function GymBanner({ gym, onLeave }: { gym: any; onLeave?: () => void }) {
+  const isAdmin = gym.myRole === "admin";
+  const roleLabel =
+    gym.myRole === "admin"
+      ? "Admin"
+      : gym.myRole === "coach"
+        ? "Coach"
+        : "Athlete";
+
+  return (
+    <View className="bg-surface rounded-2xl p-4 gap-3">
+      <View className="flex-row items-center gap-3">
+        {gym.logo_url ? (
+          <Image
+            source={{ uri: gym.logo_url }}
+            style={{ width: 44, height: 44, borderRadius: 12 }}
+            contentFit="cover"
+          />
+        ) : (
+          <View className="w-11 h-11 rounded-xl bg-surface2 items-center justify-center">
+            <Ionicons name="fitness" size={22} color={colors.accent} />
+          </View>
+        )}
+        <View className="flex-1">
+          <Text className="text-foreground text-lg font-bold" numberOfLines={1}>
+            {gym.name}
+          </Text>
+          <View className="flex-row items-center gap-2 mt-0.5">
+            <View className="bg-accent/15 px-2 py-0.5 rounded-md">
+              <Text className="text-accent text-xs font-semibold">
+                {roleLabel}
+              </Text>
+            </View>
+          </View>
+        </View>
+      </View>
+      {!!gym.description && (
+        <Text className="text-muted text-sm">{gym.description}</Text>
+      )}
+      {!!gym.address && (
+        <View className="flex-row items-center gap-1.5">
+          <Ionicons name="location-outline" size={14} color={colors.muted} />
+          <Text className="text-muted text-sm">{gym.address}</Text>
+        </View>
+      )}
+      {!isAdmin && onLeave && (
+        <Pressable
+          onPress={onLeave}
+          className="pt-2 border-t border-border"
+          style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+        >
+          <Text className="text-error text-sm text-center">Leave Gym</Text>
+        </Pressable>
+      )}
+    </View>
   );
 }
 
@@ -93,6 +170,8 @@ function InGymView({
   selectedDate,
   onDateChange,
   workoutsQuery,
+  browsingOtherDays,
+  onToggleBrowse,
 }: {
   gym: any;
   profile: any;
@@ -100,11 +179,12 @@ function InGymView({
   selectedDate: Date;
   onDateChange: (date: Date) => void;
   workoutsQuery: ReturnType<typeof useWorkoutsByDate>;
+  browsingOtherDays: boolean;
+  onToggleBrowse: () => void;
 }) {
   const { data: workouts, isLoading, refetch } = workoutsQuery;
   const [refreshing, setRefreshing] = useState(false);
-  const [showMoreSheet, setShowMoreSheet] = useState(false);
-  const { mutate: leaveGym, isPending: isLeaving } = useLeaveGym();
+  const { mutate: leaveGym } = useLeaveGym();
   const { mutate: deleteWorkout } = useDeleteWorkout();
 
   const isAdmin = gym.myRole === "admin";
@@ -117,12 +197,14 @@ function InGymView({
       {
         text: "Leave",
         style: "destructive",
-        onPress: () => leaveGym(gym.membershipId, {
-          onError: (err: Error) => Alert.alert("Error", err.message),
-        }),
+        onPress: () =>
+          leaveGym(gym.membershipId, {
+            onError: (err: Error) => Alert.alert("Error", err.message),
+          }),
       },
     ]);
   }
+
   const unit = profile?.unit_preference ?? "kg";
   const roundingKg = profile?.rounding_increment_kg ?? 2.5;
 
@@ -143,28 +225,38 @@ function InGymView({
     setRefreshing(false);
   }, [refetch]);
 
+  const showingToday = isToday(selectedDate);
+
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
       {/* Header */}
-      <View className="flex-row items-center justify-between px-5 pt-3 pb-1">
-        <View className="flex-row items-center gap-3 flex-1">
-          {gym.logo_url ? (
-            <Image
-              source={{ uri: gym.logo_url }}
-              style={{ width: 36, height: 36, borderRadius: 10 }}
-              contentFit="cover"
-            />
-          ) : (
-            <View className="w-9 h-9 rounded-[10px] bg-surface items-center justify-center">
-              <Ionicons name="fitness" size={18} color={colors.accent} />
-            </View>
-          )}
-          <Text className="text-foreground text-xl font-bold flex-shrink" numberOfLines={1}>
-            {gym.name}
-          </Text>
-        </View>
-
+      <View className="flex-row items-center justify-between px-5 pt-5 pb-3">
+        <Text className="text-title text-foreground tracking-tight">
+          My Gym
+        </Text>
         <View className="flex-row items-center">
+          {canCreateWorkout && (
+            <Pressable
+              onPress={() => router.push(`/gym/${gym.id}/members`)}
+              className="w-11 h-11 items-center justify-center"
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
+              <Ionicons name="people-outline" size={22} color={colors.muted} />
+            </Pressable>
+          )}
+          {isAdmin && (
+            <Pressable
+              onPress={() => router.push(`/gym/${gym.id}/settings`)}
+              className="w-11 h-11 items-center justify-center"
+              style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+            >
+              <Ionicons
+                name="settings-outline"
+                size={22}
+                color={colors.muted}
+              />
+            </Pressable>
+          )}
           {canCreateWorkout && (
             <Pressable
               onPress={() => router.push(`/gym/${gym.id}/workout/new`)}
@@ -174,22 +266,10 @@ function InGymView({
               <Ionicons name="add" size={26} color={colors.accent} />
             </Pressable>
           )}
-          <Pressable
-            onPress={() => setShowMoreSheet(true)}
-            className="w-11 h-11 items-center justify-center"
-            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-          >
-            <Ionicons name="ellipsis-horizontal" size={22} color={colors.muted} />
-          </Pressable>
         </View>
       </View>
 
-      {/* Date navigator */}
-      <View className="px-5">
-        <DateNavigator date={selectedDate} onDateChange={onDateChange} />
-      </View>
-
-      {/* Workout content */}
+      {/* Scrollable content */}
       <ScrollView
         className="flex-1"
         contentContainerClassName="px-5 pb-8 flex-grow"
@@ -201,41 +281,49 @@ function InGymView({
           />
         }
       >
-        {isLoading ? (
-          <View className="flex-1 justify-center items-center py-20">
-            <ActivityIndicator color={colors.accent} />
+        {/* Gym banner card */}
+        <View className="mt-2 mb-8">
+          <GymBanner gym={gym} onLeave={handleLeaveGym} />
+        </View>
+
+        {/* Browse other days */}
+        {browsingOtherDays ? (
+          <View className="mb-6">
+            <DateNavigator date={selectedDate} onDateChange={onDateChange} />
           </View>
         ) : (
-          <WorkoutDayView
-            workouts={workouts ?? []}
-            maxMap={maxMap}
-            unit={unit}
-            roundingKg={roundingKg}
-            gymId={gym.id}
-            canEditWorkout={canCreateWorkout}
-            selectedDate={format(selectedDate, "yyyy-MM-dd")}
-            onDeleteWorkout={(id) => deleteWorkout(id)}
-          />
+          <Pressable
+            onPress={onToggleBrowse}
+            className="flex-row items-center justify-center gap-2 py-3 mb-6"
+            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+          >
+            <Ionicons name="calendar-outline" size={18} color={colors.muted} />
+            <Text className="text-muted text-sm font-medium">
+              Browse other days
+            </Text>
+          </Pressable>
         )}
-      </ScrollView>
 
-      <ActionSheet
-        visible={showMoreSheet}
-        title={gym.name}
-        onClose={() => setShowMoreSheet(false)}
-        options={[
-          ...(canCreateWorkout
-            ? [{ label: "Members", onPress: () => router.push(`/gym/${gym.id}/members`) }]
-            : []),
-          ...(isAdmin
-            ? [{ label: "Settings", onPress: () => router.push(`/gym/${gym.id}/settings`) }]
-            : []),
-          ...(!isAdmin
-            ? [{ label: "Leave Gym", destructive: true, onPress: handleLeaveGym }]
-            : []),
-          { label: "Cancel", cancel: true, onPress: () => {} },
-        ]}
-      />
+        {/* Workout section */}
+        <View className="mb-8">
+          {isLoading ? (
+            <View className="py-12 items-center">
+              <ActivityIndicator color={colors.accent} />
+            </View>
+          ) : (
+            <WorkoutDayView
+              workouts={workouts ?? []}
+              maxMap={maxMap}
+              unit={unit}
+              roundingKg={roundingKg}
+              gymId={gym.id}
+              canEditWorkout={canCreateWorkout}
+              selectedDate={format(selectedDate, "yyyy-MM-dd")}
+              onDeleteWorkout={(id) => deleteWorkout(id)}
+            />
+          )}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
