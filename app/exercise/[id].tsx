@@ -29,7 +29,7 @@ export default function ExerciseDetailScreen() {
     if (addMax === "true") setAddModalVisible(true);
   }, []);
 
-  const { exercise, history, profile, isLoading, isError, refetch } = useExerciseDetail(id);
+  const { exercise, history, profile, isLoading, historyLoading, isError, refetch } = useExerciseDetail(id);
   const { mutate: deleteExerciseMaxes } = useDeleteExerciseMaxes();
   const { mutate: deleteMax } = useDeleteMax(id);
 
@@ -106,6 +106,7 @@ export default function ExerciseDetailScreen() {
               unit={unit}
               roundingIncrementKg={roundingIncrementKg}
               onAddMax={() => setAddModalVisible(true)}
+              isLoading={historyLoading}
             />
           ) : (
             <HistoryTab
@@ -115,6 +116,7 @@ export default function ExerciseDetailScreen() {
               onDeleteMax={(maxId) => deleteMax(maxId)}
               refreshing={refreshing}
               onRefresh={handleRefresh}
+              isLoading={historyLoading}
             />
           )}
         </>

@@ -1,4 +1,4 @@
-import { FlatList, View, Text, Pressable, RefreshControl, Alert } from "react-native";
+import { FlatList, View, Text, Pressable, RefreshControl, Alert, ActivityIndicator } from "react-native";
 import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
@@ -21,9 +21,10 @@ type Props = {
   onDeleteMax?: (id: string) => void;
   refreshing?: boolean;
   onRefresh?: () => void;
+  isLoading?: boolean;
 };
 
-export function HistoryTab({ history, unit, onAddMax, onDeleteMax, refreshing, onRefresh }: Props) {
+export function HistoryTab({ history, unit, onAddMax, onDeleteMax, refreshing, onRefresh, isLoading }: Props) {
   const prWeightKg = history.reduce((best, m) => Math.max(best, m.weight_kg), 0);
   const reduceMotion = useReducedMotion();
 
@@ -90,12 +91,18 @@ export function HistoryTab({ history, unit, onAddMax, onDeleteMax, refreshing, o
       renderItem={renderItem}
       contentContainerStyle={{ paddingTop: 8, paddingBottom: 100, flexGrow: 1 }}
       ListEmptyComponent={
-        <EmptyState
-          icon="time-outline"
-          title="No history yet"
-          description="Start tracking to see your progress here"
-          action={<Button label="Log your first max" onPress={onAddMax} />}
-        />
+        isLoading ? (
+          <View className="flex-1 items-center justify-center py-16">
+            <ActivityIndicator color={colors.accent} />
+          </View>
+        ) : (
+          <EmptyState
+            icon="time-outline"
+            title="No history yet"
+            description="Start tracking to see your progress here"
+            action={<Button label="Log your first max" onPress={onAddMax} />}
+          />
+        )
       }
       ListFooterComponent={
         history.length > 0 ? (

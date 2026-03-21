@@ -17,7 +17,8 @@ export function useExerciseDetail(exerciseId: string) {
     exercise,
     history,
     profile,
-    isLoading: exercisesLoading || historyLoading || profileLoading,
+    isLoading: exercisesLoading || profileLoading,
+    historyLoading,
     isError,
     refetch,
   };

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { View, Text, TextInput, ScrollView, Pressable } from "react-native";
+import { View, Text, TextInput, ScrollView, Pressable, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { calculatePercentage, formatWeight, fromKg, WeightUnit } from "@/lib/units";
@@ -20,9 +20,10 @@ type Props = {
   unit: WeightUnit;
   roundingIncrementKg: number;
   onAddMax: () => void;
+  isLoading?: boolean;
 };
 
-export function CalculatorTab({ exerciseId, currentMax, unit, roundingIncrementKg, onAddMax }: Props) {
+export function CalculatorTab({ exerciseId, currentMax, unit, roundingIncrementKg, onAddMax, isLoading }: Props) {
   const [selectedPct, setSelectedPct] = useState<number | null>(null);
   const [customPct, setCustomPct] = useState("");
 
@@ -46,7 +47,9 @@ export function CalculatorTab({ exerciseId, currentMax, unit, roundingIncrementK
         <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-3">
           Current 1RM
         </Text>
-        {currentMax ? (
+        {isLoading ? (
+          <ActivityIndicator color={colors.accent} />
+        ) : currentMax ? (
           <Text className="text-[56px] font-bold text-foreground" style={{ letterSpacing: -2 }}>
             {formatWeight(fromKg(currentMax.weight_kg, unit), unit)}
           </Text>
