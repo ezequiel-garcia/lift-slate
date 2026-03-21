@@ -81,7 +81,7 @@ export default function ExerciseDetailScreen() {
           {exercise?.name ?? "Exercise"}
         </Text>
         <Pressable onPress={handleDelete} hitSlop={12} className="w-10 h-10 items-center justify-center">
-          <Ionicons name="ellipsis-horizontal" size={20} color={colors.muted} />
+          <Ionicons name="trash-outline" size={20} color={colors.muted} />
         </Pressable>
       </View>
 
