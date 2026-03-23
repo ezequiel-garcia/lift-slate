@@ -180,7 +180,7 @@ export default function AthleteMaxesScreen() {
           className="absolute bottom-8 right-5 bg-accent rounded-2xl flex-row items-center px-5 py-3.5 gap-2"
           style={({ pressed }) => ({
             opacity: pressed ? 0.85 : 1,
-            shadowColor: "#B4FF4A",
+            shadowColor: colors.accent,
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.25,
             shadowRadius: 12,

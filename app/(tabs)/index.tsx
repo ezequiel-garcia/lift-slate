@@ -167,7 +167,7 @@ export default function HomeScreen() {
           style={[
             fabStyle,
             {
-              shadowColor: "#B4FF4A",
+              shadowColor: colors.accent,
               shadowOffset: { width: 0, height: 4 },
               shadowOpacity: 0.25,
               shadowRadius: 12,

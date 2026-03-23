@@ -12,7 +12,7 @@ export type MyLiftsSection = { title: string; data: ExerciseSummary[] };
 export function useMyLifts(search: string) {
   const { data: maxes = [], isLoading: maxesLoading, isError: maxesError, refetch: refetchMaxes } = useMaxes();
 
-  useFocusEffect(useCallback(() => { refetchMaxes(); }, []));
+  useFocusEffect(useCallback(() => { refetchMaxes(); }, [refetchMaxes]));
   const { data: exercises = [], isLoading: exercisesLoading } = useExercises();
   const { data: profile } = useProfile();
 

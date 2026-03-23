@@ -33,11 +33,10 @@ import {
 } from "@/hooks/useGym";
 import { useGenerateTempCode } from "@/hooks/useInvite";
 import { uploadGymLogo } from "@/services/storage.service";
-
-const APP_SCHEME = "liftslate";
+import * as Linking from "expo-linking";
 
 function getDeepLink(token: string) {
-  return `${APP_SCHEME}://gym/join?token=${token}`;
+  return Linking.createURL("gym/join", { queryParams: { token } });
 }
 
 function formatCountdown(expiresAt: string): string {

@@ -197,7 +197,7 @@ export function AddExerciseModal({
                         ? "bg-accent/15"
                         : "bg-surface"
                     }`}
-                    style={customCategory === cat ? { borderWidth: 1, borderColor: "#B4FF4A" } : undefined}
+                    style={customCategory === cat ? { borderWidth: 1, borderColor: colors.accent } : undefined}
                     onPress={() =>
                       setCustomCategory(customCategory === cat ? null : cat)
                     }

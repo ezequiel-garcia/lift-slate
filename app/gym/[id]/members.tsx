@@ -217,7 +217,7 @@ export default function GymMembersScreen() {
                   )}
 
                   {canViewMaxes && !isAdmin && (
-                    <Ionicons name="chevron-forward" size={16} color="#3F3F46" style={{ marginLeft: 4 }} />
+                    <Ionicons name="chevron-forward" size={16} color={colors.border} style={{ marginLeft: 4 }} />
                   )}
                 </Pressable>
               </Animated.View>

@@ -32,7 +32,7 @@ export default function ProfileScreen() {
     const roundKg = profile.rounding_increment_kg ?? 2.5;
     const displayRounding = unit === "kg" ? roundKg : fromKg(roundKg, "lbs");
     setRoundingInput(String(displayRounding));
-  }, [profile]);
+  }, [profile, unit]);
 
   function handleDisplayNameBlur() {
     const trimmed = displayName.trim();
