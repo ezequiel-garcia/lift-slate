@@ -91,7 +91,7 @@ export function AddAthleteMaxModal({ visible, userId, unit, onClose }: Props) {
           <View className="flex-row items-center gap-2">
             {step === "weight" && (
               <Pressable onPress={() => setStep("exercise")} hitSlop={12}>
-                <Ionicons name="chevron-back" size={22} color={colors.text} />
+                <Ionicons name="chevron-back" size={22} color={colors.foreground} />
               </Pressable>
             )}
             <Text className="text-xl font-bold text-foreground">

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { View, Text, Switch, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, Switch, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, Pressable } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -134,14 +134,15 @@ export default function ProfileScreen() {
             <Text className="text-label uppercase tracking-wider text-muted mb-3">Unit Preference</Text>
             <View className="flex-row bg-surface2 rounded-xl p-1">
               {(["kg", "lbs"] as WeightUnit[]).map((u) => (
-                <View key={u} className={`flex-1 py-2.5 rounded-lg items-center ${unit === u ? "bg-accent" : ""}`}>
-                  <Text
-                    className={`font-bold text-[15px] ${unit === u ? "text-bg" : "text-muted"}`}
-                    onPress={() => handleUnitToggle(u)}
-                  >
+                <Pressable
+                  key={u}
+                  className={`flex-1 py-2.5 rounded-lg items-center ${unit === u ? "bg-accent" : ""}`}
+                  onPress={() => handleUnitToggle(u)}
+                >
+                  <Text className={`font-bold text-[15px] ${unit === u ? "text-bg" : "text-muted"}`}>
                     {u}
                   </Text>
-                </View>
+                </Pressable>
               ))}
             </View>
           </View>

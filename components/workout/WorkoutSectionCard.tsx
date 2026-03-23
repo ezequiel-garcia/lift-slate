@@ -83,10 +83,10 @@ export function WorkoutSectionCard({
         />
         <View className="flex-row items-center gap-1">
           <Pressable onPress={onMoveUp} disabled={isFirst} className="p-1">
-            <Ionicons name="chevron-up" size={18} color={isFirst ? colors.muted : colors.text} />
+            <Ionicons name="chevron-up" size={18} color={isFirst ? colors.muted : colors.foreground} />
           </Pressable>
           <Pressable onPress={onMoveDown} disabled={isLast} className="p-1">
-            <Ionicons name="chevron-down" size={18} color={isLast ? colors.muted : colors.text} />
+            <Ionicons name="chevron-down" size={18} color={isLast ? colors.muted : colors.foreground} />
           </Pressable>
           <Pressable onPress={handleDelete} className="p-1">
             <Ionicons name="trash-outline" size={16} color={colors.error} />

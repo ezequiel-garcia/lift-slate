@@ -89,15 +89,14 @@ export function SaveMaxModal({ visible, onClose, estimatedOneRMKg }: Props) {
               No exercises yet
             </Text>
             <Text className="text-muted text-base text-center mb-6">
-              Add an exercise to save your 1RM
+              Add an exercise from My Lifts to save your 1RM
             </Text>
-            {/* TODO: Navigate to Add Exercise flow */}
             <Pressable
               className="bg-surface rounded-2xl px-6 py-3.5"
               style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
               onPress={handleClose}
             >
-              <Text className="text-accent font-semibold text-[15px]">Add Exercise</Text>
+              <Text className="text-foreground font-semibold text-[15px]">Close</Text>
             </Pressable>
           </View>
         ) : (

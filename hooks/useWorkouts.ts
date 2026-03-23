@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
 import { format, addDays } from "date-fns";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import {
   getTodaysWorkout,
   getWorkoutsByDate,
@@ -40,13 +40,14 @@ export function useWorkoutsByDate(gymId: string | undefined, date: string) {
 
   const query = useQuery({
     queryKey: ["workouts", gymId, "date", date],
-    queryFn: () => {
-      prefetchAdjacent(date);
-      return getWorkoutsByDate(gymId!, date);
-    },
+    queryFn: () => getWorkoutsByDate(gymId!, date),
     enabled: !!gymId,
     placeholderData: keepPreviousData,
   });
+
+  useEffect(() => {
+    if (query.data) prefetchAdjacent(date);
+  }, [query.data, date, prefetchAdjacent]);
 
   return query;
 }
