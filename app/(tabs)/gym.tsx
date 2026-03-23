@@ -11,7 +11,7 @@ import { useDeleteWorkout, useWorkoutsByDate } from "@/hooks/useWorkouts";
 import { colors } from "@/lib/theme";
 import { useAppStore } from "@/stores/appStore";
 import { Ionicons } from "@expo/vector-icons";
-import { format, isToday } from "date-fns";
+import { format } from "date-fns";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -34,13 +34,11 @@ export default function GymScreen() {
   const clearPendingGymDate = useAppStore((s) => s.clearPendingGymDate);
 
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [browsingOtherDays, setBrowsingOtherDays] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
       if (pendingGymDate) {
         setSelectedDate(pendingGymDate);
-        setBrowsingOtherDays(true);
         clearPendingGymDate();
       }
     }, [pendingGymDate, clearPendingGymDate]),
@@ -65,8 +63,6 @@ export default function GymScreen() {
         selectedDate={selectedDate}
         onDateChange={setSelectedDate}
         workoutsQuery={workoutsQuery}
-        browsingOtherDays={browsingOtherDays}
-        onToggleBrowse={() => setBrowsingOtherDays(true)}
       />
     );
   }
@@ -76,7 +72,7 @@ export default function GymScreen() {
 
 function NoGymView() {
   return (
-    <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+    <SafeAreaView className="flex-1 bg-bg justify-center" edges={["top"]}>
       <EmptyState
         icon="fitness-outline"
         title="Join your gym community"
@@ -115,8 +111,6 @@ function InGymView({
   selectedDate,
   onDateChange,
   workoutsQuery,
-  browsingOtherDays,
-  onToggleBrowse,
 }: {
   gym: MyGym;
   profile: ReturnType<typeof useProfile>["data"];
@@ -124,8 +118,6 @@ function InGymView({
   selectedDate: Date;
   onDateChange: (date: Date) => void;
   workoutsQuery: ReturnType<typeof useWorkoutsByDate>;
-  browsingOtherDays: boolean;
-  onToggleBrowse: () => void;
 }) {
   const { data: workouts, isLoading, refetch } = workoutsQuery;
   const [refreshing, setRefreshing] = useState(false);
@@ -169,8 +161,6 @@ function InGymView({
     await refetch();
     setRefreshing(false);
   }, [refetch]);
-
-  const showingToday = isToday(selectedDate);
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
@@ -231,23 +221,10 @@ function InGymView({
           <GymBanner gym={gym} onLeave={handleLeaveGym} />
         </View>
 
-        {/* Browse other days */}
-        {browsingOtherDays ? (
-          <View className="mb-6">
-            <DateNavigator date={selectedDate} onDateChange={onDateChange} />
-          </View>
-        ) : (
-          <Pressable
-            onPress={onToggleBrowse}
-            className="flex-row items-center justify-center gap-2 py-3 mb-6"
-            style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
-          >
-            <Ionicons name="calendar-outline" size={18} color={colors.muted} />
-            <Text className="text-muted text-sm font-medium">
-              Browse other days
-            </Text>
-          </Pressable>
-        )}
+        {/* Date navigator */}
+        <View className="mb-6">
+          <DateNavigator date={selectedDate} onDateChange={onDateChange} />
+        </View>
 
         {/* Workout section */}
         <View className="mb-8">

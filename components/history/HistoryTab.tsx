@@ -96,12 +96,14 @@ export function HistoryTab({ history, unit, onAddMax, onDeleteMax, refreshing, o
             <ActivityIndicator color={colors.accent} />
           </View>
         ) : (
-          <EmptyState
-            icon="time-outline"
-            title="No history yet"
-            description="Start tracking to see your progress here"
-            action={<Button label="Log your first max" onPress={onAddMax} />}
-          />
+          <View className="flex-1 justify-center">
+            <EmptyState
+              icon="time-outline"
+              title="No history yet"
+              description="Start tracking to see your progress here"
+              action={<Button label="Log your first max" onPress={onAddMax} />}
+            />
+          </View>
         )
       }
       ListFooterComponent={

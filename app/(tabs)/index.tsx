@@ -98,17 +98,19 @@ export default function HomeScreen() {
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
       {exerciseSummaries.length === 0 ? (
-        <EmptyState
-          icon="barbell-outline"
-          title="No lifts yet"
-          description={"Track your 1RMs to auto-calculate\ntraining weights"}
-          action={
-            <Button
-              label="Add your first exercise"
-              onPress={() => setModalVisible(true)}
-            />
-          }
-        />
+        <View className="flex-1 justify-center">
+          <EmptyState
+            icon="barbell-outline"
+            title="No lifts yet"
+            description={"Track your 1RMs to auto-calculate\ntraining weights"}
+            action={
+              <Button
+                label="Add your first exercise"
+                onPress={() => setModalVisible(true)}
+              />
+            }
+          />
+        </View>
       ) : (
         <>
           <View className="px-5 pt-5 pb-3">

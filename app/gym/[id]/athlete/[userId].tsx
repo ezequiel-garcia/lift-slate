@@ -138,20 +138,22 @@ export default function AthleteMaxesScreen() {
       {isError ? (
         <ErrorState message="Failed to load athlete maxes" onRetry={() => refetch()} />
       ) : exerciseSummaries.length === 0 ? (
-        <EmptyState
-          icon={allowCoachEdit ? "barbell-outline" : "lock-closed-outline"}
-          title={allowCoachEdit ? "No lifts recorded" : "Editing disabled"}
-          description={
-            allowCoachEdit
-              ? `${athleteName} hasn't recorded any lifts yet.`
-              : `${athleteName} has disabled coach access to their lifts.`
-          }
-          action={
-            canEdit ? (
-              <Button label="Add First Max" onPress={() => setAddModalVisible(true)} />
-            ) : undefined
-          }
-        />
+        <View className="flex-1 justify-center">
+          <EmptyState
+            icon={allowCoachEdit ? "barbell-outline" : "lock-closed-outline"}
+            title={allowCoachEdit ? "No lifts recorded" : "Editing disabled"}
+            description={
+              allowCoachEdit
+                ? `${athleteName} hasn't recorded any lifts yet.`
+                : `${athleteName} has disabled coach access to their lifts.`
+            }
+            action={
+              canEdit ? (
+                <Button label="Add First Max" onPress={() => setAddModalVisible(true)} />
+              ) : undefined
+            }
+          />
+        </View>
       ) : (
         <SectionList
           sections={sections}

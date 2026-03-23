@@ -16,7 +16,7 @@ export function EmptyState({ icon, title, description, action }: Props) {
   return (
     <Animated.View
       entering={reduceMotion ? undefined : FadeIn.duration(400)}
-      className="flex-1 justify-center items-center px-8 gap-4"
+      className="items-center px-8 gap-4 py-8"
     >
       <View className="w-16 h-16 rounded-2xl bg-surface items-center justify-center mb-1">
         <Ionicons name={icon} size={28} color={colors.accent} />
