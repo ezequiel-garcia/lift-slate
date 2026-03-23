@@ -8,7 +8,7 @@ import { ReverseForm } from "@/components/calculator/ReverseForm";
 import { PercentageTable } from "@/components/calculator/PercentageTable";
 import { SaveMaxModal } from "@/components/calculator/SaveMaxModal";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
-import { fromKg, toKg, roundToPlate } from "@/lib/units";
+import { fromKg, toKg } from "@/lib/units";
 import { colors } from "@/lib/theme";
 
 type Mode = "from1rm" | "reverse";
@@ -22,7 +22,6 @@ export default function QuickCalculatorScreen() {
   const { data: profile } = useProfile();
 
   const unit = (profile?.unit_preference ?? "kg") as "kg" | "lbs";
-  const roundingIncrementKg = profile?.rounding_increment_kg ?? 2.5;
 
   const [mode, setMode] = useState<Mode>("from1rm");
   const [saveModalOpen, setSaveModalOpen] = useState(false);
@@ -48,9 +47,6 @@ export default function QuickCalculatorScreen() {
   const weightKg = weightValid ? toKg(weightValue, unit) : null;
   const estimatedOneRMKg = weightKg && pctValid ? weightKg / (activePct! / 100) : null;
   const estimatedOneRMRaw = estimatedOneRMKg ? fromKg(estimatedOneRMKg, unit) : null;
-  const estimatedOneRMRounded = estimatedOneRMRaw
-    ? roundToPlate(estimatedOneRMRaw, roundingIncrementKg, unit)
-    : null;
 
   const tableOneRMKg = mode === "from1rm" ? oneRMKg : estimatedOneRMKg;
 
@@ -94,7 +90,6 @@ export default function QuickCalculatorScreen() {
                   <PercentageTable
                     oneRMKg={oneRMKg!}
                     unit={unit}
-                    roundingIncrementKg={roundingIncrementKg}
                   />
                 ) : (
                   <View className="bg-surface rounded-2xl p-8 items-center">
@@ -103,7 +98,7 @@ export default function QuickCalculatorScreen() {
                       Enter your 1RM
                     </Text>
                     <Text className="text-sm text-muted text-center">
-                      See exact and rounded training weights.
+                      See your training weights at every percentage.
                     </Text>
                   </View>
                 )}
@@ -120,7 +115,6 @@ export default function QuickCalculatorScreen() {
                 onChangeCustomPct={(v) => { setCustomPctInput(v); if (v) setSelectedChip(null); }}
                 showPctError={customPctInput.length > 0 && !pctValid}
                 estimatedOneRMRaw={estimatedOneRMRaw}
-                estimatedOneRMRounded={estimatedOneRMRounded}
                 canSave={estimatedOneRMKg != null}
                 onSave={() => setSaveModalOpen(true)}
                 showPlaceholder={!weightValid || !pctValid}
@@ -131,7 +125,6 @@ export default function QuickCalculatorScreen() {
               <PercentageTable
                 oneRMKg={tableOneRMKg}
                 unit={unit}
-                roundingIncrementKg={roundingIncrementKg}
               />
             )}
           </View>

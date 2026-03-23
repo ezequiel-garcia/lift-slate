@@ -14,7 +14,6 @@ interface Props {
   workouts: WorkoutWithSections[];
   maxMap: MaxMap;
   unit: WeightUnit;
-  roundingKg: number;
   gymId?: string;
   canEditWorkout?: boolean;
   selectedDate?: string;
@@ -25,12 +24,10 @@ function StructuredItem({
   item,
   maxMap,
   unit,
-  roundingKg,
 }: {
   item: WorkoutItem;
   maxMap: MaxMap;
   unit: WeightUnit;
-  roundingKg: number;
 }) {
   const exerciseName = item.exercises?.name ?? "Exercise";
   const setsReps = item.sets && item.reps ? `${item.sets}×${item.reps}` : null;
@@ -41,10 +38,10 @@ function StructuredItem({
   if (item.percentage && item.exercise_id) {
     const maxKg = maxMap[item.exercise_id];
     if (maxKg) {
-      const { rounded } = calculatePercentage(maxKg, item.percentage, unit, roundingKg);
+      const weight = calculatePercentage(maxKg, item.percentage, unit);
       weightLine = (
         <Text className="text-accent font-semibold text-sm">
-          {item.percentage}% → {formatWeight(rounded, unit)}
+          {item.percentage}% → {formatWeight(weight, unit)}
         </Text>
       );
     } else {
@@ -102,7 +99,6 @@ export function WorkoutDayView({
   workouts,
   maxMap,
   unit,
-  roundingKg,
   gymId,
   canEditWorkout,
   selectedDate,
@@ -180,7 +176,6 @@ export function WorkoutDayView({
                       item={item}
                       maxMap={maxMap}
                       unit={unit}
-                      roundingKg={roundingKg}
                     />
                   ) : (
                     <FreeTextItem key={item.id} item={item} />

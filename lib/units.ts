@@ -12,21 +12,13 @@ export function fromKg(valueKg: number, unit: WeightUnit): number {
   return valueKg * LBS_PER_KG;
 }
 
-export function roundToPlate(value: number, incrementKg: number, unit: WeightUnit): number {
-  const increment = unit === "kg" ? incrementKg : fromKg(incrementKg, "lbs");
-  return Math.round(value / increment) * increment;
-}
-
 export function calculatePercentage(
   maxKg: number,
   percentage: number,
   unit: WeightUnit,
-  roundingIncrementKg: number,
-): { raw: number; rounded: number } {
+): number {
   const rawKg = maxKg * (percentage / 100);
-  const displayRaw = fromKg(rawKg, unit);
-  const displayRounded = roundToPlate(displayRaw, roundingIncrementKg, unit);
-  return { raw: parseFloat(displayRaw.toFixed(1)), rounded: displayRounded };
+  return parseFloat(fromKg(rawKg, unit).toFixed(1));
 }
 
 export function formatWeight(value: number, unit: WeightUnit): string {

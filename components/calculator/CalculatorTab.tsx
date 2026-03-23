@@ -18,22 +18,19 @@ type Props = {
   exerciseId: string;
   currentMax: Max | null;
   unit: WeightUnit;
-  roundingIncrementKg: number;
   onAddMax: () => void;
   isLoading?: boolean;
 };
 
-export function CalculatorTab({ exerciseId, currentMax, unit, roundingIncrementKg, onAddMax, isLoading }: Props) {
+export function CalculatorTab({ exerciseId, currentMax, unit, onAddMax, isLoading }: Props) {
   const [selectedPct, setSelectedPct] = useState<number | null>(null);
   const [customPct, setCustomPct] = useState("");
 
   const activePct = customPct ? parseFloat(customPct) : selectedPct;
   const result =
     currentMax && activePct != null && !isNaN(activePct) && activePct > 0
-      ? calculatePercentage(currentMax.weight_kg, activePct, unit, roundingIncrementKg)
+      ? calculatePercentage(currentMax.weight_kg, activePct, unit)
       : null;
-
-  const roundIncrementDisplay = formatWeight(fromKg(roundingIncrementKg, unit), unit);
 
   return (
     <ScrollView
@@ -117,10 +114,7 @@ export function CalculatorTab({ exerciseId, currentMax, unit, roundingIncrementK
             className="text-[48px] font-bold text-accent"
             style={{ letterSpacing: -2 }}
           >
-            {formatWeight(result.rounded, unit)}
-          </Text>
-          <Text className="text-sm text-muted mt-2">
-            exact {formatWeight(result.raw, unit)} · rounded to {roundIncrementDisplay}
+            {formatWeight(result, unit)}
           </Text>
         </View>
       )}

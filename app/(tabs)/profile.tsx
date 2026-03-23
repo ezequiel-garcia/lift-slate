@@ -8,7 +8,7 @@ import Constants from "expo-constants";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useMyGym, useLeaveGym } from "@/hooks/useGym";
 import { signOut } from "@/services/auth.service";
-import { fromKg, toKg, WeightUnit } from "@/lib/units";
+import { WeightUnit } from "@/lib/units";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -24,15 +24,11 @@ export default function ProfileScreen() {
   const unit = (profile?.unit_preference ?? "kg") as WeightUnit;
 
   const [displayName, setDisplayName] = useState("");
-  const [roundingInput, setRoundingInput] = useState("");
 
   useEffect(() => {
     if (!profile) return;
     setDisplayName(profile.display_name ?? "");
-    const roundKg = profile.rounding_increment_kg ?? 2.5;
-    const displayRounding = unit === "kg" ? roundKg : fromKg(roundKg, "lbs");
-    setRoundingInput(String(displayRounding));
-  }, [profile, unit]);
+  }, [profile]);
 
   function handleDisplayNameBlur() {
     const trimmed = displayName.trim();
@@ -43,17 +39,6 @@ export default function ProfileScreen() {
   function handleUnitToggle(selected: WeightUnit) {
     if (selected === unit) return;
     update({ unit_preference: selected });
-  }
-
-  function handleRoundingBlur() {
-    const parsed = parseFloat(roundingInput);
-    if (isNaN(parsed) || parsed <= 0) {
-      const roundKg = profile?.rounding_increment_kg ?? 2.5;
-      setRoundingInput(String(unit === "kg" ? roundKg : fromKg(roundKg, "lbs")));
-      return;
-    }
-    const asKg = toKg(parsed, unit);
-    update({ rounding_increment_kg: asKg });
   }
 
   function handleCoachEditToggle(value: boolean) {
@@ -147,20 +132,6 @@ export default function ProfileScreen() {
             </View>
           </View>
 
-          <View className="h-px bg-border mx-4" />
-
-          {/* Rounding increment */}
-          <View className="px-4 py-4">
-            <Input
-              label={`Rounding Increment (${unit})`}
-              value={roundingInput}
-              onChangeText={setRoundingInput}
-              onBlur={handleRoundingBlur}
-              keyboardType="decimal-pad"
-              returnKeyType="done"
-              placeholder={unit === "kg" ? "2.5" : "5"}
-            />
-          </View>
         </Card>
 
         <SectionHeader title="Gym" icon="fitness-outline" />

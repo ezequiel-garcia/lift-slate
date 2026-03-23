@@ -20,7 +20,6 @@ type Props = {
   onChangeCustomPct: (v: string) => void;
   showPctError: boolean;
   estimatedOneRMRaw: number | null;
-  estimatedOneRMRounded: number | null;
   canSave: boolean;
   onSave: () => void;
   showPlaceholder: boolean;
@@ -37,7 +36,6 @@ export function ReverseForm({
   onChangeCustomPct,
   showPctError,
   estimatedOneRMRaw,
-  estimatedOneRMRounded,
   canSave,
   onSave,
   showPlaceholder,
@@ -107,16 +105,13 @@ export function ReverseForm({
         </View>
       ) : (
         <>
-          {estimatedOneRMRaw != null && estimatedOneRMRounded != null && (
+          {estimatedOneRMRaw != null && (
             <View className="bg-surface rounded-2xl p-5 mb-6">
               <Text className="text-label uppercase tracking-wider text-muted mb-2">
                 Estimated 1RM
               </Text>
               <Text className="text-display text-accent" style={{ letterSpacing: -2 }}>
-                {formatWeight(estimatedOneRMRounded, unit)}
-              </Text>
-              <Text className="text-sm text-muted mt-1">
-                exact {formatWeight(parseFloat(estimatedOneRMRaw.toFixed(1)), unit)}
+                {formatWeight(parseFloat(estimatedOneRMRaw.toFixed(1)), unit)}
               </Text>
               {weightInput && displayPct != null && !isNaN(displayPct) && (
                 <Text className="text-xs text-muted mt-1">

@@ -16,7 +16,6 @@ export async function getProfile() {
 export async function updateProfile(updates: {
   display_name?: string;
   unit_preference?: WeightUnit;
-  rounding_increment_kg?: number;
   allow_coach_edit?: boolean;
   avatar_url?: string;
 }) {

@@ -1,17 +1,14 @@
 import { View, Text } from "react-native";
 import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
 import { COMMON_PERCENTAGES } from "@/lib/constants";
 import { calculatePercentage, formatWeight } from "@/lib/units";
-import { colors } from "@/lib/theme";
 
 type Props = {
   oneRMKg: number;
   unit: "kg" | "lbs";
-  roundingIncrementKg: number;
 };
 
-export function PercentageTable({ oneRMKg, unit, roundingIncrementKg }: Props) {
+export function PercentageTable({ oneRMKg, unit }: Props) {
   const reduceMotion = useReducedMotion();
 
   return (
@@ -23,27 +20,20 @@ export function PercentageTable({ oneRMKg, unit, roundingIncrementKg }: Props) {
         Percentages
       </Text>
       {COMMON_PERCENTAGES.map((pct, i) => {
-        const { raw, rounded } = calculatePercentage(oneRMKg, pct, unit, roundingIncrementKg);
+        const weight = calculatePercentage(oneRMKg, pct, unit);
         const isLast = i === COMMON_PERCENTAGES.length - 1;
         return (
           <View key={pct}>
             <View className="flex-row items-center px-4 py-3">
               <Text className="text-[15px] font-semibold text-muted w-12">{pct}%</Text>
-              <Text className="text-[15px] text-muted flex-1">{formatWeight(raw, unit)}</Text>
-              <View className="flex-row items-center gap-1.5">
-                <Ionicons name="arrow-forward" size={14} color={colors.muted} />
-                <Text className="text-[15px] font-semibold text-foreground">
-                  {formatWeight(rounded, unit)}
-                </Text>
-              </View>
+              <Text className="text-[15px] font-semibold text-foreground flex-1">
+                {formatWeight(weight, unit)}
+              </Text>
             </View>
             {!isLast && <View className="h-px bg-border mx-4" />}
           </View>
         );
       })}
-      <Text className="text-xs text-muted px-4 pb-4">
-        Exact weight → rounded to nearest plate
-      </Text>
     </Animated.View>
   );
 }

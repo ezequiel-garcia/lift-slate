@@ -34,7 +34,6 @@ export default function ExerciseDetailScreen() {
   const { mutate: deleteMax } = useDeleteMax(id);
 
   const unit = profile?.unit_preference ?? "kg";
-  const roundingIncrementKg = profile?.rounding_increment_kg ?? 2.5;
   const currentMax = history[0] ?? null;
 
   function handleDelete() {
@@ -104,7 +103,6 @@ export default function ExerciseDetailScreen() {
               exerciseId={id}
               currentMax={currentMax}
               unit={unit}
-              roundingIncrementKg={roundingIncrementKg}
               onAddMax={() => setAddModalVisible(true)}
               isLoading={historyLoading}
             />

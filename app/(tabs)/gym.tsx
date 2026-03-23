@@ -143,7 +143,6 @@ function InGymView({
   }
 
   const unit = profile?.unit_preference ?? "kg";
-  const roundingKg = profile?.rounding_increment_kg ?? 2.5;
 
   const maxMap = useMemo(() => {
     if (!maxesData) return {};
@@ -237,7 +236,6 @@ function InGymView({
               workouts={workouts ?? []}
               maxMap={maxMap}
               unit={unit}
-              roundingKg={roundingKg}
               gymId={gym.id}
               canEditWorkout={canCreateWorkout}
               selectedDate={format(selectedDate, "yyyy-MM-dd")}
