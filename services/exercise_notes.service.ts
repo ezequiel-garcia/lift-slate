@@ -13,13 +13,13 @@ export async function getExerciseNote(exerciseId: string): Promise<string> {
 }
 
 export async function upsertExerciseNote(exerciseId: string, content: string): Promise<void> {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) throw new Error("Not authenticated");
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error("Not authenticated");
 
   const { error } = await supabase
     .from("exercise_notes")
     .upsert(
-      { user_id: session.user.id, exercise_id: exerciseId, content, updated_at: new Date().toISOString() },
+      { user_id: user.id, exercise_id: exerciseId, content, updated_at: new Date().toISOString() },
       { onConflict: "user_id,exercise_id" },
     );
 

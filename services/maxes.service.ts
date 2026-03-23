@@ -37,13 +37,13 @@ export async function getMaxHistory(exerciseId: string) {
 }
 
 export async function createMax(input: CreateMaxInput) {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) throw new Error("Not authenticated");
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error("Not authenticated");
 
   const { data, error } = await supabase
     .from("maxes")
     .insert({
-      user_id: session.user.id,
+      user_id: user.id,
       exercise_id: input.exerciseId,
       weight_kg: toKg(input.weight, input.unit),
       recorded_at: input.recordedAt ?? new Date().toISOString(),

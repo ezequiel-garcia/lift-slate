@@ -35,9 +35,9 @@ export type WorkoutInput = {
 };
 
 async function getCurrentUserId() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) throw new Error("Not authenticated");
-  return session.user.id;
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) throw new Error("Not authenticated");
+  return user.id;
 }
 
 export async function createWorkout(gymId: string, input: WorkoutInput): Promise<WorkoutWithSections> {

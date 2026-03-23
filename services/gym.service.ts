@@ -6,9 +6,9 @@ export type GymMember = Tables<"gym_memberships"> & {
 };
 
 async function getCurrentUserId() {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) throw new Error("Not authenticated");
-  return session.user.id;
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) throw new Error("Not authenticated");
+  return user.id;
 }
 
 export async function createGym(
@@ -107,20 +107,7 @@ export async function getGymSubscription(gymId: string) {
 }
 
 export async function leaveGym(membershipId: string) {
-  const { data: membership, error: fetchError } = await supabase
-    .from("gym_memberships")
-    .select("role")
-    .eq("id", membershipId)
-    .single();
-  if (fetchError) throw fetchError;
-  if (membership.role === "admin") {
-    throw new Error("Admins cannot leave a gym. Transfer ownership or delete the gym first.");
-  }
-
-  const { error } = await supabase
-    .from("gym_memberships")
-    .delete()
-    .eq("id", membershipId);
+  const { error } = await supabase.rpc("leave_gym", { p_membership_id: membershipId });
   if (error) throw error;
 }
 
