@@ -19,7 +19,7 @@ import Animated, {
 } from "react-native-reanimated";
 import * as profileService from "@/services/profile.service";
 import * as maxesService from "@/services/maxes.service";
-import { supabase } from "@/lib/supabase";
+import { getExercisesByNames } from "@/services/exercises.service";
 import { colors, animation } from "@/lib/theme";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -94,10 +94,7 @@ export default function OnboardingScreen() {
       );
 
       if (exercisesToSave.length > 0) {
-        const { data: exercises } = await supabase
-          .from("exercises")
-          .select("id, name")
-          .in("name", exercisesToSave);
+        const exercises = await getExercisesByNames(exercisesToSave);
 
         if (exercises) {
           await Promise.all(

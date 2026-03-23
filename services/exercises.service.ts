@@ -13,6 +13,15 @@ export async function getExercises() {
   return data;
 }
 
+export async function getExercisesByNames(names: string[]) {
+  const { data, error } = await supabase
+    .from("exercises")
+    .select("id, name")
+    .in("name", names);
+  if (error) throw error;
+  return data;
+}
+
 export async function createExercise(name: string, category?: ExerciseCategory) {
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) throw new Error("Not authenticated");

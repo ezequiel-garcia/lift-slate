@@ -40,6 +40,67 @@ async function getCurrentUserId() {
   return user.id;
 }
 
+async function insertSectionsAndItems(
+  workoutId: string,
+  sectionInputs: WorkoutSectionInput[],
+): Promise<WorkoutSection[]> {
+  if (sectionInputs.length === 0) return [];
+
+  // Batch insert all sections in one request
+  const sectionsToInsert = sectionInputs.map((s) => ({
+    workout_id: workoutId,
+    title: s.title,
+    order_index: s.orderIndex,
+  }));
+
+  const { data: sections, error: sectionsError } = await supabase
+    .from("workout_sections")
+    .insert(sectionsToInsert)
+    .select()
+    .order("order_index");
+  if (sectionsError) throw sectionsError;
+
+  // Batch insert all items across all sections in one request
+  const allItems = sections.flatMap((section, i) =>
+    sectionInputs[i].items.map((item) => ({
+      section_id: section.id,
+      order_index: item.orderIndex,
+      item_type: item.itemType,
+      exercise_id: item.exerciseId ?? null,
+      sets: item.sets ?? null,
+      reps: item.reps ?? null,
+      percentage: item.percentage ?? null,
+      max_type_reference: item.maxTypeReference ?? null,
+      weight_kg: item.weightKg ?? null,
+      content: item.content ?? null,
+      notes: item.notes ?? null,
+    })),
+  );
+
+  if (allItems.length === 0) {
+    return sections.map((s) => ({ ...s, items: [] as WorkoutItem[] }));
+  }
+
+  const { data: items, error: itemsError } = await supabase
+    .from("workout_items")
+    .insert(allItems)
+    .select();
+  if (itemsError) throw itemsError;
+
+  // Group items by section_id
+  const itemsBySection = new Map<string, typeof items>();
+  for (const item of items ?? []) {
+    const existing = itemsBySection.get(item.section_id) ?? [];
+    existing.push(item);
+    itemsBySection.set(item.section_id, existing);
+  }
+
+  return sections.map((section) => ({
+    ...section,
+    items: (itemsBySection.get(section.id) ?? []) as WorkoutItem[],
+  }));
+}
+
 export async function createWorkout(gymId: string, input: WorkoutInput): Promise<WorkoutWithSections> {
   const userId = await getCurrentUserId();
 
@@ -57,39 +118,7 @@ export async function createWorkout(gymId: string, input: WorkoutInput): Promise
     .single();
   if (workoutError) throw workoutError;
 
-  const sections: WorkoutSection[] = [];
-
-  for (const sectionInput of input.sections) {
-    const { data: section, error: sectionError } = await supabase
-      .from("workout_sections")
-      .insert({ workout_id: workout.id, title: sectionInput.title, order_index: sectionInput.orderIndex })
-      .select()
-      .single();
-    if (sectionError) throw sectionError;
-
-    const itemsToInsert = sectionInput.items.map((item) => ({
-      section_id: section.id,
-      order_index: item.orderIndex,
-      item_type: item.itemType,
-      exercise_id: item.exerciseId ?? null,
-      sets: item.sets ?? null,
-      reps: item.reps ?? null,
-      percentage: item.percentage ?? null,
-      max_type_reference: item.maxTypeReference ?? null,
-      weight_kg: item.weightKg ?? null,
-      content: item.content ?? null,
-      notes: item.notes ?? null,
-    }));
-
-    const { data: items, error: itemsError } = await supabase
-      .from("workout_items")
-      .insert(itemsToInsert)
-      .select();
-    if (itemsError) throw itemsError;
-
-    sections.push({ ...section, items: items ?? [] });
-  }
-
+  const sections = await insertSectionsAndItems(workout.id, input.sections);
   return { ...workout, sections };
 }
 
@@ -108,6 +137,16 @@ function sortWorkout(workout: WorkoutWithSections): WorkoutWithSections {
         items: [...s.items].sort((a, b) => a.order_index - b.order_index),
       })),
   };
+}
+
+export async function getWorkoutById(workoutId: string): Promise<WorkoutWithSections> {
+  const { data, error } = await supabase
+    .from("workouts")
+    .select(WORKOUT_WITH_SECTIONS_QUERY)
+    .eq("id", workoutId)
+    .single();
+  if (error) throw error;
+  return sortWorkout(data as WorkoutWithSections);
 }
 
 export async function getWorkoutsByDate(gymId: string, date: string): Promise<WorkoutWithSections[]> {
@@ -158,39 +197,7 @@ export async function updateWorkout(workoutId: string, input: WorkoutInput): Pro
     .eq("workout_id", workoutId);
   if (deleteError) throw deleteError;
 
-  const sections: WorkoutSection[] = [];
-
-  for (const sectionInput of input.sections) {
-    const { data: section, error: sectionError } = await supabase
-      .from("workout_sections")
-      .insert({ workout_id: workoutId, title: sectionInput.title, order_index: sectionInput.orderIndex })
-      .select()
-      .single();
-    if (sectionError) throw sectionError;
-
-    const itemsToInsert = sectionInput.items.map((item) => ({
-      section_id: section.id,
-      order_index: item.orderIndex,
-      item_type: item.itemType,
-      exercise_id: item.exerciseId ?? null,
-      sets: item.sets ?? null,
-      reps: item.reps ?? null,
-      percentage: item.percentage ?? null,
-      max_type_reference: item.maxTypeReference ?? null,
-      weight_kg: item.weightKg ?? null,
-      content: item.content ?? null,
-      notes: item.notes ?? null,
-    }));
-
-    const { data: items, error: itemsError } = await supabase
-      .from("workout_items")
-      .insert(itemsToInsert)
-      .select();
-    if (itemsError) throw itemsError;
-
-    sections.push({ ...section, items: items ?? [] });
-  }
-
+  const sections = await insertSectionsAndItems(workoutId, input.sections);
   return { ...workout, sections };
 }
 

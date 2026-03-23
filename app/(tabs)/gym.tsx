@@ -5,6 +5,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { useLeaveGym, useMyGym } from "@/hooks/useGym";
 import { useMaxes } from "@/hooks/useMaxes";
 import { useProfile } from "@/hooks/useProfile";
+import { getMyGym } from "@/services/gym.service";
+import { getCurrentMaxes } from "@/services/maxes.service";
 import { useDeleteWorkout, useWorkoutsByDate } from "@/hooks/useWorkouts";
 import { colors } from "@/lib/theme";
 import { useAppStore } from "@/stores/appStore";
@@ -105,7 +107,10 @@ function NoGymView() {
   );
 }
 
-function GymBanner({ gym, onLeave }: { gym: any; onLeave?: () => void }) {
+type MyGym = NonNullable<Awaited<ReturnType<typeof getMyGym>>>;
+type MaxesData = Awaited<ReturnType<typeof getCurrentMaxes>>;
+
+function GymBanner({ gym, onLeave }: { gym: MyGym; onLeave?: () => void }) {
   const isAdmin = gym.myRole === "admin";
   const roleLabel =
     gym.myRole === "admin"
@@ -173,9 +178,9 @@ function InGymView({
   browsingOtherDays,
   onToggleBrowse,
 }: {
-  gym: any;
-  profile: any;
-  maxesData: any;
+  gym: MyGym;
+  profile: ReturnType<typeof useProfile>["data"];
+  maxesData: MaxesData | undefined;
   selectedDate: Date;
   onDateChange: (date: Date) => void;
   workoutsQuery: ReturnType<typeof useWorkoutsByDate>;

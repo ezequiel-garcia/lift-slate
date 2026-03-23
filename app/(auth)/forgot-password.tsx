@@ -2,19 +2,18 @@ import { useState } from "react";
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  ActivityIndicator,
-  StyleSheet,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import * as authService from "@/services/auth.service";
-import { colors, spacing, radius } from "@/lib/theme";
+import { colors } from "@/lib/theme";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -50,36 +49,43 @@ export default function ForgotPasswordScreen() {
 
   if (sent) {
     return (
-      <SafeAreaView style={styles.container}>
-        <ScrollView contentContainerStyle={styles.content}>
-          <TouchableOpacity style={styles.back} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={colors.text} />
-          </TouchableOpacity>
+      <SafeAreaView className="flex-1 bg-bg">
+        <ScrollView contentContainerClassName="flex-grow px-6 pt-6 pb-8">
+          <Pressable className="mb-8" onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={colors.foreground} />
+          </Pressable>
 
-          <View style={styles.sentContainer}>
+          <View className="items-center mt-12 gap-4">
             <Ionicons name="mail-outline" size={48} color={colors.accent} />
-            <Text style={styles.title}>Check your email</Text>
-            <Text style={styles.subtitle}>
+            <Text className="text-[28px] font-extrabold text-foreground">
+              Check your email
+            </Text>
+            <Text className="text-[15px] text-muted text-center leading-relaxed">
               We sent a password reset link to{"\n"}
-              <Text style={styles.emailHighlight}>{email.trim().toLowerCase()}</Text>
+              <Text className="text-foreground font-semibold">
+                {email.trim().toLowerCase()}
+              </Text>
             </Text>
-            <Text style={styles.hint}>
-              Tap the link in the email to reset your password. The link will open the app directly.
+            <Text className="text-sm text-muted text-center leading-5 mt-2">
+              Tap the link in the email to reset your password. The link will
+              open the app directly.
             </Text>
 
-            <TouchableOpacity
-              style={styles.secondaryBtn}
-              onPress={() => {
-                setSent(false);
-                setError("");
-              }}
-            >
-              <Text style={styles.secondaryBtnText}>Send again</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.textBtn} onPress={() => router.back()}>
-              <Text style={styles.textBtnText}>Back to Sign In</Text>
-            </TouchableOpacity>
+            <View className="mt-6 w-full gap-4">
+              <Button
+                label="Send again"
+                variant="secondary"
+                onPress={() => {
+                  setSent(false);
+                  setError("");
+                }}
+              />
+              <Pressable className="items-center" onPress={() => router.back()}>
+                <Text className="text-accent text-sm font-semibold">
+                  Back to Sign In
+                </Text>
+              </Pressable>
+            </View>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -87,123 +93,53 @@ export default function ForgotPasswordScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-bg">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
+        className="flex-1"
       >
         <ScrollView
-          contentContainerStyle={styles.content}
+          contentContainerClassName="flex-grow px-6 pt-6 pb-8"
           keyboardShouldPersistTaps="handled"
         >
-          <TouchableOpacity style={styles.back} onPress={() => router.back()}>
-            <Ionicons name="arrow-back" size={24} color={colors.text} />
-          </TouchableOpacity>
+          <Pressable className="mb-8" onPress={() => router.back()}>
+            <Ionicons name="arrow-back" size={24} color={colors.foreground} />
+          </Pressable>
 
-          <Text style={styles.title}>Reset password</Text>
-          <Text style={styles.subtitle}>
+          <Text className="text-[28px] font-extrabold text-foreground mb-2">
+            Reset password
+          </Text>
+          <Text className="text-[15px] text-muted leading-relaxed mb-8">
             Enter your email and we'll send you a link to reset your password.
           </Text>
 
-          <View style={styles.form}>
-            <TextInput
-              style={styles.input}
+          <View className="gap-4">
+            <Input
               placeholder="Email"
-              placeholderTextColor={colors.muted}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
               keyboardType="email-address"
               autoComplete="email"
               autoFocus
+              error={error || undefined}
             />
 
-            {!!error && <Text style={styles.error}>{error}</Text>}
-
-            <TouchableOpacity
-              style={[styles.primaryBtn, loading && styles.dimmed]}
+            <Button
+              label="Send Reset Link"
               onPress={handleSend}
+              loading={loading}
               disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color={colors.bg} />
-              ) : (
-                <Text style={styles.primaryBtnText}>Send Reset Link</Text>
-              )}
-            </TouchableOpacity>
+            />
           </View>
 
-          <TouchableOpacity style={styles.textBtn} onPress={() => router.back()}>
-            <Text style={styles.textBtnText}>Back to Sign In</Text>
-          </TouchableOpacity>
+          <Pressable className="items-center mt-6" onPress={() => router.back()}>
+            <Text className="text-accent text-sm font-semibold">
+              Back to Sign In
+            </Text>
+          </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.lg,
-    paddingBottom: spacing.xl,
-  },
-  back: { marginBottom: spacing.xl },
-  title: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: colors.muted,
-    lineHeight: 22,
-    marginBottom: spacing.xl,
-  },
-  form: { gap: spacing.md },
-  input: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 15,
-    color: colors.text,
-    fontSize: 16,
-  },
-  error: { color: colors.error, fontSize: 14 },
-  primaryBtn: {
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 16,
-    alignItems: "center",
-    marginTop: spacing.sm,
-  },
-  primaryBtnText: { color: colors.bg, fontSize: 16, fontWeight: "700" },
-  dimmed: { opacity: 0.45 },
-  sentContainer: { alignItems: "center", marginTop: spacing.xxl, gap: spacing.md },
-  emailHighlight: { color: colors.text, fontWeight: "600" },
-  hint: {
-    fontSize: 14,
-    color: colors.muted,
-    textAlign: "center",
-    lineHeight: 20,
-    marginTop: spacing.sm,
-  },
-  secondaryBtn: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingVertical: 14,
-    paddingHorizontal: spacing.xl,
-    alignItems: "center",
-    marginTop: spacing.lg,
-  },
-  secondaryBtnText: { color: colors.text, fontSize: 16, fontWeight: "600" },
-  textBtn: { alignItems: "center", marginTop: spacing.lg },
-  textBtnText: { color: colors.accent, fontSize: 14, fontWeight: "600" },
-});

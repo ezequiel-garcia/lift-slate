@@ -2,20 +2,20 @@ import { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
-  TextInput,
-  TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   ActivityIndicator,
-  StyleSheet,
+  Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { supabase } from "@/lib/supabase";
 import * as authService from "@/services/auth.service";
-import { colors, spacing, radius } from "@/lib/theme";
+import { colors } from "@/lib/theme";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
 
 type ScreenState = "loading" | "form" | "success" | "error";
 
@@ -37,11 +37,9 @@ export default function ResetPasswordScreen() {
   const exchanged = useRef(false);
 
   useEffect(() => {
-    // Prevent double-exchange on re-renders
     if (exchanged.current) return;
     exchanged.current = true;
 
-    // Supabase sent an error in the redirect (e.g. expired OTP)
     if (params.error) {
       const desc = params.error_description?.replace(/\+/g, " ") || params.error;
       setSessionError(
@@ -53,7 +51,6 @@ export default function ResetPasswordScreen() {
       return;
     }
 
-    // PKCE flow: exchange the auth code for a session
     if (params.code) {
       supabase.auth
         .exchangeCodeForSession(params.code)
@@ -68,7 +65,6 @@ export default function ResetPasswordScreen() {
       return;
     }
 
-    // No code and no error — invalid link
     setSessionError("Invalid or missing reset link. Please request a new one.");
     setScreenState("error");
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -78,8 +74,8 @@ export default function ResetPasswordScreen() {
       setError("Please enter a new password.");
       return;
     }
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters.");
+    if (password.length < 8) {
+      setError("Password must be at least 8 characters.");
       return;
     }
     if (password !== confirmPassword) {
@@ -103,166 +99,91 @@ export default function ResetPasswordScreen() {
 
   if (screenState === "loading") {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centered}>
-          <ActivityIndicator size="large" color={colors.accent} />
-          <Text style={styles.loadingText}>Verifying reset link...</Text>
-        </View>
+      <SafeAreaView className="flex-1 bg-bg justify-center items-center gap-4">
+        <ActivityIndicator size="large" color={colors.accent} />
+        <Text className="text-muted text-[15px]">Verifying reset link...</Text>
       </SafeAreaView>
     );
   }
 
   if (screenState === "error") {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centered}>
-          <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
-          <Text style={styles.errorTitle}>Link Invalid</Text>
-          <Text style={styles.errorSubtitle}>{sessionError}</Text>
-          <TouchableOpacity style={styles.primaryBtn} onPress={goToLogin}>
-            <Text style={styles.primaryBtnText}>Back to Sign In</Text>
-          </TouchableOpacity>
-        </View>
+      <SafeAreaView className="flex-1 bg-bg justify-center items-center px-6 gap-4">
+        <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
+        <Text className="text-[22px] font-bold text-foreground">
+          Link Invalid
+        </Text>
+        <Text className="text-[15px] text-muted text-center leading-relaxed">
+          {sessionError}
+        </Text>
+        <Button label="Back to Sign In" onPress={goToLogin} />
       </SafeAreaView>
     );
   }
 
   if (screenState === "success") {
     return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.centered}>
-          <Ionicons name="checkmark-circle-outline" size={48} color={colors.accent} />
-          <Text style={styles.title}>Password updated</Text>
-          <Text style={styles.subtitle}>
-            Your password has been reset successfully. You're now signed in.
-          </Text>
-          <TouchableOpacity
-            style={styles.primaryBtn}
-            onPress={() => router.replace("/(tabs)")}
-          >
-            <Text style={styles.primaryBtnText}>Continue</Text>
-          </TouchableOpacity>
-        </View>
+      <SafeAreaView className="flex-1 bg-bg justify-center items-center px-6 gap-4">
+        <Ionicons name="checkmark-circle-outline" size={48} color={colors.accent} />
+        <Text className="text-[28px] font-extrabold text-foreground">
+          Password updated
+        </Text>
+        <Text className="text-[15px] text-muted text-center leading-relaxed">
+          Your password has been reset successfully. You're now signed in.
+        </Text>
+        <Button
+          label="Continue"
+          onPress={() => router.replace("/(tabs)")}
+        />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-bg">
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
+        className="flex-1"
       >
         <ScrollView
-          contentContainerStyle={styles.content}
+          contentContainerClassName="flex-grow px-6 pt-12 pb-8"
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.title}>Set new password</Text>
-          <Text style={styles.subtitle}>
-            Enter your new password below. Must be at least 6 characters.
+          <Text className="text-[28px] font-extrabold text-foreground mb-2">
+            Set new password
+          </Text>
+          <Text className="text-[15px] text-muted leading-relaxed mb-8">
+            Enter your new password below. Must be at least 8 characters.
           </Text>
 
-          <View style={styles.form}>
-            <TextInput
-              style={styles.input}
+          <View className="gap-4">
+            <Input
               placeholder="New password"
-              placeholderTextColor={colors.muted}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
               autoComplete="new-password"
               autoFocus
             />
-            <TextInput
-              style={styles.input}
+            <Input
               placeholder="Confirm new password"
-              placeholderTextColor={colors.muted}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
               autoComplete="new-password"
             />
 
-            {!!error && <Text style={styles.error}>{error}</Text>}
+            {!!error && <Text className="text-error text-sm">{error}</Text>}
 
-            <TouchableOpacity
-              style={[styles.primaryBtn, loading && styles.dimmed]}
+            <Button
+              label="Reset Password"
               onPress={handleReset}
+              loading={loading}
               disabled={loading}
-            >
-              {loading ? (
-                <ActivityIndicator color={colors.bg} />
-              ) : (
-                <Text style={styles.primaryBtnText}>Reset Password</Text>
-              )}
-            </TouchableOpacity>
+            />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.bg },
-  content: {
-    flexGrow: 1,
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xxl,
-    paddingBottom: spacing.xl,
-  },
-  centered: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: spacing.lg,
-    gap: spacing.md,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  subtitle: {
-    fontSize: 15,
-    color: colors.muted,
-    lineHeight: 22,
-    marginBottom: spacing.xl,
-    textAlign: "center",
-  },
-  form: { gap: spacing.md },
-  input: {
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 15,
-    color: colors.text,
-    fontSize: 16,
-  },
-  error: { color: colors.error, fontSize: 14 },
-  primaryBtn: {
-    backgroundColor: colors.accent,
-    borderRadius: radius.md,
-    paddingVertical: 16,
-    paddingHorizontal: spacing.xl,
-    alignItems: "center",
-    marginTop: spacing.sm,
-  },
-  primaryBtnText: { color: colors.bg, fontSize: 16, fontWeight: "700" },
-  dimmed: { opacity: 0.45 },
-  loadingText: { color: colors.muted, fontSize: 15, marginTop: spacing.md },
-  errorTitle: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: colors.text,
-  },
-  errorSubtitle: {
-    fontSize: 15,
-    color: colors.muted,
-    textAlign: "center",
-    lineHeight: 22,
-  },
-});

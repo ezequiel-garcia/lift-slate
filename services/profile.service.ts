@@ -20,13 +20,13 @@ export async function updateProfile(updates: {
   allow_coach_edit?: boolean;
   avatar_url?: string;
 }) {
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session?.user) throw new Error("Not authenticated");
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error("Not authenticated");
 
   const { data, error } = await supabase
     .from("users")
     .update(updates)
-    .eq("id", session.user.id)
+    .eq("id", user.id)
     .select()
     .single();
   if (error) throw error;

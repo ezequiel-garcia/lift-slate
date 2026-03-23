@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/Button";
 import { WorkoutSectionCard } from "@/components/workout/WorkoutSectionCard";
 import { WorkoutPreviewModal } from "@/components/workout/WorkoutPreviewModal";
 import { SectionFormData, ItemFormData } from "@/components/workout/types";
-import { supabase } from "@/lib/supabase";
+import { getWorkoutById } from "@/services/workout.service";
 
 function newSection(): SectionFormData {
   return {
@@ -20,16 +20,6 @@ function newSection(): SectionFormData {
     title: "",
     items: [],
   };
-}
-
-async function fetchWorkout(workoutId: string) {
-  const { data, error } = await supabase
-    .from("workouts")
-    .select(`*, sections:workout_sections(*, items:workout_items(*, exercises(name, category)))`)
-    .eq("id", workoutId)
-    .single();
-  if (error) throw error;
-  return data;
 }
 
 export default function NewWorkoutScreen() {
@@ -55,36 +45,30 @@ export default function NewWorkoutScreen() {
   useEffect(() => {
     if (!isEditMode || !workoutId) return;
 
-    fetchWorkout(workoutId)
+    getWorkoutById(workoutId)
       .then((workout) => {
         setTitle(workout.title ?? "");
         setNotes(workout.notes ?? "");
         setScheduledDate(parseISO(workout.scheduled_date));
 
-        const sorted = [...(workout.sections ?? [])].sort(
-          (a: any, b: any) => a.order_index - b.order_index
-        );
-
         setSections(
-          sorted.map((section: any) => ({
+          workout.sections.map((section) => ({
             localId: section.id,
             title: section.title,
-            items: [...(section.items ?? [])]
-              .sort((a: any, b: any) => a.order_index - b.order_index)
-              .map((item: any): ItemFormData => ({
-                localId: item.id,
-                itemType: item.item_type,
-                exerciseId: item.exercise_id ?? undefined,
-                exerciseName: item.exercises?.name ?? undefined,
-                sets: item.sets?.toString() ?? undefined,
-                reps: item.reps?.toString() ?? undefined,
-                weightMode: item.percentage ? "percentage" : "none",
-                percentage: item.percentage?.toString() ?? undefined,
-                maxTypeReference: item.max_type_reference ?? undefined,
-                weightKg: item.weight_kg?.toString() ?? undefined,
-                content: item.content ?? undefined,
-                notes: item.notes ?? undefined,
-              })),
+            items: section.items.map((item): ItemFormData => ({
+              localId: item.id,
+              itemType: item.item_type,
+              exerciseId: item.exercise_id ?? undefined,
+              exerciseName: item.exercises?.name ?? undefined,
+              sets: item.sets?.toString() ?? undefined,
+              reps: item.reps?.toString() ?? undefined,
+              weightMode: item.percentage ? "percentage" : "none",
+              percentage: item.percentage?.toString() ?? undefined,
+              maxTypeReference: item.max_type_reference ?? undefined,
+              weightKg: item.weight_kg?.toString() ?? undefined,
+              content: item.content ?? undefined,
+              notes: item.notes ?? undefined,
+            })),
           }))
         );
       })
