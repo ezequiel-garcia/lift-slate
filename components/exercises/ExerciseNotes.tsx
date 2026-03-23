@@ -1,4 +1,4 @@
-import { View, Text, TextInput } from "react-native";
+import { View, Text, TextInput, Pressable, ActivityIndicator } from "react-native";
 import { useExerciseNote } from "@/hooks/useExerciseNote";
 import { colors } from "@/lib/theme";
 
@@ -7,13 +7,13 @@ type Props = {
 };
 
 export function ExerciseNotes({ exerciseId }: Props) {
-  const { draft, setDraft, handleBlur, isSaving } = useExerciseNote(exerciseId);
+  const { draft, setDraft, handleSave, isSaving, isDirty } = useExerciseNote(exerciseId);
 
   return (
     <View className="mt-6">
       <View className="flex-row items-center justify-between mb-2">
         <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest">Notes</Text>
-        {isSaving && <Text className="text-sm text-muted">Saving…</Text>}
+        {isSaving && <ActivityIndicator size="small" color={colors.muted} />}
       </View>
       <TextInput
         className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-[16px]"
@@ -21,12 +21,21 @@ export function ExerciseNotes({ exerciseId }: Props) {
         placeholderTextColor={colors.muted}
         value={draft}
         onChangeText={setDraft}
-        onBlur={handleBlur}
         multiline
         numberOfLines={4}
         textAlignVertical="top"
         style={{ minHeight: 96 }}
       />
+      {isDirty && (
+        <Pressable
+          className="mt-3 bg-accent rounded-xl py-3 items-center"
+          style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+          onPress={handleSave}
+          disabled={isSaving}
+        >
+          <Text className="text-bg font-bold text-[15px]">Save Notes</Text>
+        </Pressable>
+      )}
     </View>
   );
 }

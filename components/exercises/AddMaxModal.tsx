@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createMax } from "@/services/maxes.service";
+import { upsertExerciseNote } from "@/services/exercise_notes.service";
 import { WeightUnit } from "@/lib/units";
 import { useAppStore } from "@/stores/appStore";
 import { colors } from "@/lib/theme";
@@ -32,16 +33,22 @@ export function AddMaxModal({ visible, exerciseId, unit, onClose }: Props) {
   const showToast = useAppStore((s) => s.showToast);
 
   const mutation = useMutation({
-    mutationFn: () =>
-      createMax({
+    mutationFn: async () => {
+      const trimmedNotes = notes.trim();
+      await createMax({
         exerciseId,
         weight: parseFloat(weight),
         unit,
-        notes: notes.trim() || undefined,
-      }),
+        notes: trimmedNotes || undefined,
+      });
+      if (trimmedNotes) {
+        await upsertExerciseNote(exerciseId, trimmedNotes);
+      }
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["maxes"] });
       queryClient.invalidateQueries({ queryKey: ["maxes", "history", exerciseId] });
+      queryClient.invalidateQueries({ queryKey: ["exercise_note", exerciseId] });
       showToast("Max saved!");
       handleClose();
     },

@@ -26,9 +26,11 @@ export function useExerciseNote(exerciseId: string) {
     },
   });
 
-  function handleBlur() {
+  function handleSave() {
     if (draft !== savedContent) save(draft);
   }
 
-  return { draft, setDraft, handleBlur, isSaving };
+  const isDirty = draft !== savedContent;
+
+  return { draft, setDraft, handleSave, isSaving, isDirty };
 }
