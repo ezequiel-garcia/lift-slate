@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import {
   View,
   Text,
-  TextInput,
   ScrollView,
   Pressable,
   Alert,
@@ -53,7 +52,7 @@ function formatCountdown(expiresAt: string): string {
 
 export default function GymSettingsScreen() {
   const { data: gym, isLoading } = useMyGym();
-  const { mutate: updateGym, isPending: updating } = useUpdateGym();
+  const { mutate: updateGym } = useUpdateGym();
   const { mutate: deleteGym, isPending: deleting } = useDeleteGym();
   const { mutate: regenerateToken, isPending: regeneratingToken } = useRegenerateInviteToken();
   const { mutate: generateCode, isPending: generatingCode } = useGenerateTempCode();
@@ -100,7 +99,7 @@ export default function GymSettingsScreen() {
   async function handlePickLogo() {
     if (!gym) return;
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ["images"],
       quality: 0.8,
       base64: true,
       allowsEditing: true,
@@ -108,10 +107,11 @@ export default function GymSettingsScreen() {
     });
     if (result.canceled || !result.assets[0]?.base64) return;
     const asset = result.assets[0];
-    const ext = asset.uri.split(".").pop() ?? "jpg";
+    const mimeType = asset.mimeType ?? "image/jpeg";
+    const ext = mimeType.split("/")[1] ?? "jpg";
     setUploadingLogo(true);
     try {
-      const url = await uploadGymLogo(asset.base64!, `logo_${gym.id}.${ext}`, `image/${ext}`);
+      const url = await uploadGymLogo(asset.base64!, `logo_${gym.id}.${ext}`, mimeType);
       updateGym({ gymId: gym.id, updates: { logo_url: url } });
     } catch (e: any) {
       Alert.alert("Error", e.message ?? "Failed to upload logo");
