@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   View,
   Text,
@@ -9,51 +9,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useRouter } from "expo-router";
-import * as Google from "expo-auth-session/providers/google";
-import * as WebBrowser from "expo-web-browser";
 import * as authService from "@/services/auth.service";
 import * as profileService from "@/services/profile.service";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { GoogleIcon } from "@/components/ui/GoogleIcon";
 
-WebBrowser.maybeCompleteAuthSession();
-
-const GOOGLE_WEB = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
-const GOOGLE_IOS = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
-const GOOGLE_ANDROID = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
-const GOOGLE_CONFIGURED = !!(GOOGLE_WEB || GOOGLE_IOS || GOOGLE_ANDROID);
-
-function GoogleButton({
-  onSuccess,
-  onError,
-  disabled,
-}: {
-  onSuccess: (idToken: string) => void;
-  onError: (msg: string) => void;
-  disabled: boolean;
-}) {
-  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
-    webClientId: GOOGLE_WEB,
-    iosClientId: GOOGLE_IOS,
-    androidClientId: GOOGLE_ANDROID,
-  });
-
-  useEffect(() => {
-    if (response?.type !== "success") return;
-    const idToken = response.params.id_token;
-    if (idToken) onSuccess(idToken);
-  }, [response]);
-
-  return (
-    <Button
-      label="Continue with Google"
-      variant="secondary"
-      onPress={() => promptAsync()}
-      disabled={!request || disabled}
-    />
-  );
-}
+const GOOGLE_CONFIGURED = !!process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -73,16 +36,19 @@ export default function LoginScreen() {
     return hasDisplayName ? "/(tabs)" : "/(auth)/onboarding";
   }
 
-  const handleGoogleSuccess = (idToken: string) => {
+  const handleGoogleSignIn = async () => {
+    setError("");
     setLoading(true);
-    authService
-      .signInWithGoogle(idToken)
-      .then(() => profileService.getProfile())
-      .then((profile) => {
-        router.replace(getPostLoginRoute(!!profile.display_name));
-      })
-      .catch((e: Error) => setError(e.message))
-      .finally(() => setLoading(false));
+    try {
+      const result = await authService.signInWithGoogle();
+      if (!result) return; // user cancelled
+      const profile = await profileService.getProfile();
+      router.replace(getPostLoginRoute(!!profile.display_name));
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "Google sign in failed.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSignIn = async () => {
@@ -166,10 +132,12 @@ export default function LoginScreen() {
                 <Text className="text-muted text-caption">or</Text>
                 <View className="flex-1 h-px bg-border" />
               </View>
-              <GoogleButton
-                onSuccess={handleGoogleSuccess}
-                onError={setError}
+              <Button
+                label="Continue with Google"
+                variant="secondary"
+                onPress={handleGoogleSignIn}
                 disabled={loading}
+                icon={<GoogleIcon size={20} />}
               />
             </>
           )}
