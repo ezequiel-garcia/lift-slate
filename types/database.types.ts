@@ -463,6 +463,18 @@ export type Database = {
       join_gym_by_temp_code: { Args: { p_code: string }; Returns: string }
       join_gym_by_token: { Args: { p_token: string }; Returns: string }
       leave_gym: { Args: { p_membership_id: string }; Returns: undefined }
+      regenerate_invite_token: {
+        Args: { p_gym_id: string }
+        Returns: string
+      }
+      preview_gym_by_token: {
+        Args: { p_token: string }
+        Returns: { id: string; name: string; description: string | null; member_count: number }[]
+      }
+      preview_gym_by_temp_code: {
+        Args: { p_code: string }
+        Returns: { id: string; name: string; description: string | null; member_count: number }[]
+      }
       update_member_role: {
         Args: {
           p_membership_id: string

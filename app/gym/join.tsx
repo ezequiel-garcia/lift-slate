@@ -153,7 +153,11 @@ export default function JoinGymScreen() {
             <View className="bg-surface rounded-2xl px-4 py-5 flex-row items-center gap-3">
               <Ionicons name="alert-circle-outline" size={20} color={colors.error} />
               <Text className="text-error text-subtext flex-1">
-                {token ? "Invalid or expired invite link." : "Invalid or expired code."}
+                {previewError.message?.toLowerCase().includes("too many")
+                  ? "Too many attempts. Please wait 15 minutes before trying again."
+                  : token
+                  ? "Invalid or expired invite link."
+                  : "Invalid or expired code."}
               </Text>
             </View>
           )}

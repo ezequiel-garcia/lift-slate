@@ -111,16 +111,12 @@ export async function leaveGym(membershipId: string) {
   if (error) throw error;
 }
 
-export async function regenerateInviteToken(gymId: string) {
-  const newToken = crypto.randomUUID();
-  const { data, error } = await supabase
-    .from("gyms")
-    .update({ invite_token: newToken })
-    .eq("id", gymId)
-    .select("invite_token")
-    .single();
+export async function regenerateInviteToken(gymId: string): Promise<string> {
+  const { data, error } = await supabase.rpc("regenerate_invite_token", {
+    p_gym_id: gymId,
+  });
   if (error) throw error;
-  return data.invite_token;
+  return data;
 }
 
 export async function generateTempCode(gymId: string): Promise<{ code: string; expires: string }> {
