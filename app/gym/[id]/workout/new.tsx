@@ -6,6 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { addDays, format, parseISO } from "date-fns";
 import { useCreateWorkout, useUpdateWorkout } from "@/hooks/useWorkouts";
 import { useProfile } from "@/hooks/useProfile";
+import { useMyGym } from "@/hooks/useGym";
 import { useAppStore } from "@/stores/appStore";
 import { colors } from "@/lib/theme";
 import { Button } from "@/components/ui/Button";
@@ -26,7 +27,14 @@ export default function NewWorkoutScreen() {
   const { id: gymId, workoutId, date } = useLocalSearchParams<{ id: string; workoutId?: string; date?: string }>();
   const isEditMode = !!workoutId;
 
+  const { data: gym } = useMyGym();
   const { data: profile } = useProfile();
+
+  useEffect(() => {
+    if (gym !== undefined && gym?.myRole !== "coach" && gym?.myRole !== "admin") {
+      router.replace("/(tabs)/gym");
+    }
+  }, [gym?.myRole]);
   const unit = (profile?.unit_preference ?? "kg") as "kg" | "lbs";
 
   const createWorkout = useCreateWorkout();

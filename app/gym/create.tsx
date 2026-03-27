@@ -68,7 +68,8 @@ export default function CreateGymScreen() {
         logoUrl = await uploadGymLogo(
           image.base64,
           image.fileName ?? "logo.jpg",
-          image.mimeType ?? "image/jpeg"
+          image.mimeType ?? "image/jpeg",
+          image.fileSize ?? undefined
         );
       }
 

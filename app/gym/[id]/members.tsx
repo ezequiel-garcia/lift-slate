@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -75,6 +75,12 @@ export default function GymMembersScreen() {
 
   const isAdmin = gym?.myRole === "admin";
   const isCoachOrAdmin = gym?.myRole === "coach" || gym?.myRole === "admin";
+
+  useEffect(() => {
+    if (gym !== undefined && !isCoachOrAdmin) {
+      router.replace("/(tabs)/gym");
+    }
+  }, [gym?.myRole]);
 
   const filtered =
     members?.filter((m) => {

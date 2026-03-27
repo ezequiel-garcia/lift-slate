@@ -57,6 +57,12 @@ export default function GymSettingsScreen() {
   const { mutate: regenerateToken, isPending: regeneratingToken } = useRegenerateInviteToken();
   const { mutate: generateCode, isPending: generatingCode } = useGenerateTempCode();
 
+  useEffect(() => {
+    if (!isLoading && gym?.myRole !== "admin") {
+      router.replace("/(tabs)/gym");
+    }
+  }, [isLoading, gym?.myRole]);
+
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
@@ -111,7 +117,7 @@ export default function GymSettingsScreen() {
     const ext = mimeType.split("/")[1] ?? "jpg";
     setUploadingLogo(true);
     try {
-      const url = await uploadGymLogo(asset.base64!, `logo_${gym.id}.${ext}`, mimeType);
+      const url = await uploadGymLogo(asset.base64!, `logo_${gym.id}.${ext}`, mimeType, asset.fileSize ?? undefined);
       updateGym({ gymId: gym.id, updates: { logo_url: url } });
     } catch (e: any) {
       Alert.alert("Error", e.message ?? "Failed to upload logo");

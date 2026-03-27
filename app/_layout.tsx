@@ -20,17 +20,31 @@ const queryClient = new QueryClient({
   },
 });
 
+// Query keys that contain sensitive user data — excluded from AsyncStorage persistence.
+// AsyncStorage is unencrypted; auth tokens are in SecureStore instead.
+const SENSITIVE_KEY_PREFIXES = ["maxes", "profile", "exercise_note"];
+const SENSITIVE_KEY_SEGMENTS = ["members", "subscription"];
+
+function isSensitiveQuery(queryKey: readonly unknown[]): boolean {
+  const first = queryKey[0];
+  if (typeof first === "string" && SENSITIVE_KEY_PREFIXES.includes(first)) return true;
+  return queryKey.some(
+    (segment) => typeof segment === "string" && SENSITIVE_KEY_SEGMENTS.includes(segment)
+  );
+}
+
 const persister = createAsyncStoragePersister({
   storage: AsyncStorage,
   key: "LIFTSLATE_QUERY_CACHE",
   throttleTime: 1000,
   serialize: (client) => {
-    // Filter out queries with null/undefined data before persisting
     const filtered = {
       ...client,
       clientState: {
         ...client.clientState,
-        queries: client.clientState.queries.filter((q) => q.state.data != null),
+        queries: client.clientState.queries.filter(
+          (q) => q.state.data != null && !isSensitiveQuery(q.queryKey)
+        ),
       },
     };
     return JSON.stringify(filtered);
