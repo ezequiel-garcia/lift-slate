@@ -5,7 +5,6 @@ import { colors } from "@/lib/theme";
 import { ItemFormData } from "./types";
 import { ExercisePickerModal } from "./ExercisePickerModal";
 
-
 type Props = {
   item: ItemFormData;
   onUpdate: (updated: ItemFormData) => void;
@@ -37,10 +36,18 @@ export function WorkoutItemForm({
   const moveControls = (
     <View className="flex-row items-center gap-1">
       <Pressable onPress={onMoveUp} disabled={isFirst} className="p-1">
-        <Ionicons name="chevron-up" size={18} color={isFirst ? colors.muted : colors.foreground} />
+        <Ionicons
+          name="chevron-up"
+          size={18}
+          color={isFirst ? colors.muted : colors.foreground}
+        />
       </Pressable>
       <Pressable onPress={onMoveDown} disabled={isLast} className="p-1">
-        <Ionicons name="chevron-down" size={18} color={isLast ? colors.muted : colors.foreground} />
+        <Ionicons
+          name="chevron-down"
+          size={18}
+          color={isLast ? colors.muted : colors.foreground}
+        />
       </Pressable>
       <Pressable onPress={onDelete} className="p-1">
         <Ionicons name="trash-outline" size={16} color={colors.error} />
@@ -52,7 +59,9 @@ export function WorkoutItemForm({
     return (
       <View className="bg-surface2 rounded-xl p-4 gap-3">
         <View className="flex-row items-center justify-between">
-          <Text className="text-muted text-xs font-semibold uppercase tracking-wider">Free Text</Text>
+          <Text className="text-muted text-xs font-semibold uppercase tracking-wider">
+            Free Text
+          </Text>
           {moveControls}
         </View>
 
@@ -87,7 +96,9 @@ export function WorkoutItemForm({
   return (
     <View className="bg-surface2 rounded-xl p-4 gap-3">
       <View className="flex-row items-center justify-between">
-        <Text className="text-muted text-xs font-semibold uppercase tracking-wider">Exercise</Text>
+        <Text className="text-muted text-xs font-semibold uppercase tracking-wider">
+          Exercise
+        </Text>
         {moveControls}
       </View>
 
@@ -96,7 +107,13 @@ export function WorkoutItemForm({
         className="bg-surface rounded-xl px-4 py-3 border border-border flex-row items-center justify-between"
         onPress={() => setShowExercisePicker(true)}
       >
-        <Text className={item.exerciseName ? "text-foreground text-base" : "text-muted text-base"}>
+        <Text
+          className={
+            item.exerciseName
+              ? "text-foreground text-base"
+              : "text-muted text-base"
+          }
+        >
           {item.exerciseName ?? "Select exercise..."}
         </Text>
         <Ionicons name="chevron-down" size={16} color={colors.muted} />
@@ -142,7 +159,13 @@ export function WorkoutItemForm({
         </Pressable>
         <Pressable
           className={`flex-1 py-2 rounded-lg items-center ${item.weightMode === "none" ? "bg-accent" : ""}`}
-          onPress={() => update({ weightMode: "none", percentage: undefined, weightKg: undefined })}
+          onPress={() =>
+            update({
+              weightMode: "none",
+              percentage: undefined,
+              weightKg: undefined,
+            })
+          }
         >
           <Text
             className={`text-sm font-medium ${item.weightMode === "none" ? "text-bg" : "text-muted"}`}

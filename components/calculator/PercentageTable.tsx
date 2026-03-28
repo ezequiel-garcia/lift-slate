@@ -25,7 +25,9 @@ export function PercentageTable({ oneRMKg, unit }: Props) {
         return (
           <View key={pct}>
             <View className="flex-row items-center px-4 py-3">
-              <Text className="text-[15px] font-semibold text-muted w-12">{pct}%</Text>
+              <Text className="text-[15px] font-semibold text-muted w-12">
+                {pct}%
+              </Text>
               <Text className="text-[15px] font-semibold text-foreground flex-1">
                 {formatWeight(weight, unit)}
               </Text>

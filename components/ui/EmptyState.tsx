@@ -21,7 +21,9 @@ export function EmptyState({ icon, title, description, action }: Props) {
       <View className="w-16 h-16 rounded-2xl bg-surface items-center justify-center mb-1">
         <Ionicons name={icon} size={28} color={colors.accent} />
       </View>
-      <Text className="text-xl font-bold text-foreground text-center">{title}</Text>
+      <Text className="text-xl font-bold text-foreground text-center">
+        {title}
+      </Text>
       <Text className="text-subtext text-muted text-center leading-relaxed">
         {description}
       </Text>

@@ -18,7 +18,12 @@ function UnitPill({ unit }: { unit: string }) {
 
 export { UnitPill };
 
-export function FromOneRMForm({ unit, input, onChangeInput, showError }: Props) {
+export function FromOneRMForm({
+  unit,
+  input,
+  onChangeInput,
+  showError,
+}: Props) {
   return (
     <View className="mb-5">
       <Input

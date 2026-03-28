@@ -22,8 +22,14 @@ export async function getExercisesByNames(names: string[]) {
   return data;
 }
 
-export async function createExercise(name: string, category?: ExerciseCategory) {
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+export async function createExercise(
+  name: string,
+  category?: ExerciseCategory,
+) {
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
   if (authError || !user) throw new Error("Not authenticated");
 
   const { data, error } = await supabase

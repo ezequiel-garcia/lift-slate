@@ -12,7 +12,10 @@ export function useUpdateProfile() {
     onMutate: async (updates) => {
       await queryClient.cancelQueries({ queryKey: ["profile"] });
       const previous = queryClient.getQueryData(["profile"]);
-      queryClient.setQueryData(["profile"], (old: Record<string, unknown>) => ({ ...old, ...updates }));
+      queryClient.setQueryData(["profile"], (old: Record<string, unknown>) => ({
+        ...old,
+        ...updates,
+      }));
       return { previous };
     },
     onError: (_err, _vars, context) => {

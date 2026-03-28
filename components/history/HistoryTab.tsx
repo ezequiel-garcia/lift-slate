@@ -1,4 +1,12 @@
-import { FlatList, View, Text, Pressable, RefreshControl, Alert, ActivityIndicator } from "react-native";
+import {
+  FlatList,
+  View,
+  Text,
+  Pressable,
+  RefreshControl,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
@@ -24,8 +32,19 @@ type Props = {
   isLoading?: boolean;
 };
 
-export function HistoryTab({ history, unit, onAddMax, onDeleteMax, refreshing, onRefresh, isLoading }: Props) {
-  const prWeightKg = history.reduce((best, m) => Math.max(best, m.weight_kg), 0);
+export function HistoryTab({
+  history,
+  unit,
+  onAddMax,
+  onDeleteMax,
+  refreshing,
+  onRefresh,
+  isLoading,
+}: Props) {
+  const prWeightKg = history.reduce(
+    (best, m) => Math.max(best, m.weight_kg),
+    0,
+  );
   const reduceMotion = useReducedMotion();
 
   const renderItem = ({ item, index }: { item: Max; index: number }) => {
@@ -41,17 +60,27 @@ export function HistoryTab({ history, unit, onAddMax, onDeleteMax, refreshing, o
 
     return (
       <Animated.View
-        entering={reduceMotion ? undefined : FadeIn.delay(Math.min(index, 8) * 40).duration(300)}
+        entering={
+          reduceMotion
+            ? undefined
+            : FadeIn.delay(Math.min(index, 8) * 40).duration(300)
+        }
         className="mx-5 mb-2 bg-surface rounded-xl px-4 py-3.5"
       >
         <View className="flex-row items-center justify-between">
           <View className="flex-row items-center gap-2 flex-1 mr-3">
             {isPR && <Ionicons name="star" size={16} color={colors.accent} />}
-            <Text className="text-[18px] font-bold text-foreground tabular-nums">{displayWeight}</Text>
+            <Text className="text-[18px] font-bold text-foreground tabular-nums">
+              {displayWeight}
+            </Text>
             {delta !== null && (
               <Text
                 className={`text-sm font-semibold ${
-                  delta > 0 ? "text-accent" : delta < 0 ? "text-error" : "text-muted"
+                  delta > 0
+                    ? "text-accent"
+                    : delta < 0
+                      ? "text-error"
+                      : "text-muted"
                 }`}
               >
                 {delta > 0 ? "+" : ""}
@@ -68,7 +97,11 @@ export function HistoryTab({ history, unit, onAddMax, onDeleteMax, refreshing, o
                 onPress={() =>
                   Alert.alert("Delete Entry", "Remove this max entry?", [
                     { text: "Cancel", style: "cancel" },
-                    { text: "Delete", style: "destructive", onPress: () => onDeleteMax(item.id) },
+                    {
+                      text: "Delete",
+                      style: "destructive",
+                      onPress: () => onDeleteMax(item.id),
+                    },
                   ])
                 }
               >
@@ -113,14 +146,24 @@ export function HistoryTab({ history, unit, onAddMax, onDeleteMax, refreshing, o
               label="Add New Max"
               variant="secondary"
               onPress={onAddMax}
-              icon={<Ionicons name="add-circle-outline" size={20} color={colors.accent} />}
+              icon={
+                <Ionicons
+                  name="add-circle-outline"
+                  size={20}
+                  color={colors.accent}
+                />
+              }
             />
           </View>
         ) : null
       }
       refreshControl={
         onRefresh ? (
-          <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} tintColor={colors.accent} />
+          <RefreshControl
+            refreshing={!!refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.accent}
+          />
         ) : undefined
       }
     />

@@ -15,7 +15,12 @@ import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 
 import { colors } from "@/lib/theme";
-import { useMyGym, useGymMembers, useGymSubscription, useRemoveMember } from "@/hooks/useGym";
+import {
+  useMyGym,
+  useGymMembers,
+  useGymSubscription,
+  useRemoveMember,
+} from "@/hooks/useGym";
 import { useUpdateMemberRole } from "@/hooks/useRoles";
 import { GymMember } from "@/services/gym.service";
 import { Input } from "@/components/ui/Input";
@@ -110,8 +115,11 @@ export default function GymMembersScreen() {
       `Make ${member.users?.display_name ?? "this member"} a ${newRole}?`,
       [
         { text: "Cancel", style: "cancel" },
-        { text: label, onPress: () => updateRole({ membershipId: member.id, newRole }) },
-      ]
+        {
+          text: label,
+          onPress: () => updateRole({ membershipId: member.id, newRole }),
+        },
+      ],
     );
   }
 
@@ -126,7 +134,7 @@ export default function GymMembersScreen() {
           style: "destructive",
           onPress: () => removeMember(member.id),
         },
-      ]
+      ],
     );
   }
 
@@ -181,20 +189,30 @@ export default function GymMembersScreen() {
             return (
               <Animated.View
                 key={member.id}
-                entering={reduceMotion ? undefined : FadeIn.delay(Math.min(idx, 8) * 40).duration(300)}
+                entering={
+                  reduceMotion
+                    ? undefined
+                    : FadeIn.delay(Math.min(idx, 8) * 40).duration(300)
+                }
               >
                 <Pressable
                   className="bg-surface rounded-2xl px-4 py-3 flex-row items-center gap-3"
-                  style={[
-                    { marginBottom: idx < filtered.length - 1 ? 8 : 0 },
-                  ]}
-                  onPress={canViewMaxes ? () => router.push(`/gym/${gymId}/athlete/${member.user_id}`) : undefined}
+                  style={[{ marginBottom: idx < filtered.length - 1 ? 8 : 0 }]}
+                  onPress={
+                    canViewMaxes
+                      ? () =>
+                          router.push(`/gym/${gymId}/athlete/${member.user_id}`)
+                      : undefined
+                  }
                   disabled={!canViewMaxes}
                 >
                   <MemberAvatar member={member} />
 
                   <View className="flex-1 min-w-0">
-                    <Text className="text-foreground font-semibold text-[15px]" numberOfLines={1}>
+                    <Text
+                      className="text-foreground font-semibold text-[15px]"
+                      numberOfLines={1}
+                    >
                       {member.users?.display_name ?? "Unknown"}
                     </Text>
                     <Text className="text-muted text-caption" numberOfLines={1}>
@@ -210,10 +228,16 @@ export default function GymMembersScreen() {
                         onPress={() => handleRoleToggle(member)}
                         disabled={updatingRole || removing}
                         className="w-10 h-10 items-center justify-center"
-                        style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                        style={({ pressed }) => ({
+                          opacity: pressed ? 0.6 : 1,
+                        })}
                       >
                         <Ionicons
-                          name={member.role === "coach" ? "person-outline" : "ribbon-outline"}
+                          name={
+                            member.role === "coach"
+                              ? "person-outline"
+                              : "ribbon-outline"
+                          }
                           size={18}
                           color={colors.muted}
                         />
@@ -222,15 +246,26 @@ export default function GymMembersScreen() {
                         onPress={() => handleRemove(member)}
                         disabled={updatingRole || removing}
                         className="w-10 h-10 items-center justify-center"
-                        style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
+                        style={({ pressed }) => ({
+                          opacity: pressed ? 0.6 : 1,
+                        })}
                       >
-                        <Ionicons name="person-remove-outline" size={18} color={colors.error} />
+                        <Ionicons
+                          name="person-remove-outline"
+                          size={18}
+                          color={colors.error}
+                        />
                       </Pressable>
                     </View>
                   )}
 
                   {canViewMaxes && !isAdmin && (
-                    <Ionicons name="chevron-forward" size={16} color={colors.border} style={{ marginLeft: 4 }} />
+                    <Ionicons
+                      name="chevron-forward"
+                      size={16}
+                      color={colors.border}
+                      style={{ marginLeft: 4 }}
+                    />
                   )}
                 </Pressable>
               </Animated.View>
@@ -240,7 +275,9 @@ export default function GymMembersScreen() {
           {filtered.length === 0 && (
             <View className="items-center py-12">
               <Text className="text-muted text-body">
-                {search.length > 0 ? `No members match "${search}"` : "No members yet"}
+                {search.length > 0
+                  ? `No members match "${search}"`
+                  : "No members yet"}
               </Text>
             </View>
           )}

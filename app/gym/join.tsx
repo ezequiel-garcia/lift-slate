@@ -32,10 +32,16 @@ export default function JoinGymScreen() {
   const setPendingInviteToken = useAppStore((s) => s.setPendingInviteToken);
   const [code, setCode] = useState("");
 
-  const tokenQuery = useGymPreviewByToken(!authLoading && !!session ? token : undefined);
-  const codeQuery = useGymPreviewByTempCode(!authLoading && !!session && code.length === 8 ? code : undefined);
-  const { mutate: joinByToken, isPending: joiningByToken } = useJoinGymByToken();
-  const { mutate: joinByCode, isPending: joiningByCode } = useJoinGymByTempCode();
+  const tokenQuery = useGymPreviewByToken(
+    !authLoading && !!session ? token : undefined,
+  );
+  const codeQuery = useGymPreviewByTempCode(
+    !authLoading && !!session && code.length === 8 ? code : undefined,
+  );
+  const { mutate: joinByToken, isPending: joiningByToken } =
+    useJoinGymByToken();
+  const { mutate: joinByCode, isPending: joiningByCode } =
+    useJoinGymByTempCode();
 
   useEffect(() => {
     if (authLoading) return;
@@ -55,9 +61,17 @@ export default function JoinGymScreen() {
 
   const joining = joiningByToken || joiningByCode;
 
-  const activePreview: GymPreview | undefined = token ? tokenQuery.data : codeQuery.data;
-  const previewError = token ? tokenQuery.error : code.length === 8 ? codeQuery.error : null;
-  const previewLoading = token ? tokenQuery.isLoading : codeQuery.isLoading && code.length === 8;
+  const activePreview: GymPreview | undefined = token
+    ? tokenQuery.data
+    : codeQuery.data;
+  const previewError = token
+    ? tokenQuery.error
+    : code.length === 8
+      ? codeQuery.error
+      : null;
+  const previewLoading = token
+    ? tokenQuery.isLoading
+    : codeQuery.isLoading && code.length === 8;
 
   function onJoinSuccess() {
     router.replace("/(tabs)/gym");
@@ -66,7 +80,10 @@ export default function JoinGymScreen() {
   function onJoinError(e: Error) {
     const msg = e.message.toLowerCase();
     if (msg.includes("already")) {
-      Alert.alert("Already a Member", "You're already in a gym. Leave it first to join another.");
+      Alert.alert(
+        "Already a Member",
+        "You're already in a gym. Leave it first to join another.",
+      );
     } else if (msg.includes("limit") || msg.includes("full")) {
       Alert.alert("Gym is Full", "This gym has reached its member limit.");
     } else {
@@ -83,7 +100,12 @@ export default function JoinGymScreen() {
   }
 
   function handleCodeChange(text: string) {
-    setCode(text.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 8));
+    setCode(
+      text
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "")
+        .slice(0, 8),
+    );
   }
 
   return (
@@ -95,13 +117,17 @@ export default function JoinGymScreen() {
         {/* Header */}
         <View className="flex-row items-center px-4 pt-2 pb-1">
           <Pressable
-            onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)/gym")}
+            onPress={() =>
+              router.canGoBack() ? router.back() : router.replace("/(tabs)/gym")
+            }
             className="w-10 h-10 items-center justify-center -ml-1"
             style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
           >
             <Ionicons name="chevron-back" size={24} color={colors.foreground} />
           </Pressable>
-          <Text className="text-foreground text-xl font-bold ml-1">Join a Gym</Text>
+          <Text className="text-foreground text-xl font-bold ml-1">
+            Join a Gym
+          </Text>
         </View>
 
         <ScrollView
@@ -151,13 +177,17 @@ export default function JoinGymScreen() {
 
           {previewError && !previewLoading && (
             <View className="bg-surface rounded-2xl px-4 py-5 flex-row items-center gap-3">
-              <Ionicons name="alert-circle-outline" size={20} color={colors.error} />
+              <Ionicons
+                name="alert-circle-outline"
+                size={20}
+                color={colors.error}
+              />
               <Text className="text-error text-subtext flex-1">
                 {previewError.message?.toLowerCase().includes("too many")
                   ? "Too many attempts. Please wait 15 minutes before trying again."
                   : token
-                  ? "Invalid or expired invite link."
-                  : "Invalid or expired code."}
+                    ? "Invalid or expired invite link."
+                    : "Invalid or expired code."}
               </Text>
             </View>
           )}
@@ -174,7 +204,8 @@ export default function JoinGymScreen() {
                       {activePreview.name}
                     </Text>
                     <Text className="text-muted text-caption">
-                      {activePreview.member_count} member{activePreview.member_count !== 1 ? "s" : ""}
+                      {activePreview.member_count} member
+                      {activePreview.member_count !== 1 ? "s" : ""}
                     </Text>
                   </View>
                 </View>
@@ -199,7 +230,8 @@ export default function JoinGymScreen() {
           {!token && (
             <View className="mt-8 items-center gap-3">
               <Text className="text-muted text-caption text-center">
-                Have an invite link? Ask your coach to share it — it will open this screen automatically.
+                Have an invite link? Ask your coach to share it — it will open
+                this screen automatically.
               </Text>
             </View>
           )}

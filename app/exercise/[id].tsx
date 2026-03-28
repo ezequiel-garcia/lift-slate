@@ -21,7 +21,10 @@ const TAB_SEGMENTS = [
 ];
 
 export default function ExerciseDetailScreen() {
-  const { id, addMax } = useLocalSearchParams<{ id: string; addMax?: string }>();
+  const { id, addMax } = useLocalSearchParams<{
+    id: string;
+    addMax?: string;
+  }>();
 
   if (!isValidUUID(id)) {
     router.replace("/");
@@ -36,7 +39,15 @@ export default function ExerciseDetailScreen() {
     if (addMax === "true") setAddModalVisible(true);
   }, []);
 
-  const { exercise, history, profile, isLoading, historyLoading, isError, refetch } = useExerciseDetail(id);
+  const {
+    exercise,
+    history,
+    profile,
+    isLoading,
+    historyLoading,
+    isError,
+    refetch,
+  } = useExerciseDetail(id);
   const { mutate: deleteExerciseMaxes } = useDeleteExerciseMaxes();
   const { mutate: deleteMax } = useDeleteMax(id);
 
@@ -52,9 +63,12 @@ export default function ExerciseDetailScreen() {
         {
           text: "Remove",
           style: "destructive",
-          onPress: () => { router.back(); deleteExerciseMaxes(id); },
+          onPress: () => {
+            router.back();
+            deleteExerciseMaxes(id);
+          },
         },
-      ]
+      ],
     );
   }
 
@@ -83,16 +97,26 @@ export default function ExerciseDetailScreen() {
         >
           <Ionicons name="chevron-back" size={20} color={colors.foreground} />
         </Pressable>
-        <Text className="flex-1 text-lg font-bold text-foreground text-center mx-3" numberOfLines={1}>
+        <Text
+          className="flex-1 text-lg font-bold text-foreground text-center mx-3"
+          numberOfLines={1}
+        >
           {exercise?.name ?? "Exercise"}
         </Text>
-        <Pressable onPress={handleDelete} hitSlop={12} className="w-10 h-10 items-center justify-center">
+        <Pressable
+          onPress={handleDelete}
+          hitSlop={12}
+          className="w-10 h-10 items-center justify-center"
+        >
           <Ionicons name="trash-outline" size={20} color={colors.muted} />
         </Pressable>
       </View>
 
       {isError ? (
-        <ErrorState message="Failed to load history" onRetry={() => refetch()} />
+        <ErrorState
+          message="Failed to load history"
+          onRetry={() => refetch()}
+        />
       ) : (
         <>
           {/* Tab bar */}

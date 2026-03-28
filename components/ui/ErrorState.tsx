@@ -9,7 +9,10 @@ type Props = {
   onRetry: () => void;
 };
 
-export function ErrorState({ message = "Something went wrong", onRetry }: Props) {
+export function ErrorState({
+  message = "Something went wrong",
+  onRetry,
+}: Props) {
   const reduceMotion = useReducedMotion();
 
   return (

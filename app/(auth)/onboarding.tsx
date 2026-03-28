@@ -90,7 +90,7 @@ export default function OnboardingScreen() {
       });
 
       const exercisesToSave = POPULAR_EXERCISES.filter(
-        (ex) => weights[ex] && parseFloat(weights[ex]) > 0
+        (ex) => weights[ex] && parseFloat(weights[ex]) > 0,
       );
 
       if (exercisesToSave.length > 0) {
@@ -103,8 +103,8 @@ export default function OnboardingScreen() {
                 exerciseId: ex.id,
                 weight: parseFloat(weights[ex.name]),
                 unit,
-              })
-            )
+              }),
+            ),
           );
         }
       }
@@ -148,13 +148,20 @@ export default function OnboardingScreen() {
 
         <Animated.View style={[{ flex: 1 }, animatedStyle]}>
           <ScrollView
-            contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingBottom: 32 }}
+            contentContainerStyle={{
+              flexGrow: 1,
+              paddingHorizontal: 24,
+              paddingBottom: 32,
+            }}
             keyboardShouldPersistTaps="handled"
           >
             {step === 1 && (
               <View className="flex-1 pt-8 gap-6">
                 <View className="gap-2">
-                  <Text className="text-[30px] font-extrabold text-foreground" style={{ letterSpacing: -0.5, lineHeight: 36 }}>
+                  <Text
+                    className="text-[30px] font-extrabold text-foreground"
+                    style={{ letterSpacing: -0.5, lineHeight: 36 }}
+                  >
                     What's your name?
                   </Text>
                   <Text className="text-[15px] text-muted leading-relaxed">
@@ -178,7 +185,10 @@ export default function OnboardingScreen() {
             {step === 2 && (
               <View className="flex-1 pt-8 gap-6">
                 <View className="gap-2">
-                  <Text className="text-[30px] font-extrabold text-foreground" style={{ letterSpacing: -0.5, lineHeight: 36 }}>
+                  <Text
+                    className="text-[30px] font-extrabold text-foreground"
+                    style={{ letterSpacing: -0.5, lineHeight: 36 }}
+                  >
                     How do you{"\n"}measure weight?
                   </Text>
                   <Text className="text-[15px] text-muted leading-relaxed">
@@ -214,11 +224,15 @@ export default function OnboardingScreen() {
             {step === 3 && (
               <View className="flex-1 pt-8 gap-6">
                 <View className="gap-2">
-                  <Text className="text-[30px] font-extrabold text-foreground" style={{ letterSpacing: -0.5, lineHeight: 36 }}>
+                  <Text
+                    className="text-[30px] font-extrabold text-foreground"
+                    style={{ letterSpacing: -0.5, lineHeight: 36 }}
+                  >
                     Add your first lifts
                   </Text>
                   <Text className="text-[15px] text-muted leading-relaxed">
-                    Enter your current 1RM for any lifts you track. Skip if you're just getting started.
+                    Enter your current 1RM for any lifts you track. Skip if
+                    you're just getting started.
                   </Text>
                 </View>
 
@@ -228,7 +242,9 @@ export default function OnboardingScreen() {
                       key={ex}
                       className="flex-row items-center justify-between bg-surface border border-border rounded-xl px-4 py-2.5"
                     >
-                      <Text className="text-[15px] font-semibold text-foreground flex-1">{ex}</Text>
+                      <Text className="text-[15px] font-semibold text-foreground flex-1">
+                        {ex}
+                      </Text>
                       <View className="flex-row items-center gap-2">
                         <TextInput
                           className="text-foreground text-[16px] font-semibold text-right"
@@ -237,7 +253,10 @@ export default function OnboardingScreen() {
                           placeholderTextColor={colors.muted}
                           value={weights[ex] ?? ""}
                           onChangeText={(v) =>
-                            setWeights({ ...weights, [ex]: v.replace(/[^0-9.]/g, "") })
+                            setWeights({
+                              ...weights,
+                              [ex]: v.replace(/[^0-9.]/g, ""),
+                            })
                           }
                           keyboardType="decimal-pad"
                         />
@@ -251,10 +270,20 @@ export default function OnboardingScreen() {
 
                 <View className="flex-row gap-4 mt-1">
                   <View className="flex-1">
-                    <Button label="Skip" variant="secondary" onPress={handleSkip} disabled={loading} />
+                    <Button
+                      label="Skip"
+                      variant="secondary"
+                      onPress={handleSkip}
+                      disabled={loading}
+                    />
                   </View>
                   <View className="flex-[2]">
-                    <Button label="Done" onPress={handleDone} loading={loading} disabled={loading} />
+                    <Button
+                      label="Done"
+                      onPress={handleDone}
+                      loading={loading}
+                      disabled={loading}
+                    />
                   </View>
                 </View>
               </View>

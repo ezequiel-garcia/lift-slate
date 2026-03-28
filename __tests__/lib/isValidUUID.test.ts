@@ -42,7 +42,9 @@ describe("isValidUUID", () => {
   });
 
   it("returns false for UUID with extra characters", () => {
-    expect(isValidUUID("123e4567-e89b-12d3-a456-426614174000-extra")).toBe(false);
+    expect(isValidUUID("123e4567-e89b-12d3-a456-426614174000-extra")).toBe(
+      false,
+    );
   });
 
   it("acts as a type guard — narrows undefined to string", () => {

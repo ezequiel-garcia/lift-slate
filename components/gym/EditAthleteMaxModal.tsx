@@ -38,7 +38,9 @@ export function EditAthleteMaxModal({
   onClose,
 }: Props) {
   const displayWeight = fromKg(currentWeightKg, unit);
-  const [weight, setWeight] = useState(displayWeight.toFixed(1).replace(/\.0$/, ""));
+  const [weight, setWeight] = useState(
+    displayWeight.toFixed(1).replace(/\.0$/, ""),
+  );
   const [notes, setNotes] = useState(currentNotes ?? "");
 
   const { mutate: updateMax, isPending, isError } = useUpdateAthleteMax(userId);
@@ -68,7 +70,7 @@ export function EditAthleteMaxModal({
           showToast("Max updated!");
           onClose();
         },
-      }
+      },
     );
   }
 
@@ -79,14 +81,21 @@ export function EditAthleteMaxModal({
     !isPending;
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={onClose}
+    >
       <SafeAreaView className="flex-1 bg-bg" edges={["top", "bottom"]}>
         <View className="items-center pt-2.5 pb-1">
           <View className="w-9 h-1 rounded-full bg-surface2" />
         </View>
 
         <View className="flex-row justify-between items-center px-5 pt-2 pb-4">
-          <Text className="text-xl font-bold text-foreground">Edit {exerciseName}</Text>
+          <Text className="text-xl font-bold text-foreground">
+            Edit {exerciseName}
+          </Text>
           <Pressable
             onPress={onClose}
             hitSlop={16}
@@ -133,7 +142,9 @@ export function EditAthleteMaxModal({
               {isPending ? (
                 <ActivityIndicator color={colors.bg} />
               ) : (
-                <Text className="text-bg font-bold text-[16px]">Update Max</Text>
+                <Text className="text-bg font-bold text-[16px]">
+                  Update Max
+                </Text>
               )}
             </Pressable>
 

@@ -15,17 +15,18 @@ type Props = {
   className?: string;
 };
 
-export function Skeleton({ width, height = 16, borderRadius = 8, className = "" }: Props) {
+export function Skeleton({
+  width,
+  height = 16,
+  borderRadius = 8,
+  className = "",
+}: Props) {
   const reduceMotion = useReducedMotion();
   const opacity = useSharedValue(0.3);
 
   useEffect(() => {
     if (reduceMotion) return;
-    opacity.value = withRepeat(
-      withTiming(0.7, { duration: 1000 }),
-      -1,
-      true,
-    );
+    opacity.value = withRepeat(withTiming(0.7, { duration: 1000 }), -1, true);
   }, [reduceMotion]);
 
   const animatedStyle = useAnimatedStyle(() => ({

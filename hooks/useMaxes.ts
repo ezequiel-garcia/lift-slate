@@ -21,7 +21,9 @@ export function useCreateMax() {
     mutationFn: (input: CreateMaxInput) => createMax(input),
     onSuccess: (_data, vars) => {
       queryClient.invalidateQueries({ queryKey: ["maxes"] });
-      queryClient.invalidateQueries({ queryKey: ["maxes", "history", vars.exerciseId] });
+      queryClient.invalidateQueries({
+        queryKey: ["maxes", "history", vars.exerciseId],
+      });
     },
   });
 }
@@ -32,7 +34,9 @@ export function useDeleteMax(exerciseId: string) {
     mutationFn: (id: string) => deleteMax(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["maxes"] });
-      queryClient.invalidateQueries({ queryKey: ["maxes", "history", exerciseId] });
+      queryClient.invalidateQueries({
+        queryKey: ["maxes", "history", exerciseId],
+      });
     },
   });
 }
@@ -60,7 +64,8 @@ export function useCreateAthleteMax(userId: string) {
 export function useUpdateAthleteMax(userId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, input }: { id: string; input: UpdateMaxInput }) => updateAthleteMax(id, input),
+    mutationFn: ({ id, input }: { id: string; input: UpdateMaxInput }) =>
+      updateAthleteMax(id, input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["maxes", "athlete", userId] });
     },
@@ -73,7 +78,7 @@ export function useDeleteExerciseMaxes() {
     mutationFn: (exerciseId: string) => deleteExerciseMaxes(exerciseId),
     onMutate: (exerciseId) => {
       queryClient.setQueryData(["maxes"], (old: any[] | undefined) =>
-        old ? old.filter((m) => m.exercise_id !== exerciseId) : []
+        old ? old.filter((m) => m.exercise_id !== exerciseId) : [],
       );
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["maxes"] }),

@@ -1,5 +1,15 @@
 import { useEffect, useState } from "react";
-import { View, Text, Switch, ScrollView, Alert, ActivityIndicator, KeyboardAvoidingView, Platform, Pressable } from "react-native";
+import {
+  View,
+  Text,
+  Switch,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -52,9 +62,10 @@ export default function ProfileScreen() {
       {
         text: "Leave",
         style: "destructive",
-        onPress: () => leaveGym(gym.membershipId!, {
-          onError: (err) => Alert.alert("Error", err.message),
-        }),
+        onPress: () =>
+          leaveGym(gym.membershipId!, {
+            onError: (err) => Alert.alert("Error", err.message),
+          }),
       },
     ]);
   }
@@ -89,113 +100,145 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} className="flex-1">
-      <ScrollView contentContainerStyle={{ paddingBottom: 48 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <View className="px-5 pt-5 pb-1">
-          <Text className="text-title text-foreground tracking-tight">Profile</Text>
-        </View>
-
-        <SectionHeader title="Account" icon="person-outline" />
-
-        <Card className="mx-5">
-          <View className="px-4 py-4">
-            <Input
-              label="Display Name"
-              value={displayName}
-              onChangeText={setDisplayName}
-              onBlur={handleDisplayNameBlur}
-              placeholder="Your name"
-              returnKeyType="done"
-              autoCapitalize="words"
-            />
-          </View>
-        </Card>
-
-        <SectionHeader title="Units & Weights" icon="scale-outline" />
-
-        <Card className="mx-5">
-          {/* Unit preference */}
-          <View className="px-4 py-4">
-            <Text className="text-label uppercase tracking-wider text-muted mb-3">Unit Preference</Text>
-            <View className="flex-row bg-surface2 rounded-xl p-1">
-              {(["kg", "lbs"] as WeightUnit[]).map((u) => (
-                <Pressable
-                  key={u}
-                  className={`flex-1 py-2.5 rounded-lg items-center ${unit === u ? "bg-accent" : ""}`}
-                  onPress={() => handleUnitToggle(u)}
-                >
-                  <Text className={`font-bold text-[15px] ${unit === u ? "text-bg" : "text-muted"}`}>
-                    {u}
-                  </Text>
-                </Pressable>
-              ))}
-            </View>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        className="flex-1"
+      >
+        <ScrollView
+          contentContainerStyle={{ paddingBottom: 48 }}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View className="px-5 pt-5 pb-1">
+            <Text className="text-title text-foreground tracking-tight">
+              Profile
+            </Text>
           </View>
 
-        </Card>
+          <SectionHeader title="Account" icon="person-outline" />
 
-        <SectionHeader title="Gym" icon="fitness-outline" />
-
-        <Card className="mx-5">
-          {gymLoading ? (
-            <View className="px-4 py-4 items-center">
-              <ActivityIndicator color={colors.accent} />
-            </View>
-          ) : gym ? (
-            <>
-              <View className="px-4 py-4 flex-row items-center justify-between">
-                <View className="flex-1 pr-4">
-                  <Text className="text-foreground text-body font-medium">{gym.name}</Text>
-                  <Text className="text-muted text-caption mt-0.5 capitalize">{gym.myRole}</Text>
-                </View>
-                {gym.myRole !== "admin" && (
-                  <Button
-                    label="Leave"
-                    variant="destructive"
-                    size="sm"
-                    onPress={handleLeaveGym}
-                    disabled={isLeaving}
-                  />
-                )}
-                {gym.myRole === "admin" && (
-                  <Text className="text-muted text-sm font-medium">Owner</Text>
-                )}
-              </View>
-              <View className="h-px bg-border mx-4" />
-            </>
-          ) : (
+          <Card className="mx-5">
             <View className="px-4 py-4">
-              <Text className="text-muted text-[15px]">Not part of a gym</Text>
+              <Input
+                label="Display Name"
+                value={displayName}
+                onChangeText={setDisplayName}
+                onBlur={handleDisplayNameBlur}
+                placeholder="Your name"
+                returnKeyType="done"
+                autoCapitalize="words"
+              />
             </View>
-          )}
-          <View className="px-4 py-4 flex-row items-center justify-between">
-            <View className="flex-1 pr-4">
-              <Text className="text-foreground text-body font-medium">Allow Coach Edits</Text>
-              <Text className="text-muted text-caption mt-0.5">Let coaches view and edit your maxes</Text>
+          </Card>
+
+          <SectionHeader title="Units & Weights" icon="scale-outline" />
+
+          <Card className="mx-5">
+            {/* Unit preference */}
+            <View className="px-4 py-4">
+              <Text className="text-label uppercase tracking-wider text-muted mb-3">
+                Unit Preference
+              </Text>
+              <View className="flex-row bg-surface2 rounded-xl p-1">
+                {(["kg", "lbs"] as WeightUnit[]).map((u) => (
+                  <Pressable
+                    key={u}
+                    className={`flex-1 py-2.5 rounded-lg items-center ${unit === u ? "bg-accent" : ""}`}
+                    onPress={() => handleUnitToggle(u)}
+                  >
+                    <Text
+                      className={`font-bold text-[15px] ${unit === u ? "text-bg" : "text-muted"}`}
+                    >
+                      {u}
+                    </Text>
+                  </Pressable>
+                ))}
+              </View>
             </View>
-            <Switch
-              value={profile?.allow_coach_edit ?? true}
-              onValueChange={handleCoachEditToggle}
-              trackColor={{ false: colors.border, true: colors.accent }}
-              thumbColor="#fff"
-              disabled={isPending}
+          </Card>
+
+          <SectionHeader title="Gym" icon="fitness-outline" />
+
+          <Card className="mx-5">
+            {gymLoading ? (
+              <View className="px-4 py-4 items-center">
+                <ActivityIndicator color={colors.accent} />
+              </View>
+            ) : gym ? (
+              <>
+                <View className="px-4 py-4 flex-row items-center justify-between">
+                  <View className="flex-1 pr-4">
+                    <Text className="text-foreground text-body font-medium">
+                      {gym.name}
+                    </Text>
+                    <Text className="text-muted text-caption mt-0.5 capitalize">
+                      {gym.myRole}
+                    </Text>
+                  </View>
+                  {gym.myRole !== "admin" && (
+                    <Button
+                      label="Leave"
+                      variant="destructive"
+                      size="sm"
+                      onPress={handleLeaveGym}
+                      disabled={isLeaving}
+                    />
+                  )}
+                  {gym.myRole === "admin" && (
+                    <Text className="text-muted text-sm font-medium">
+                      Owner
+                    </Text>
+                  )}
+                </View>
+                <View className="h-px bg-border mx-4" />
+              </>
+            ) : (
+              <View className="px-4 py-4">
+                <Text className="text-muted text-[15px]">
+                  Not part of a gym
+                </Text>
+              </View>
+            )}
+            <View className="px-4 py-4 flex-row items-center justify-between">
+              <View className="flex-1 pr-4">
+                <Text className="text-foreground text-body font-medium">
+                  Allow Coach Edits
+                </Text>
+                <Text className="text-muted text-caption mt-0.5">
+                  Let coaches view and edit your maxes
+                </Text>
+              </View>
+              <Switch
+                value={profile?.allow_coach_edit ?? true}
+                onValueChange={handleCoachEditToggle}
+                trackColor={{ false: colors.border, true: colors.accent }}
+                thumbColor="#fff"
+                disabled={isPending}
+              />
+            </View>
+          </Card>
+
+          <View className="mt-10 mx-5">
+            <Button
+              label="Sign Out"
+              variant="destructive"
+              onPress={handleSignOut}
+              icon={
+                <Ionicons
+                  name="log-out-outline"
+                  size={18}
+                  color={colors.error}
+                />
+              }
             />
           </View>
-        </Card>
 
-        <View className="mt-10 mx-5">
-          <Button
-            label="Sign Out"
-            variant="destructive"
-            onPress={handleSignOut}
-            icon={<Ionicons name="log-out-outline" size={18} color={colors.error} />}
-          />
-        </View>
-
-        <View className="items-center mt-8">
-          <Text className="text-muted text-caption">LiftSlate v{appVersion}</Text>
-        </View>
-      </ScrollView>
+          <View className="items-center mt-8">
+            <Text className="text-muted text-caption">
+              LiftSlate v{appVersion}
+            </Text>
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

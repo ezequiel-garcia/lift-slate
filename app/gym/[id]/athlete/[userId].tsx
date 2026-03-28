@@ -29,7 +29,10 @@ import { Button } from "@/components/ui/Button";
 type Section = { title: string; data: ExerciseSummary[] };
 
 export default function AthleteMaxesScreen() {
-  const { id: gymId, userId } = useLocalSearchParams<{ id: string; userId: string }>();
+  const { id: gymId, userId } = useLocalSearchParams<{
+    id: string;
+    userId: string;
+  }>();
 
   if (!isValidUUID(gymId) || !isValidUUID(userId)) {
     router.replace("/(tabs)/gym");
@@ -41,7 +44,13 @@ export default function AthleteMaxesScreen() {
   const { data: maxes, isLoading, isError, refetch } = useAthleteMaxes(userId);
   const [refreshing, setRefreshing] = useState(false);
   const [addModalVisible, setAddModalVisible] = useState(false);
-  const [editingMax, setEditingMax] = useState<{ id: string; exerciseId: string; exerciseName: string; weightKg: number; notes: string | null } | null>(null);
+  const [editingMax, setEditingMax] = useState<{
+    id: string;
+    exerciseId: string;
+    exerciseName: string;
+    weightKg: number;
+    notes: string | null;
+  } | null>(null);
 
   const member = members?.find((m) => m.user_id === userId);
   const athleteName = member?.users?.display_name ?? "Athlete";
@@ -52,7 +61,11 @@ export default function AthleteMaxesScreen() {
 
   const exerciseSummaries: ExerciseSummary[] = (() => {
     if (!maxes) return [];
-    type Entry = { current: number; name: string; category: ExerciseSummary["category"] };
+    type Entry = {
+      current: number;
+      name: string;
+      category: ExerciseSummary["category"];
+    };
     const map = new Map<string, Entry>();
     for (const max of maxes) {
       if (!max.exercises) continue;
@@ -79,7 +92,8 @@ export default function AthleteMaxesScreen() {
       const items = exerciseSummaries
         .filter((e) => e.category === cat)
         .sort((a, b) => a.name.localeCompare(b.name));
-      if (items.length) result.push({ title: CATEGORY_LABELS[cat], data: items });
+      if (items.length)
+        result.push({ title: CATEGORY_LABELS[cat], data: items });
     }
     const others = exerciseSummaries
       .filter((e) => !e.category)
@@ -131,7 +145,11 @@ export default function AthleteMaxesScreen() {
             {athleteName}
           </Text>
           <Text className="text-muted text-caption">
-            {canEdit ? "Tap a lift to edit" : allowCoachEdit ? "View only" : "Editing disabled by athlete"}
+            {canEdit
+              ? "Tap a lift to edit"
+              : allowCoachEdit
+                ? "View only"
+                : "Editing disabled by athlete"}
           </Text>
         </View>
         {!allowCoachEdit && (
@@ -142,7 +160,10 @@ export default function AthleteMaxesScreen() {
       </View>
 
       {isError ? (
-        <ErrorState message="Failed to load athlete maxes" onRetry={() => refetch()} />
+        <ErrorState
+          message="Failed to load athlete maxes"
+          onRetry={() => refetch()}
+        />
       ) : exerciseSummaries.length === 0 ? (
         <View className="flex-1 justify-center">
           <EmptyState
@@ -155,7 +176,10 @@ export default function AthleteMaxesScreen() {
             }
             action={
               canEdit ? (
-                <Button label="Add First Max" onPress={() => setAddModalVisible(true)} />
+                <Button
+                  label="Add First Max"
+                  onPress={() => setAddModalVisible(true)}
+                />
               ) : undefined
             }
           />
@@ -173,12 +197,20 @@ export default function AthleteMaxesScreen() {
               onPress={canEdit ? () => handleEditMax(item) : undefined}
             />
           )}
-          renderSectionHeader={({ section }) => <SectionHeader title={section.title} />}
+          renderSectionHeader={({ section }) => (
+            <SectionHeader title={section.title} />
+          )}
           stickySectionHeadersEnabled={false}
           contentContainerStyle={{ paddingBottom: 120 }}
-          ItemSeparatorComponent={() => <View className="h-px bg-border ml-[72px] mr-5" />}
+          ItemSeparatorComponent={() => (
+            <View className="h-px bg-border ml-[72px] mr-5" />
+          )}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={colors.accent} />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.accent}
+            />
           }
         />
       )}

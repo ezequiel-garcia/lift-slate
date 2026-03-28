@@ -1,4 +1,10 @@
-import { toKg, fromKg, roundToPlate, calculatePercentage, formatWeight } from "@/lib/units";
+import {
+  toKg,
+  fromKg,
+  roundToPlate,
+  calculatePercentage,
+  formatWeight,
+} from "@/lib/units";
 
 const LBS_PER_KG = 2.20462;
 

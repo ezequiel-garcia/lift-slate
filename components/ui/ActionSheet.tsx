@@ -66,21 +66,40 @@ export function ActionSheet({ visible, title, options, onClose }: Props) {
     >
       {/* Backdrop */}
       <Animated.View
-        style={[{ position: "absolute", inset: 0, backgroundColor: "rgba(0,0,0,0.55)" }, backdropStyle]}
+        style={[
+          {
+            position: "absolute",
+            inset: 0,
+            backgroundColor: "rgba(0,0,0,0.55)",
+          },
+          backdropStyle,
+        ]}
       >
         <Pressable style={{ flex: 1 }} onPress={handleClose} />
       </Animated.View>
 
       {/* Sheet */}
       <Animated.View
-        style={[{ position: "absolute", left: 0, right: 0, bottom: 0 }, sheetStyle]}
+        style={[
+          { position: "absolute", left: 0, right: 0, bottom: 0 },
+          sheetStyle,
+        ]}
       >
-        <View style={{ paddingBottom: Math.max(insets.bottom, 8), paddingHorizontal: 12, gap: 8 }}>
+        <View
+          style={{
+            paddingBottom: Math.max(insets.bottom, 8),
+            paddingHorizontal: 12,
+            gap: 8,
+          }}
+        >
           {/* Main card */}
           <View className="bg-surface rounded-2xl overflow-hidden">
             {title && (
               <View className="items-center px-4 pt-4 pb-3 border-b border-border">
-                <Text className="text-muted text-sm font-medium" numberOfLines={1}>
+                <Text
+                  className="text-muted text-sm font-medium"
+                  numberOfLines={1}
+                >
                   {title}
                 </Text>
               </View>

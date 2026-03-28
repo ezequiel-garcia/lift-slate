@@ -5,8 +5,12 @@ import { addDays, format } from "date-fns";
 export type WorkoutItem = Tables<"workout_items"> & {
   exercises: Pick<Tables<"exercises">, "name" | "category"> | null;
 };
-export type WorkoutSection = Tables<"workout_sections"> & { items: WorkoutItem[] };
-export type WorkoutWithSections = Tables<"workouts"> & { sections: WorkoutSection[] };
+export type WorkoutSection = Tables<"workout_sections"> & {
+  items: WorkoutItem[];
+};
+export type WorkoutWithSections = Tables<"workouts"> & {
+  sections: WorkoutSection[];
+};
 
 export type WorkoutItemInput = {
   orderIndex: number;
@@ -35,7 +39,10 @@ export type WorkoutInput = {
 };
 
 async function getCurrentUserId() {
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
   if (error || !user) throw new Error("Not authenticated");
   return user.id;
 }
@@ -101,7 +108,10 @@ async function insertSectionsAndItems(
   }));
 }
 
-export async function createWorkout(gymId: string, input: WorkoutInput): Promise<WorkoutWithSections> {
+export async function createWorkout(
+  gymId: string,
+  input: WorkoutInput,
+): Promise<WorkoutWithSections> {
   const userId = await getCurrentUserId();
 
   const { data: workout, error: workoutError } = await supabase
@@ -139,7 +149,9 @@ function sortWorkout(workout: WorkoutWithSections): WorkoutWithSections {
   };
 }
 
-export async function getWorkoutById(workoutId: string): Promise<WorkoutWithSections> {
+export async function getWorkoutById(
+  workoutId: string,
+): Promise<WorkoutWithSections> {
   const { data, error } = await supabase
     .from("workouts")
     .select(WORKOUT_WITH_SECTIONS_QUERY)
@@ -149,7 +161,10 @@ export async function getWorkoutById(workoutId: string): Promise<WorkoutWithSect
   return sortWorkout(data as WorkoutWithSections);
 }
 
-export async function getWorkoutsByDate(gymId: string, date: string): Promise<WorkoutWithSections[]> {
+export async function getWorkoutsByDate(
+  gymId: string,
+  date: string,
+): Promise<WorkoutWithSections[]> {
   const { data, error } = await supabase
     .from("workouts")
     .select(WORKOUT_WITH_SECTIONS_QUERY)
@@ -160,7 +175,10 @@ export async function getWorkoutsByDate(gymId: string, date: string): Promise<Wo
   return ((data ?? []) as WorkoutWithSections[]).map(sortWorkout);
 }
 
-export async function getWorkoutsForWeek(gymId: string, startDate: string): Promise<WorkoutWithSections[]> {
+export async function getWorkoutsForWeek(
+  gymId: string,
+  startDate: string,
+): Promise<WorkoutWithSections[]> {
   const endDate = format(addDays(new Date(startDate), 6), "yyyy-MM-dd");
   const { data, error } = await supabase
     .from("workouts")
@@ -174,11 +192,16 @@ export async function getWorkoutsForWeek(gymId: string, startDate: string): Prom
   return ((data ?? []) as WorkoutWithSections[]).map(sortWorkout);
 }
 
-export async function getTodaysWorkout(gymId: string): Promise<WorkoutWithSections[]> {
+export async function getTodaysWorkout(
+  gymId: string,
+): Promise<WorkoutWithSections[]> {
   return getWorkoutsByDate(gymId, format(new Date(), "yyyy-MM-dd"));
 }
 
-export async function updateWorkout(workoutId: string, input: WorkoutInput): Promise<WorkoutWithSections> {
+export async function updateWorkout(
+  workoutId: string,
+  input: WorkoutInput,
+): Promise<WorkoutWithSections> {
   const { data: workout, error: workoutError } = await supabase
     .from("workouts")
     .update({
@@ -202,6 +225,9 @@ export async function updateWorkout(workoutId: string, input: WorkoutInput): Pro
 }
 
 export async function deleteWorkout(workoutId: string): Promise<void> {
-  const { error } = await supabase.from("workouts").delete().eq("id", workoutId);
+  const { error } = await supabase
+    .from("workouts")
+    .delete()
+    .eq("id", workoutId);
   if (error) throw error;
 }

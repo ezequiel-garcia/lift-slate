@@ -37,7 +37,10 @@ export async function getMaxHistory(exerciseId: string) {
 }
 
 export async function createMax(input: CreateMaxInput) {
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
   if (authError || !user) throw new Error("Not authenticated");
 
   const { data, error } = await supabase

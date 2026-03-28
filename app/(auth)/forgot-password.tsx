@@ -133,7 +133,10 @@ export default function ForgotPasswordScreen() {
             />
           </View>
 
-          <Pressable className="items-center mt-6" onPress={() => router.back()}>
+          <Pressable
+            className="items-center mt-6"
+            onPress={() => router.back()}
+          >
             <Text className="text-accent text-sm font-semibold">
               Back to Sign In
             </Text>

@@ -71,7 +71,9 @@ export function ReverseForm({
                 onSelectChip(pct);
               }}
             >
-              <Text className={`text-[15px] font-semibold ${isActive ? "text-accent" : "text-foreground"}`}>
+              <Text
+                className={`text-[15px] font-semibold ${isActive ? "text-accent" : "text-foreground"}`}
+              >
                 {pct}%
               </Text>
             </Pressable>
@@ -85,17 +87,26 @@ export function ReverseForm({
             keyboardType="number-pad"
             value={customPctInput}
             onChangeText={onChangeCustomPct}
-            error={showPctError ? "Percentage must be between 1 and 100" : undefined}
+            error={
+              showPctError ? "Percentage must be between 1 and 100" : undefined
+            }
           />
         </View>
         <Text className="text-muted text-lg font-semibold">%</Text>
       </View>
-      {!showPctError && <Text className="text-muted text-xs mb-5">Enter 1–100</Text>}
+      {!showPctError && (
+        <Text className="text-muted text-xs mb-5">Enter 1–100</Text>
+      )}
       {showPctError && <View className="mb-2" />}
 
       {showPlaceholder ? (
         <View className="bg-surface rounded-2xl p-8 mb-6 items-center">
-          <Ionicons name="analytics-outline" size={36} color={colors.muted} style={{ marginBottom: 12 }} />
+          <Ionicons
+            name="analytics-outline"
+            size={36}
+            color={colors.muted}
+            style={{ marginBottom: 12 }}
+          />
           <Text className="text-base font-semibold text-foreground mb-2 text-center">
             Estimate your 1RM
           </Text>
@@ -110,7 +121,10 @@ export function ReverseForm({
               <Text className="text-label uppercase tracking-wider text-muted mb-2">
                 Estimated 1RM
               </Text>
-              <Text className="text-display text-accent" style={{ letterSpacing: -2 }}>
+              <Text
+                className="text-display text-accent"
+                style={{ letterSpacing: -2 }}
+              >
                 {formatWeight(parseFloat(estimatedOneRMRaw.toFixed(1)), unit)}
               </Text>
               {weightInput && displayPct != null && !isNaN(displayPct) && (

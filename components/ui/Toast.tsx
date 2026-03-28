@@ -36,9 +36,12 @@ export function Toast() {
     );
     translateY.value = withSequence(
       withTiming(0, { duration: dur }),
-      withDelay(2000, withTiming(-8, { duration: dur + 50 }, () => {
-        runOnJS(hideToast)();
-      })),
+      withDelay(
+        2000,
+        withTiming(-8, { duration: dur + 50 }, () => {
+          runOnJS(hideToast)();
+        }),
+      ),
     );
   }, [toast]);
 
@@ -74,7 +77,11 @@ export function Toast() {
       ]}
     >
       <Ionicons name="checkmark-circle" size={18} color={colors.accent} />
-      <Text style={{ color: colors.foreground, fontSize: 15, fontWeight: "600" }}>{message}</Text>
+      <Text
+        style={{ color: colors.foreground, fontSize: 15, fontWeight: "600" }}
+      >
+        {message}
+      </Text>
     </Animated.View>
   );
 }

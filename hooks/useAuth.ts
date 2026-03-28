@@ -15,7 +15,8 @@ export function useAuth() {
         supabase.auth.getUser().then(({ error }) => {
           // Clear on 4xx (invalid/revoked token, bad session).
           // Keep on network errors (no status) or 5xx (Supabase down).
-          if (error?.status && error.status >= 400 && error.status < 500) setSession(null);
+          if (error?.status && error.status >= 400 && error.status < 500)
+            setSession(null);
           setIsLoading(false);
         });
       } else {

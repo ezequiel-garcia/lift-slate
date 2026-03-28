@@ -47,8 +47,12 @@ export function AddMaxModal({ visible, exerciseId, unit, onClose }: Props) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["maxes"] });
-      queryClient.invalidateQueries({ queryKey: ["maxes", "history", exerciseId] });
-      queryClient.invalidateQueries({ queryKey: ["exercise_note", exerciseId] });
+      queryClient.invalidateQueries({
+        queryKey: ["maxes", "history", exerciseId],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["exercise_note", exerciseId],
+      });
       showToast("Max saved!");
       handleClose();
     },

@@ -1,5 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getMemberRole, updateMemberRole, GymMembershipRole } from "@/services/roles.service";
+import {
+  getMemberRole,
+  updateMemberRole,
+  GymMembershipRole,
+} from "@/services/roles.service";
 
 export function useMyGymRole(gymId: string | undefined) {
   return useQuery({
@@ -12,8 +16,13 @@ export function useMyGymRole(gymId: string | undefined) {
 export function useUpdateMemberRole() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ membershipId, newRole }: { membershipId: string; newRole: GymMembershipRole }) =>
-      updateMemberRole(membershipId, newRole),
+    mutationFn: ({
+      membershipId,
+      newRole,
+    }: {
+      membershipId: string;
+      newRole: GymMembershipRole;
+    }) => updateMemberRole(membershipId, newRole),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["gym"] }),
   });
 }

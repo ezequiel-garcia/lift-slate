@@ -17,7 +17,14 @@ type Props = TextInputProps & {
   rightElement?: React.ReactNode;
 };
 
-export function Input({ label, error, leftIcon, rightElement, style, ...rest }: Props) {
+export function Input({
+  label,
+  error,
+  leftIcon,
+  rightElement,
+  style,
+  ...rest
+}: Props) {
   const [isFocused, setIsFocused] = useState(false);
   const focusProgress = useSharedValue(0);
 
@@ -25,19 +32,26 @@ export function Input({ label, error, leftIcon, rightElement, style, ...rest }: 
     borderColor: interpolateColor(
       focusProgress.value,
       [0, 1],
-      [error ? colors.error : colors.border, error ? colors.error : colors.accent],
+      [
+        error ? colors.error : colors.border,
+        error ? colors.error : colors.accent,
+      ],
     ),
   }));
 
   const handleFocus = (e: any) => {
     setIsFocused(true);
-    focusProgress.value = withTiming(1, { duration: animation.duration.normal });
+    focusProgress.value = withTiming(1, {
+      duration: animation.duration.normal,
+    });
     rest.onFocus?.(e);
   };
 
   const handleBlur = (e: any) => {
     setIsFocused(false);
-    focusProgress.value = withTiming(0, { duration: animation.duration.normal });
+    focusProgress.value = withTiming(0, {
+      duration: animation.duration.normal,
+    });
     rest.onBlur?.(e);
   };
 
@@ -64,9 +78,7 @@ export function Input({ label, error, leftIcon, rightElement, style, ...rest }: 
         />
         {rightElement && <View className="ml-2.5">{rightElement}</View>}
       </AnimatedView>
-      {error && (
-        <Text className="text-error text-sm mt-1.5">{error}</Text>
-      )}
+      {error && <Text className="text-error text-sm mt-1.5">{error}</Text>}
     </View>
   );
 }

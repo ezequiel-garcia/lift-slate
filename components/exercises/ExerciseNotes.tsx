@@ -1,4 +1,10 @@
-import { View, Text, TextInput, Pressable, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
 import { useExerciseNote } from "@/hooks/useExerciseNote";
 import { colors } from "@/lib/theme";
 
@@ -7,12 +13,15 @@ type Props = {
 };
 
 export function ExerciseNotes({ exerciseId }: Props) {
-  const { draft, setDraft, handleSave, isSaving, isDirty } = useExerciseNote(exerciseId);
+  const { draft, setDraft, handleSave, isSaving, isDirty } =
+    useExerciseNote(exerciseId);
 
   return (
     <View className="mt-6">
       <View className="flex-row items-center justify-between mb-2">
-        <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest">Notes</Text>
+        <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest">
+          Notes
+        </Text>
         {isSaving && <ActivityIndicator size="small" color={colors.muted} />}
       </View>
       <TextInput

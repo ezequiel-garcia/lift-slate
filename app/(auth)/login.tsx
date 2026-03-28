@@ -76,15 +76,26 @@ export default function LoginScreen() {
         className="flex-1"
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingTop: 56, paddingBottom: 32 }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 24,
+            paddingTop: 56,
+            paddingBottom: 32,
+          }}
           keyboardShouldPersistTaps="handled"
         >
           {/* Logo */}
           <View className="items-center mb-14">
-            <Text className="text-[52px] font-extrabold text-accent" style={{ letterSpacing: -2 }}>
+            <Text
+              className="text-[52px] font-extrabold text-accent"
+              style={{ letterSpacing: -2 }}
+            >
               LS
             </Text>
-            <Text className="text-caption uppercase text-muted" style={{ letterSpacing: 7, marginTop: 2 }}>
+            <Text
+              className="text-caption uppercase text-muted"
+              style={{ letterSpacing: 7, marginTop: 2 }}
+            >
               LIFTSLATE
             </Text>
           </View>
@@ -112,7 +123,9 @@ export default function LoginScreen() {
             <View className="items-end">
               <Link href="/(auth)/forgot-password" asChild>
                 <Pressable hitSlop={8}>
-                  <Text className="text-accent text-sm font-semibold">Forgot password?</Text>
+                  <Text className="text-accent text-sm font-semibold">
+                    Forgot password?
+                  </Text>
                 </Pressable>
               </Link>
             </View>
@@ -143,10 +156,14 @@ export default function LoginScreen() {
           )}
 
           <View className="flex-row justify-center mt-8">
-            <Text className="text-muted text-subtext">Don't have an account? </Text>
+            <Text className="text-muted text-subtext">
+              Don't have an account?{" "}
+            </Text>
             <Link href="/(auth)/signup" asChild>
               <Pressable hitSlop={8}>
-                <Text className="text-accent text-subtext font-semibold">Sign up</Text>
+                <Text className="text-accent text-subtext font-semibold">
+                  Sign up
+                </Text>
               </Pressable>
             </Link>
           </View>

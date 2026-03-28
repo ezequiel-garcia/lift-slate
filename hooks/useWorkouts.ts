@@ -1,4 +1,9 @@
-import { useQuery, useMutation, useQueryClient, keepPreviousData } from "@tanstack/react-query";
+import {
+  useQuery,
+  useMutation,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { format, addDays } from "date-fns";
 import { useCallback, useEffect } from "react";
 import {
@@ -28,14 +33,17 @@ export function useWorkoutsByDate(gymId: string | undefined, date: string) {
     (currentDate: string) => {
       if (!gymId) return;
       for (const offset of [-1, 1]) {
-        const adjDate = format(addDays(new Date(currentDate), offset), "yyyy-MM-dd");
+        const adjDate = format(
+          addDays(new Date(currentDate), offset),
+          "yyyy-MM-dd",
+        );
         queryClient.prefetchQuery({
           queryKey: ["workouts", gymId, "date", adjDate],
           queryFn: () => getWorkoutsByDate(gymId, adjDate),
         });
       }
     },
-    [gymId, queryClient]
+    [gymId, queryClient],
   );
 
   const query = useQuery({
@@ -52,7 +60,10 @@ export function useWorkoutsByDate(gymId: string | undefined, date: string) {
   return query;
 }
 
-export function useWeekWorkouts(gymId: string | undefined, startDate: string | undefined) {
+export function useWeekWorkouts(
+  gymId: string | undefined,
+  startDate: string | undefined,
+) {
   return useQuery({
     queryKey: ["workouts", gymId, "week", startDate],
     queryFn: () => getWorkoutsForWeek(gymId!, startDate!),
@@ -63,16 +74,23 @@ export function useWeekWorkouts(gymId: string | undefined, startDate: string | u
 export function useCreateWorkout() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ gymId, input }: { gymId: string; input: WorkoutInput }) => createWorkout(gymId, input),
-    onSuccess: (_data, { gymId }) => queryClient.invalidateQueries({ queryKey: ["workouts", gymId] }),
+    mutationFn: ({ gymId, input }: { gymId: string; input: WorkoutInput }) =>
+      createWorkout(gymId, input),
+    onSuccess: (_data, { gymId }) =>
+      queryClient.invalidateQueries({ queryKey: ["workouts", gymId] }),
   });
 }
 
 export function useUpdateWorkout() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ workoutId, input }: { workoutId: string; input: WorkoutInput }) =>
-      updateWorkout(workoutId, input),
+    mutationFn: ({
+      workoutId,
+      input,
+    }: {
+      workoutId: string;
+      input: WorkoutInput;
+    }) => updateWorkout(workoutId, input),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["workouts"] }),
   });
 }

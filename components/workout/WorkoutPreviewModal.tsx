@@ -30,21 +30,28 @@ export function WorkoutPreviewModal({
       <View className="flex-1 bg-bg">
         <View className="flex-row items-center justify-between px-4 pt-6 pb-4 border-b border-border">
           <View>
-            <Text className="text-muted text-xs uppercase tracking-wider">Athlete Preview</Text>
-            <Text className="text-foreground text-lg font-semibold mt-0.5">{scheduledDate}</Text>
+            <Text className="text-muted text-xs uppercase tracking-wider">
+              Athlete Preview
+            </Text>
+            <Text className="text-foreground text-lg font-semibold mt-0.5">
+              {scheduledDate}
+            </Text>
           </View>
           <Pressable onPress={onClose}>
             <Text className="text-accent font-medium">Done</Text>
           </Pressable>
         </View>
 
-        <ScrollView className="flex-1 px-4 py-4" contentContainerStyle={{ paddingBottom: 32 }}>
+        <ScrollView
+          className="flex-1 px-4 py-4"
+          contentContainerStyle={{ paddingBottom: 32 }}
+        >
           {!!title && (
-            <Text className="text-foreground text-xl font-bold mb-1">{title}</Text>
+            <Text className="text-foreground text-xl font-bold mb-1">
+              {title}
+            </Text>
           )}
-          {!!notes && (
-            <Text className="text-muted text-sm mb-4">{notes}</Text>
-          )}
+          {!!notes && <Text className="text-muted text-sm mb-4">{notes}</Text>}
 
           {sections.length === 0 ? (
             <View className="py-16 items-center">
@@ -59,7 +66,9 @@ export function WorkoutPreviewModal({
                 <View className="bg-surface rounded-xl px-4 divide-y divide-border">
                   {section.items.length === 0 ? (
                     <View className="py-3">
-                      <Text className="text-muted text-sm italic">No items</Text>
+                      <Text className="text-muted text-sm italic">
+                        No items
+                      </Text>
                     </View>
                   ) : (
                     section.items.map((item) => {
@@ -70,7 +79,9 @@ export function WorkoutPreviewModal({
                               {item.content || "(empty)"}
                             </Text>
                             {!!item.notes && (
-                              <Text className="text-muted text-sm mt-1">{item.notes}</Text>
+                              <Text className="text-muted text-sm mt-1">
+                                {item.notes}
+                              </Text>
                             )}
                           </View>
                         );
@@ -80,8 +91,8 @@ export function WorkoutPreviewModal({
                         item.sets && item.reps
                           ? `${item.sets}×${item.reps}`
                           : item.sets
-                          ? `${item.sets} sets`
-                          : null;
+                            ? `${item.sets} sets`
+                            : null;
 
                       let weightText = "";
                       if (item.weightMode === "percentage" && item.percentage) {
@@ -102,7 +113,9 @@ export function WorkoutPreviewModal({
                             )}
                           </Text>
                           {!!item.notes && (
-                            <Text className="text-muted text-sm mt-1">{item.notes}</Text>
+                            <Text className="text-muted text-sm mt-1">
+                              {item.notes}
+                            </Text>
                           )}
                         </View>
                       );

@@ -1,5 +1,13 @@
 import { useState, useEffect } from "react";
-import { View, Text, TextInput, Pressable, ScrollView, Alert, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  ScrollView,
+  Alert,
+  ActivityIndicator,
+} from "react-native";
 import { useLocalSearchParams, router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -25,7 +33,11 @@ function newSection(): SectionFormData {
 }
 
 export default function NewWorkoutScreen() {
-  const { id: gymId, workoutId, date } = useLocalSearchParams<{ id: string; workoutId?: string; date?: string }>();
+  const {
+    id: gymId,
+    workoutId,
+    date,
+  } = useLocalSearchParams<{ id: string; workoutId?: string; date?: string }>();
   const isEditMode = !!workoutId;
 
   if (!isValidUUID(gymId) || (workoutId && !isValidUUID(workoutId))) {
@@ -37,7 +49,11 @@ export default function NewWorkoutScreen() {
   const { data: profile } = useProfile();
 
   useEffect(() => {
-    if (gym !== undefined && gym?.myRole !== "coach" && gym?.myRole !== "admin") {
+    if (
+      gym !== undefined &&
+      gym?.myRole !== "coach" &&
+      gym?.myRole !== "admin"
+    ) {
       router.replace("/(tabs)/gym");
     }
   }, [gym?.myRole]);
@@ -49,7 +65,7 @@ export default function NewWorkoutScreen() {
 
   const [loading, setLoading] = useState(isEditMode);
   const [scheduledDate, setScheduledDate] = useState(() =>
-    date ? parseISO(date) : addDays(new Date(), 1)
+    date ? parseISO(date) : addDays(new Date(), 1),
   );
   const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
@@ -69,21 +85,23 @@ export default function NewWorkoutScreen() {
           workout.sections.map((section) => ({
             localId: section.id,
             title: section.title,
-            items: section.items.map((item): ItemFormData => ({
-              localId: item.id,
-              itemType: item.item_type,
-              exerciseId: item.exercise_id ?? undefined,
-              exerciseName: item.exercises?.name ?? undefined,
-              sets: item.sets?.toString() ?? undefined,
-              reps: item.reps?.toString() ?? undefined,
-              weightMode: item.percentage ? "percentage" : "none",
-              percentage: item.percentage?.toString() ?? undefined,
-              maxTypeReference: item.max_type_reference ?? undefined,
-              weightKg: item.weight_kg?.toString() ?? undefined,
-              content: item.content ?? undefined,
-              notes: item.notes ?? undefined,
-            })),
-          }))
+            items: section.items.map(
+              (item): ItemFormData => ({
+                localId: item.id,
+                itemType: item.item_type,
+                exerciseId: item.exercise_id ?? undefined,
+                exerciseName: item.exercises?.name ?? undefined,
+                sets: item.sets?.toString() ?? undefined,
+                reps: item.reps?.toString() ?? undefined,
+                weightMode: item.percentage ? "percentage" : "none",
+                percentage: item.percentage?.toString() ?? undefined,
+                maxTypeReference: item.max_type_reference ?? undefined,
+                weightKg: item.weight_kg?.toString() ?? undefined,
+                content: item.content ?? undefined,
+                notes: item.notes ?? undefined,
+              }),
+            ),
+          })),
         );
       })
       .catch(() => Alert.alert("Error", "Failed to load workout."))
@@ -149,7 +167,10 @@ export default function NewWorkoutScreen() {
     if (!gymId) return;
     try {
       if (isEditMode && workoutId) {
-        await updateWorkout.mutateAsync({ workoutId, input: buildWorkoutInput() });
+        await updateWorkout.mutateAsync({
+          workoutId,
+          input: buildWorkoutInput(),
+        });
       } else {
         await createWorkout.mutateAsync({ gymId, input: buildWorkoutInput() });
       }
@@ -165,7 +186,10 @@ export default function NewWorkoutScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-bg justify-center items-center" edges={["top"]}>
+      <SafeAreaView
+        className="flex-1 bg-bg justify-center items-center"
+        edges={["top"]}
+      >
         <ActivityIndicator color={colors.accent} />
       </SafeAreaView>
     );
@@ -194,7 +218,11 @@ export default function NewWorkoutScreen() {
 
       <ScrollView
         className="flex-1"
-        contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 120 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 16,
+          paddingBottom: 120,
+        }}
         keyboardShouldPersistTaps="handled"
       >
         {/* Date picker */}
@@ -207,14 +235,24 @@ export default function NewWorkoutScreen() {
               className="w-11 h-11 bg-surface2 rounded-xl items-center justify-center"
               onPress={() => setScheduledDate((d) => addDays(d, -1))}
             >
-              <Ionicons name="chevron-back" size={20} color={colors.foreground} />
+              <Ionicons
+                name="chevron-back"
+                size={20}
+                color={colors.foreground}
+              />
             </Pressable>
-            <Text className="text-foreground text-base font-semibold">{formattedDate}</Text>
+            <Text className="text-foreground text-base font-semibold">
+              {formattedDate}
+            </Text>
             <Pressable
               className="w-11 h-11 bg-surface2 rounded-xl items-center justify-center"
               onPress={() => setScheduledDate((d) => addDays(d, 1))}
             >
-              <Ionicons name="chevron-forward" size={20} color={colors.foreground} />
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color={colors.foreground}
+              />
             </Pressable>
           </View>
         </View>
@@ -261,7 +299,11 @@ export default function NewWorkoutScreen() {
             className="border-2 border-dashed border-border rounded-2xl py-5 items-center gap-1"
             onPress={() => setSections((prev) => [...prev, newSection()])}
           >
-            <Ionicons name="add-circle-outline" size={22} color={colors.accent} />
+            <Ionicons
+              name="add-circle-outline"
+              size={22}
+              color={colors.accent}
+            />
             <Text className="text-accent text-sm font-medium">Add Section</Text>
           </Pressable>
         </View>
@@ -270,7 +312,13 @@ export default function NewWorkoutScreen() {
       {/* Bottom actions */}
       <View className="absolute bottom-0 left-0 right-0 px-4 pb-10 pt-4 bg-bg border-t border-border">
         <Button
-          label={isSaving ? "Saving..." : isEditMode ? "Update Workout" : "Save Workout"}
+          label={
+            isSaving
+              ? "Saving..."
+              : isEditMode
+                ? "Update Workout"
+                : "Save Workout"
+          }
           onPress={handleSave}
           disabled={isSaving}
         />

@@ -56,8 +56,10 @@ export default function GymSettingsScreen() {
   const { data: inviteDetails } = useGymInviteDetails(gym?.id);
   const { mutate: updateGym } = useUpdateGym();
   const { mutate: deleteGym, isPending: deleting } = useDeleteGym();
-  const { mutate: regenerateToken, isPending: regeneratingToken } = useRegenerateInviteToken();
-  const { mutate: generateCode, isPending: generatingCode } = useGenerateTempCode();
+  const { mutate: regenerateToken, isPending: regeneratingToken } =
+    useRegenerateInviteToken();
+  const { mutate: generateCode, isPending: generatingCode } =
+    useGenerateTempCode();
 
   useEffect(() => {
     if (!isLoading && gym?.myRole !== "admin") {
@@ -83,7 +85,8 @@ export default function GymSettingsScreen() {
       setCountdown("");
       return;
     }
-    const update = () => setCountdown(formatCountdown(inviteDetails.temp_code_expires!));
+    const update = () =>
+      setCountdown(formatCountdown(inviteDetails.temp_code_expires!));
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
@@ -96,7 +99,10 @@ export default function GymSettingsScreen() {
 
   function handleDescriptionBlur() {
     if (!gym || description.trim() === (gym.description ?? "")) return;
-    updateGym({ gymId: gym.id, updates: { description: description.trim() || null } });
+    updateGym({
+      gymId: gym.id,
+      updates: { description: description.trim() || null },
+    });
   }
 
   function handleAddressBlur() {
@@ -119,7 +125,12 @@ export default function GymSettingsScreen() {
     const ext = mimeType.split("/")[1] ?? "jpg";
     setUploadingLogo(true);
     try {
-      const url = await uploadGymLogo(asset.base64!, `logo_${gym.id}.${ext}`, mimeType, asset.fileSize ?? undefined);
+      const url = await uploadGymLogo(
+        asset.base64!,
+        `logo_${gym.id}.${ext}`,
+        mimeType,
+        asset.fileSize ?? undefined,
+      );
       updateGym({ gymId: gym.id, updates: { logo_url: url } });
     } catch (e: any) {
       Alert.alert("Error", e.message ?? "Failed to upload logo");
@@ -131,7 +142,10 @@ export default function GymSettingsScreen() {
   function handleShareLink() {
     if (!inviteDetails?.invite_token) return;
     const link = getDeepLink(inviteDetails.invite_token);
-    Share.share({ message: `Join ${gym?.name} on LiftSlate: ${link}`, url: link });
+    Share.share({
+      message: `Join ${gym?.name} on LiftSlate: ${link}`,
+      url: link,
+    });
   }
 
   function handleRegenerateToken() {
@@ -141,8 +155,12 @@ export default function GymSettingsScreen() {
       "The old invite link will stop working immediately. All new members must use the new link.",
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Regenerate", style: "destructive", onPress: () => regenerateToken(gym.id) },
-      ]
+        {
+          text: "Regenerate",
+          style: "destructive",
+          onPress: () => regenerateToken(gym.id),
+        },
+      ],
     );
   }
 
@@ -160,7 +178,7 @@ export default function GymSettingsScreen() {
         [
           { text: "Cancel", style: "cancel" },
           { text: "Generate", onPress: () => generateCode(gym.id) },
-        ]
+        ],
       );
     } else {
       generateCode(gym.id);
@@ -192,10 +210,10 @@ export default function GymSettingsScreen() {
                       onError: (e: any) => Alert.alert("Error", e.message),
                     }),
                 },
-              ]
+              ],
             ),
         },
-      ]
+      ],
     );
   }
 
@@ -212,7 +230,9 @@ export default function GymSettingsScreen() {
     !!inviteDetails?.temp_code_expires &&
     new Date(inviteDetails?.temp_code_expires) > new Date();
 
-  const deepLink = inviteDetails?.invite_token ? getDeepLink(inviteDetails?.invite_token) : "";
+  const deepLink = inviteDetails?.invite_token
+    ? getDeepLink(inviteDetails?.invite_token)
+    : "";
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
@@ -229,7 +249,9 @@ export default function GymSettingsScreen() {
           >
             <Ionicons name="chevron-back" size={24} color={colors.foreground} />
           </Pressable>
-          <Text className="text-foreground text-xl font-bold ml-1">Gym Settings</Text>
+          <Text className="text-foreground text-xl font-bold ml-1">
+            Gym Settings
+          </Text>
         </View>
 
         <ScrollView
@@ -262,9 +284,13 @@ export default function GymSettingsScreen() {
               <Text className="text-foreground font-semibold text-[15px]">
                 {uploadingLogo ? "Uploading..." : "Change Logo"}
               </Text>
-              <Text className="text-muted text-caption mt-0.5">Tap to pick a new image</Text>
+              <Text className="text-muted text-caption mt-0.5">
+                Tap to pick a new image
+              </Text>
             </View>
-            {uploadingLogo && <ActivityIndicator size="small" color={colors.accent} />}
+            {uploadingLogo && (
+              <ActivityIndicator size="small" color={colors.accent} />
+            )}
           </Pressable>
 
           <Card className="mx-5">
@@ -317,7 +343,8 @@ export default function GymSettingsScreen() {
                 Permanent Link
               </Text>
               <Text className="text-muted text-caption mb-3 leading-relaxed">
-                Anyone with this link can join your gym (subject to subscription limits).
+                Anyone with this link can join your gym (subject to subscription
+                limits).
               </Text>
               {deepLink ? (
                 <Text
@@ -335,7 +362,13 @@ export default function GymSettingsScreen() {
                     size="md"
                     onPress={handleShareLink}
                     disabled={!inviteDetails?.invite_token}
-                    icon={<Ionicons name="share-outline" size={16} color={colors.bg} />}
+                    icon={
+                      <Ionicons
+                        name="share-outline"
+                        size={16}
+                        color={colors.bg}
+                      />
+                    }
                   />
                 </View>
                 <View className="flex-1">
@@ -358,7 +391,8 @@ export default function GymSettingsScreen() {
                 Temporary Code
               </Text>
               <Text className="text-muted text-caption mb-3 leading-relaxed">
-                Share a short code valid for 2 hours. Great for in-person sign-ups.
+                Share a short code valid for 2 hours. Great for in-person
+                sign-ups.
               </Text>
               {hasActiveCode && (
                 <View className="items-center mb-4 py-2">
@@ -368,11 +402,19 @@ export default function GymSettingsScreen() {
                   >
                     {inviteDetails?.temp_invite_code}
                   </Text>
-                  <Text className="text-muted text-caption mt-1">{countdown}</Text>
+                  <Text className="text-muted text-caption mt-1">
+                    {countdown}
+                  </Text>
                 </View>
               )}
               <Button
-                label={generatingCode ? "Generating..." : hasActiveCode ? "Generate New Code" : "Generate Code"}
+                label={
+                  generatingCode
+                    ? "Generating..."
+                    : hasActiveCode
+                      ? "Generate New Code"
+                      : "Generate Code"
+                }
                 variant="secondary"
                 onPress={handleGenerateCode}
                 disabled={generatingCode}
@@ -392,7 +434,9 @@ export default function GymSettingsScreen() {
               variant="destructive"
               onPress={handleDeleteGym}
               disabled={deleting}
-              icon={<Ionicons name="trash-outline" size={16} color={colors.error} />}
+              icon={
+                <Ionicons name="trash-outline" size={16} color={colors.error} />
+              }
             />
             <Text className="text-muted text-caption text-center mt-2">
               Removes all members, workouts, and gym data permanently.
@@ -419,7 +463,8 @@ function SubscriptionSection({ gymId }: { gymId: string }) {
 
   const athleteCount = members?.filter((m) => m.role === "athlete").length ?? 0;
   const coachCount = members?.filter((m) => m.role === "coach").length ?? 0;
-  const planLabel = sub.plan === "free" ? "Free" : sub.plan === "trial" ? "Trial" : "Pro";
+  const planLabel =
+    sub.plan === "free" ? "Free" : sub.plan === "trial" ? "Trial" : "Pro";
   const isTrialActive = sub.status === "trial" && !!sub.trial_ends_at;
   const atAthleteLimit = athleteCount >= sub.max_athletes;
   const atCoachLimit = coachCount >= sub.max_coaches;
@@ -428,7 +473,9 @@ function SubscriptionSection({ gymId }: { gymId: string }) {
     <Card className="mx-5">
       <View className="px-4 py-4">
         <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-foreground font-semibold text-body">{planLabel} Plan</Text>
+          <Text className="text-foreground font-semibold text-body">
+            {planLabel} Plan
+          </Text>
           <View
             className={`px-2.5 py-1 rounded-full ${sub.plan === "pro" ? "bg-accent" : "bg-surface2"}`}
           >
@@ -470,7 +517,9 @@ function SubscriptionSection({ gymId }: { gymId: string }) {
             <Text className="text-accent text-caption font-semibold">
               Upgrade to Pro for unlimited members
             </Text>
-            <Text className="text-muted text-caption mt-0.5">Billing coming in a future update</Text>
+            <Text className="text-muted text-caption mt-0.5">
+              Billing coming in a future update
+            </Text>
           </View>
         )}
       </View>

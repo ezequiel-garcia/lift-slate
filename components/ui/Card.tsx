@@ -5,7 +5,13 @@ type Props = ViewProps & {
   onPress?: () => void;
 };
 
-export function Card({ pressable, onPress, children, className = "", ...rest }: Props) {
+export function Card({
+  pressable,
+  onPress,
+  children,
+  className = "",
+  ...rest
+}: Props) {
   const classes = `bg-surface rounded-2xl overflow-hidden ${className}`;
 
   if (pressable && onPress) {

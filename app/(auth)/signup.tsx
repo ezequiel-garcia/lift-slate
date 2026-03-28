@@ -59,7 +59,7 @@ export default function SignupScreen() {
       const result = await authService.signUp(email, password);
       if (!result.session) {
         setError(
-          "Check your inbox and confirm your email, then sign in to continue."
+          "Check your inbox and confirm your email, then sign in to continue.",
         );
         return;
       }
@@ -78,12 +78,20 @@ export default function SignupScreen() {
         className="flex-1"
       >
         <ScrollView
-          contentContainerStyle={{ flexGrow: 1, paddingHorizontal: 24, paddingTop: 56, paddingBottom: 32 }}
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingHorizontal: 24,
+            paddingTop: 56,
+            paddingBottom: 32,
+          }}
           keyboardShouldPersistTaps="handled"
         >
           {/* Header */}
           <View className="mb-8">
-            <Text className="text-[30px] font-extrabold text-foreground" style={{ letterSpacing: -0.5 }}>
+            <Text
+              className="text-[30px] font-extrabold text-foreground"
+              style={{ letterSpacing: -0.5 }}
+            >
               Create account
             </Text>
             <Text className="text-body text-muted mt-2">
@@ -144,10 +152,14 @@ export default function SignupScreen() {
           )}
 
           <View className="flex-row justify-center mt-8">
-            <Text className="text-muted text-subtext">Already have an account? </Text>
+            <Text className="text-muted text-subtext">
+              Already have an account?{" "}
+            </Text>
             <Link href="/(auth)/login" asChild>
               <Pressable hitSlop={8}>
-                <Text className="text-accent text-subtext font-semibold">Sign in</Text>
+                <Text className="text-accent text-subtext font-semibold">
+                  Sign in
+                </Text>
               </Pressable>
             </Link>
           </View>

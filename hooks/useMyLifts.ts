@@ -10,16 +10,30 @@ import { WeightUnit } from "@/lib/units";
 export type MyLiftsSection = { title: string; data: ExerciseSummary[] };
 
 export function useMyLifts(search: string) {
-  const { data: maxes = [], isLoading: maxesLoading, isError: maxesError, refetch: refetchMaxes } = useMaxes();
+  const {
+    data: maxes = [],
+    isLoading: maxesLoading,
+    isError: maxesError,
+    refetch: refetchMaxes,
+  } = useMaxes();
 
-  useFocusEffect(useCallback(() => { refetchMaxes(); }, [refetchMaxes]));
+  useFocusEffect(
+    useCallback(() => {
+      refetchMaxes();
+    }, [refetchMaxes]),
+  );
   const { data: exercises = [], isLoading: exercisesLoading } = useExercises();
   const { data: profile } = useProfile();
 
   const unit: WeightUnit = profile?.unit_preference ?? "kg";
 
   const exerciseSummaries = useMemo((): ExerciseSummary[] => {
-    type Entry = { current: number; previous?: number; name: string; category: ExerciseSummary["category"] };
+    type Entry = {
+      current: number;
+      previous?: number;
+      name: string;
+      category: ExerciseSummary["category"];
+    };
     const map = new Map<string, Entry>();
 
     for (const max of maxes) {
@@ -42,10 +56,13 @@ export function useMyLifts(search: string) {
       category: d.category,
       currentWeightKg: d.current,
       trend:
-        d.previous === undefined ? "same"
-        : d.current > d.previous ? "up"
-        : d.current < d.previous ? "down"
-        : "same",
+        d.previous === undefined
+          ? "same"
+          : d.current > d.previous
+            ? "up"
+            : d.current < d.previous
+              ? "down"
+              : "same",
     }));
   }, [maxes]);
 
@@ -62,7 +79,8 @@ export function useMyLifts(search: string) {
       const items = filtered
         .filter((e) => e.category === cat)
         .sort((a, b) => a.name.localeCompare(b.name));
-      if (items.length) result.push({ title: CATEGORY_LABELS[cat], data: items });
+      if (items.length)
+        result.push({ title: CATEGORY_LABELS[cat], data: items });
     }
 
     const others = filtered

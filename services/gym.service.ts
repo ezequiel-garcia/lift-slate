@@ -2,11 +2,22 @@ import { supabase } from "@/lib/supabase";
 import { Tables } from "@/types/database.types";
 
 export type GymMember = Tables<"gym_memberships"> & {
-  users: Pick<Tables<"users">, "id" | "display_name" | "email" | "avatar_url" | "allow_coach_edit" | "unit_preference">;
+  users: Pick<
+    Tables<"users">,
+    | "id"
+    | "display_name"
+    | "email"
+    | "avatar_url"
+    | "allow_coach_edit"
+    | "unit_preference"
+  >;
 };
 
 async function getCurrentUserId() {
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error,
+  } = await supabase.auth.getUser();
   if (error || !user) throw new Error("Not authenticated");
   return user.id;
 }
@@ -15,7 +26,7 @@ export async function createGym(
   name: string,
   description?: string,
   address?: string,
-  logoUrl?: string
+  logoUrl?: string,
 ) {
   const userId = await getCurrentUserId();
   const { data, error } = await supabase
@@ -46,7 +57,11 @@ export async function getMyGym() {
     throw error;
   }
   if (!data?.gyms) return null;
-  return { ...data.gyms, myRole: data.role as "athlete" | "coach" | "admin", membershipId: data.id };
+  return {
+    ...data.gyms,
+    myRole: data.role as "athlete" | "coach" | "admin",
+    membershipId: data.id,
+  };
 }
 
 export async function getGymInviteDetails(gymId: string) {
@@ -62,7 +77,9 @@ export async function getGymInviteDetails(gymId: string) {
 export async function getGymById(gymId: string) {
   const { data, error } = await supabase
     .from("gyms")
-    .select("id, name, description, address, logo_url, owner_id, invite_token, temp_invite_code, temp_code_expires")
+    .select(
+      "id, name, description, address, logo_url, owner_id, invite_token, temp_invite_code, temp_code_expires",
+    )
     .eq("id", gymId)
     .single();
   if (error) throw error;
@@ -79,7 +96,9 @@ export async function removeMember(membershipId: string) {
 
 export async function updateGym(
   gymId: string,
-  updates: Partial<Pick<Tables<"gyms">, "name" | "description" | "address" | "logo_url">>
+  updates: Partial<
+    Pick<Tables<"gyms">, "name" | "description" | "address" | "logo_url">
+  >,
 ) {
   const { data, error } = await supabase
     .from("gyms")
@@ -99,7 +118,9 @@ export async function deleteGym(gymId: string) {
 export async function getGymMembers(gymId: string): Promise<GymMember[]> {
   const { data, error } = await supabase
     .from("gym_memberships")
-    .select("*, users(id, display_name, email, avatar_url, allow_coach_edit, unit_preference)")
+    .select(
+      "*, users(id, display_name, email, avatar_url, allow_coach_edit, unit_preference)",
+    )
     .eq("gym_id", gymId)
     .order("joined_at", { ascending: true });
   if (error) throw error;
@@ -109,7 +130,9 @@ export async function getGymMembers(gymId: string): Promise<GymMember[]> {
 export async function getGymSubscription(gymId: string) {
   const { data, error } = await supabase
     .from("gym_subscriptions")
-    .select("id, gym_id, plan, max_athletes, max_coaches, trial_started_at, trial_ends_at, status")
+    .select(
+      "id, gym_id, plan, max_athletes, max_coaches, trial_started_at, trial_ends_at, status",
+    )
     .eq("gym_id", gymId)
     .single();
   if (error) throw error;
@@ -117,7 +140,9 @@ export async function getGymSubscription(gymId: string) {
 }
 
 export async function leaveGym(membershipId: string) {
-  const { error } = await supabase.rpc("leave_gym", { p_membership_id: membershipId });
+  const { error } = await supabase.rpc("leave_gym", {
+    p_membership_id: membershipId,
+  });
   if (error) throw error;
 }
 
@@ -129,10 +154,15 @@ export async function regenerateInviteToken(gymId: string): Promise<string> {
   return data;
 }
 
-export async function generateTempCode(gymId: string): Promise<{ code: string; expires: string }> {
-  const { data: code, error } = await supabase.rpc("generate_temp_invite_code", {
-    p_gym_id: gymId,
-  });
+export async function generateTempCode(
+  gymId: string,
+): Promise<{ code: string; expires: string }> {
+  const { data: code, error } = await supabase.rpc(
+    "generate_temp_invite_code",
+    {
+      p_gym_id: gymId,
+    },
+  );
   if (error) throw error;
 
   const { data: gym, error: gymError } = await supabase

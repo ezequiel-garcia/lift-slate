@@ -6,9 +6,9 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { useLeaveGym, useMyGym } from "@/hooks/useGym";
 import { useMaxes } from "@/hooks/useMaxes";
 import { useProfile } from "@/hooks/useProfile";
-import { getCurrentMaxes } from "@/services/maxes.service";
 import { useDeleteWorkout, useWorkoutsByDate } from "@/hooks/useWorkouts";
 import { colors } from "@/lib/theme";
+import { getCurrentMaxes } from "@/services/maxes.service";
 import { useAppStore } from "@/stores/appStore";
 import { Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
@@ -35,6 +35,7 @@ export default function GymScreen() {
 
   const [selectedDate, setSelectedDate] = useState(new Date());
 
+  console.log("myGym", gym);
   useFocusEffect(
     useCallback(() => {
       if (pendingGymDate) {

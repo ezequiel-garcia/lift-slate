@@ -40,7 +40,8 @@ export default function ResetPasswordScreen() {
     exchanged.current = true;
 
     if (params.error) {
-      const desc = params.error_description?.replace(/\+/g, " ") || params.error;
+      const desc =
+        params.error_description?.replace(/\+/g, " ") || params.error;
       setSessionError(
         params.error_code === "otp_expired"
           ? "This reset link has expired. Please request a new one."
@@ -123,17 +124,18 @@ export default function ResetPasswordScreen() {
   if (screenState === "success") {
     return (
       <SafeAreaView className="flex-1 bg-bg justify-center items-center px-6 gap-4">
-        <Ionicons name="checkmark-circle-outline" size={48} color={colors.accent} />
+        <Ionicons
+          name="checkmark-circle-outline"
+          size={48}
+          color={colors.accent}
+        />
         <Text className="text-[28px] font-extrabold text-foreground">
           Password updated
         </Text>
         <Text className="text-[15px] text-muted text-center leading-relaxed">
           Your password has been reset successfully. You're now signed in.
         </Text>
-        <Button
-          label="Continue"
-          onPress={() => router.replace("/(tabs)")}
-        />
+        <Button label="Continue" onPress={() => router.replace("/(tabs)")} />
       </SafeAreaView>
     );
   }

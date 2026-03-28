@@ -27,9 +27,11 @@ const SENSITIVE_KEY_SEGMENTS = ["members", "subscription"];
 
 function isSensitiveQuery(queryKey: readonly unknown[]): boolean {
   const first = queryKey[0];
-  if (typeof first === "string" && SENSITIVE_KEY_PREFIXES.includes(first)) return true;
+  if (typeof first === "string" && SENSITIVE_KEY_PREFIXES.includes(first))
+    return true;
   return queryKey.some(
-    (segment) => typeof segment === "string" && SENSITIVE_KEY_SEGMENTS.includes(segment)
+    (segment) =>
+      typeof segment === "string" && SENSITIVE_KEY_SEGMENTS.includes(segment),
   );
 }
 
@@ -43,7 +45,7 @@ const persister = createAsyncStoragePersister({
       clientState: {
         ...client.clientState,
         queries: client.clientState.queries.filter(
-          (q) => q.state.data != null && !isSensitiveQuery(q.queryKey)
+          (q) => q.state.data != null && !isSensitiveQuery(q.queryKey),
         ),
       },
     };
@@ -55,10 +57,18 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
-        <PersistQueryClientProvider client={queryClient} persistOptions={{ persister, buster: "v1" }}>
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{ persister, buster: "v1" }}
+        >
           <View style={{ flex: 1 }}>
             <StatusBar style="light" />
-            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg } }} />
+            <Stack
+              screenOptions={{
+                headerShown: false,
+                contentStyle: { backgroundColor: colors.bg },
+              }}
+            />
             <Toast />
           </View>
         </PersistQueryClientProvider>

@@ -1,5 +1,14 @@
 import { useState, useCallback } from "react";
-import { View, Text, SectionList, Pressable, RefreshControl, Alert, NativeSyntheticEvent, NativeScrollEvent } from "react-native";
+import {
+  View,
+  Text,
+  SectionList,
+  Pressable,
+  RefreshControl,
+  Alert,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
@@ -29,8 +38,17 @@ export default function HomeScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const reduceMotion = useReducedMotion();
 
-  const { unit, exerciseSummaries, sections, filtered, availableExercises, isLoading, isLoadingExercises, isError, refetch } =
-    useMyLifts(search);
+  const {
+    unit,
+    exerciseSummaries,
+    sections,
+    filtered,
+    availableExercises,
+    isLoading,
+    isLoadingExercises,
+    isError,
+    refetch,
+  } = useMyLifts(search);
 
   const { mutate: deleteExerciseMaxes } = useDeleteExerciseMaxes();
 
@@ -42,18 +60,25 @@ export default function HomeScreen() {
     transform: [{ translateY: fabTranslateY.value }],
   }));
 
-  const handleScroll = useCallback((e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const y = e.nativeEvent.contentOffset.y;
-    if (reduceMotion) return;
-    if (y > lastScrollY.value + 10 && y > 50) {
-      // scrolling down — hide FAB
-      fabTranslateY.value = withTiming(100, { duration: animation.duration.normal });
-    } else if (y < lastScrollY.value - 10 || y < 50) {
-      // scrolling up — show FAB
-      fabTranslateY.value = withTiming(0, { duration: animation.duration.normal });
-    }
-    lastScrollY.value = y;
-  }, [reduceMotion]);
+  const handleScroll = useCallback(
+    (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const y = e.nativeEvent.contentOffset.y;
+      if (reduceMotion) return;
+      if (y > lastScrollY.value + 10 && y > 50) {
+        // scrolling down — hide FAB
+        fabTranslateY.value = withTiming(100, {
+          duration: animation.duration.normal,
+        });
+      } else if (y < lastScrollY.value - 10 || y < 50) {
+        // scrolling up — show FAB
+        fabTranslateY.value = withTiming(0, {
+          duration: animation.duration.normal,
+        });
+      }
+      lastScrollY.value = y;
+    },
+    [reduceMotion],
+  );
 
   function handleDeleteExercise(exerciseId: string, name: string) {
     Alert.alert(
@@ -66,7 +91,7 @@ export default function HomeScreen() {
           style: "destructive",
           onPress: () => deleteExerciseMaxes(exerciseId),
         },
-      ]
+      ],
     );
   }
 
@@ -80,7 +105,9 @@ export default function HomeScreen() {
     return (
       <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
         <View className="px-5 pt-5 pb-3">
-          <Text className="text-title text-foreground tracking-tight">My Lifts</Text>
+          <Text className="text-title text-foreground tracking-tight">
+            My Lifts
+          </Text>
         </View>
         <ExerciseListSkeleton count={6} />
       </SafeAreaView>
@@ -90,7 +117,10 @@ export default function HomeScreen() {
   if (isError) {
     return (
       <SafeAreaView className="flex-1 bg-bg">
-        <ErrorState message="Failed to load your lifts" onRetry={() => refetch()} />
+        <ErrorState
+          message="Failed to load your lifts"
+          onRetry={() => refetch()}
+        />
       </SafeAreaView>
     );
   }
@@ -121,13 +151,17 @@ export default function HomeScreen() {
               placeholder="Search exercises..."
               value={search}
               onChangeText={setSearch}
-              leftIcon={<Ionicons name="search" size={18} color={colors.muted} />}
+              leftIcon={
+                <Ionicons name="search" size={18} color={colors.muted} />
+              }
             />
           </View>
 
           {filtered.length === 0 && search ? (
             <View className="flex-1 items-center pt-12">
-              <Text className="text-body text-muted">No results for "{search}"</Text>
+              <Text className="text-body text-muted">
+                No results for "{search}"
+              </Text>
             </View>
           ) : (
             <SectionList
@@ -143,7 +177,9 @@ export default function HomeScreen() {
                   onDelete={handleDeleteExercise}
                 />
               )}
-              renderSectionHeader={({ section }) => <SectionHeader title={section.title} />}
+              renderSectionHeader={({ section }) => (
+                <SectionHeader title={section.title} />
+              )}
               stickySectionHeadersEnabled={false}
               contentContainerStyle={{ paddingBottom: 120 }}
               ItemSeparatorComponent={() => (

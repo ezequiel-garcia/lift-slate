@@ -69,7 +69,7 @@ export default function CreateGymScreen() {
           image.base64,
           image.fileName ?? "logo.jpg",
           image.mimeType ?? "image/jpeg",
-          image.fileSize ?? undefined
+          image.fileSize ?? undefined,
         );
       }
 
@@ -85,7 +85,9 @@ export default function CreateGymScreen() {
     } catch (e: any) {
       const raw = e?.message || e?.error_description || "";
       if (raw.includes("gym_memberships_user_id_key")) {
-        setError("You already belong to a gym. Leave your current gym before creating a new one.");
+        setError(
+          "You already belong to a gym. Leave your current gym before creating a new one.",
+        );
       } else {
         setError(raw || "Failed to create gym.");
       }
@@ -99,7 +101,9 @@ export default function CreateGymScreen() {
       {/* Header */}
       <View className="flex-row items-center px-4 py-3">
         <Pressable
-          onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)/gym")}
+          onPress={() =>
+            router.canGoBack() ? router.back() : router.replace("/(tabs)/gym")
+          }
           className="w-10 h-10 rounded-full bg-surface items-center justify-center"
           style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
         >
@@ -133,7 +137,11 @@ export default function CreateGymScreen() {
               />
             ) : (
               <View className="w-24 h-24 rounded-2xl bg-surface border border-border items-center justify-center">
-                <Ionicons name="camera-outline" size={28} color={colors.muted} />
+                <Ionicons
+                  name="camera-outline"
+                  size={28}
+                  color={colors.muted}
+                />
                 <Text className="text-muted text-xs mt-1">Add Logo</Text>
               </View>
             )}
@@ -166,9 +174,7 @@ export default function CreateGymScreen() {
             />
           </View>
 
-          {!!error && (
-            <Text className="text-error text-sm mt-4">{error}</Text>
-          )}
+          {!!error && <Text className="text-error text-sm mt-4">{error}</Text>}
 
           <View className="mt-6">
             <Button

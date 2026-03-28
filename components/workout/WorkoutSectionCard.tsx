@@ -44,7 +44,10 @@ export function WorkoutSectionCard({
   }
 
   function deleteItem(index: number) {
-    onUpdate({ ...section, items: section.items.filter((_, i) => i !== index) });
+    onUpdate({
+      ...section,
+      items: section.items.filter((_, i) => i !== index),
+    });
   }
 
   function addItem(type: "structured" | "free_text") {
@@ -66,7 +69,7 @@ export function WorkoutSectionCard({
       [
         { text: "Cancel", style: "cancel" },
         { text: "Delete", style: "destructive", onPress: onDelete },
-      ]
+      ],
     );
   }
 
@@ -83,10 +86,18 @@ export function WorkoutSectionCard({
         />
         <View className="flex-row items-center gap-1">
           <Pressable onPress={onMoveUp} disabled={isFirst} className="p-1">
-            <Ionicons name="chevron-up" size={18} color={isFirst ? colors.muted : colors.foreground} />
+            <Ionicons
+              name="chevron-up"
+              size={18}
+              color={isFirst ? colors.muted : colors.foreground}
+            />
           </Pressable>
           <Pressable onPress={onMoveDown} disabled={isLast} className="p-1">
-            <Ionicons name="chevron-down" size={18} color={isLast ? colors.muted : colors.foreground} />
+            <Ionicons
+              name="chevron-down"
+              size={18}
+              color={isLast ? colors.muted : colors.foreground}
+            />
           </Pressable>
           <Pressable onPress={handleDelete} className="p-1">
             <Ionicons name="trash-outline" size={16} color={colors.error} />
@@ -117,8 +128,14 @@ export function WorkoutSectionCard({
               className="flex-1 bg-surface2 rounded-xl py-3 items-center border border-border"
               onPress={() => addItem("structured")}
             >
-              <Ionicons name="barbell-outline" size={16} color={colors.accent} />
-              <Text className="text-accent text-xs font-medium mt-1">Exercise</Text>
+              <Ionicons
+                name="barbell-outline"
+                size={16}
+                color={colors.accent}
+              />
+              <Text className="text-accent text-xs font-medium mt-1">
+                Exercise
+              </Text>
             </Pressable>
             <Pressable
               className="flex-1 bg-surface2 rounded-xl py-3 items-center border border-border"
@@ -132,7 +149,9 @@ export function WorkoutSectionCard({
               onPress={() => setShowAddMenu(false)}
             >
               <Ionicons name="close-outline" size={16} color={colors.muted} />
-              <Text className="text-muted text-xs font-medium mt-1">Cancel</Text>
+              <Text className="text-muted text-xs font-medium mt-1">
+                Cancel
+              </Text>
             </Pressable>
           </View>
         ) : (

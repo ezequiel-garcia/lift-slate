@@ -1,8 +1,20 @@
 import { useState } from "react";
-import { View, Text, TextInput, ScrollView, Pressable, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  ScrollView,
+  Pressable,
+  ActivityIndicator,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { calculatePercentage, formatWeight, fromKg, WeightUnit } from "@/lib/units";
+import {
+  calculatePercentage,
+  formatWeight,
+  fromKg,
+  WeightUnit,
+} from "@/lib/units";
 import { COMMON_PERCENTAGES } from "@/lib/constants";
 import { ExerciseNotes } from "@/components/exercises/ExerciseNotes";
 import { colors } from "@/lib/theme";
@@ -22,7 +34,13 @@ type Props = {
   isLoading?: boolean;
 };
 
-export function CalculatorTab({ exerciseId, currentMax, unit, onAddMax, isLoading }: Props) {
+export function CalculatorTab({
+  exerciseId,
+  currentMax,
+  unit,
+  onAddMax,
+  isLoading,
+}: Props) {
   const [selectedPct, setSelectedPct] = useState<number | null>(null);
   const [customPct, setCustomPct] = useState("");
 
@@ -47,7 +65,10 @@ export function CalculatorTab({ exerciseId, currentMax, unit, onAddMax, isLoadin
         {isLoading ? (
           <ActivityIndicator color={colors.accent} />
         ) : currentMax ? (
-          <Text className="text-[56px] font-bold text-foreground" style={{ letterSpacing: -2 }}>
+          <Text
+            className="text-[56px] font-bold text-foreground"
+            style={{ letterSpacing: -2 }}
+          >
             {formatWeight(fromKg(currentMax.weight_kg, unit), unit)}
           </Text>
         ) : (
@@ -68,7 +89,11 @@ export function CalculatorTab({ exerciseId, currentMax, unit, onAddMax, isLoadin
               className={`px-4 py-3 rounded-xl ${
                 isActive ? "bg-accent/15" : "bg-surface"
               }`}
-              style={isActive ? { borderWidth: 1, borderColor: colors.accent } : undefined}
+              style={
+                isActive
+                  ? { borderWidth: 1, borderColor: colors.accent }
+                  : undefined
+              }
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 setSelectedPct(pct);
@@ -126,7 +151,9 @@ export function CalculatorTab({ exerciseId, currentMax, unit, onAddMax, isLoadin
         onPress={onAddMax}
       >
         <Ionicons name="add-circle-outline" size={20} color={colors.accent} />
-        <Text className="text-accent font-semibold text-[15px]">Add New Max</Text>
+        <Text className="text-accent font-semibold text-[15px]">
+          Add New Max
+        </Text>
       </Pressable>
 
       <ExerciseNotes exerciseId={exerciseId} />

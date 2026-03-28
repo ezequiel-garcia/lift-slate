@@ -30,9 +30,13 @@ export function SaveMaxModal({ visible, onClose, estimatedOneRMKg }: Props) {
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const sortedExercises = [...exercises].sort((a, b) => a.name.localeCompare(b.name));
+  const sortedExercises = [...exercises].sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
   const filtered = search
-    ? sortedExercises.filter((e) => e.name.toLowerCase().includes(search.toLowerCase()))
+    ? sortedExercises.filter((e) =>
+        e.name.toLowerCase().includes(search.toLowerCase()),
+      )
     : sortedExercises;
 
   function handleSave() {
@@ -44,7 +48,7 @@ export function SaveMaxModal({ visible, onClose, estimatedOneRMKg }: Props) {
           showToast("1RM saved!");
           handleClose();
         },
-      }
+      },
     );
   }
 
@@ -69,7 +73,9 @@ export function SaveMaxModal({ visible, onClose, estimatedOneRMKg }: Props) {
 
         {/* Header */}
         <View className="flex-row justify-between items-center px-5 pt-2 pb-4">
-          <Text className="text-xl font-bold text-foreground">Save 1RM to exercise</Text>
+          <Text className="text-xl font-bold text-foreground">
+            Save 1RM to exercise
+          </Text>
           <Pressable
             onPress={handleClose}
             hitSlop={16}
@@ -96,7 +102,9 @@ export function SaveMaxModal({ visible, onClose, estimatedOneRMKg }: Props) {
               style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
               onPress={handleClose}
             >
-              <Text className="text-foreground font-semibold text-[15px]">Close</Text>
+              <Text className="text-foreground font-semibold text-[15px]">
+                Close
+              </Text>
             </Pressable>
           </View>
         ) : (
@@ -124,7 +132,9 @@ export function SaveMaxModal({ visible, onClose, estimatedOneRMKg }: Props) {
               ItemSeparatorComponent={() => <View className="h-px bg-border" />}
               ListEmptyComponent={
                 <View className="items-center pt-8">
-                  <Text className="text-muted text-base">No exercises found</Text>
+                  <Text className="text-muted text-base">
+                    No exercises found
+                  </Text>
                 </View>
               }
               renderItem={({ item }) => {
@@ -135,13 +145,21 @@ export function SaveMaxModal({ visible, onClose, estimatedOneRMKg }: Props) {
                     style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
                     onPress={() => setSelectedId(item.id)}
                   >
-                    <Text className={`text-[16px] flex-1 ${isSelected ? "text-accent font-semibold" : "text-foreground"}`}>
+                    <Text
+                      className={`text-[16px] flex-1 ${isSelected ? "text-accent font-semibold" : "text-foreground"}`}
+                    >
                       {item.name}
                     </Text>
                     {isSelected ? (
-                      <Ionicons name="checkmark-circle" size={20} color={colors.accent} />
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={20}
+                        color={colors.accent}
+                      />
                     ) : item.category ? (
-                      <Text className="text-sm text-muted ml-3">{CATEGORY_LABELS[item.category]}</Text>
+                      <Text className="text-sm text-muted ml-3">
+                        {CATEGORY_LABELS[item.category]}
+                      </Text>
                     ) : null}
                   </Pressable>
                 );
@@ -155,7 +173,9 @@ export function SaveMaxModal({ visible, onClose, estimatedOneRMKg }: Props) {
                 style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
                 onPress={handleClose}
               >
-                <Text className="text-foreground font-semibold text-[15px]">Cancel</Text>
+                <Text className="text-foreground font-semibold text-[15px]">
+                  Cancel
+                </Text>
               </Pressable>
               <Pressable
                 className={`flex-1 bg-accent rounded-2xl p-4 items-center ${!selectedId || isSaving ? "opacity-40" : ""}`}

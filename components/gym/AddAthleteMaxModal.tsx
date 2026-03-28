@@ -29,7 +29,10 @@ type Props = {
 export function AddAthleteMaxModal({ visible, userId, unit, onClose }: Props) {
   const [step, setStep] = useState<"exercise" | "weight">("exercise");
   const [search, setSearch] = useState("");
-  const [selectedExercise, setSelectedExercise] = useState<{ id: string; name: string } | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [weight, setWeight] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -38,7 +41,9 @@ export function AddAthleteMaxModal({ visible, userId, unit, onClose }: Props) {
   const showToast = useAppStore((s) => s.showToast);
 
   const filtered = search
-    ? exercises.filter((e) => e.name.toLowerCase().includes(search.toLowerCase()))
+    ? exercises.filter((e) =>
+        e.name.toLowerCase().includes(search.toLowerCase()),
+      )
     : exercises;
 
   function handleClose() {
@@ -70,7 +75,7 @@ export function AddAthleteMaxModal({ visible, userId, unit, onClose }: Props) {
           showToast("Max saved!");
           handleClose();
         },
-      }
+      },
     );
   }
 
@@ -81,7 +86,12 @@ export function AddAthleteMaxModal({ visible, userId, unit, onClose }: Props) {
     !isPending;
 
   return (
-    <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={handleClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      presentationStyle="pageSheet"
+      onRequestClose={handleClose}
+    >
       <SafeAreaView className="flex-1 bg-bg" edges={["top", "bottom"]}>
         <View className="items-center pt-2.5 pb-1">
           <View className="w-9 h-1 rounded-full bg-surface2" />
@@ -91,7 +101,11 @@ export function AddAthleteMaxModal({ visible, userId, unit, onClose }: Props) {
           <View className="flex-row items-center gap-2">
             {step === "weight" && (
               <Pressable onPress={() => setStep("exercise")} hitSlop={12}>
-                <Ionicons name="chevron-back" size={22} color={colors.foreground} />
+                <Ionicons
+                  name="chevron-back"
+                  size={22}
+                  color={colors.foreground}
+                />
               </Pressable>
             )}
             <Text className="text-xl font-bold text-foreground">
@@ -133,7 +147,9 @@ export function AddAthleteMaxModal({ visible, userId, unit, onClose }: Props) {
                     style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
                     onPress={() => handleSelectExercise(item.id, item.name)}
                   >
-                    <Text className="text-[16px] text-foreground flex-1">{item.name}</Text>
+                    <Text className="text-[16px] text-foreground flex-1">
+                      {item.name}
+                    </Text>
                     {item.category && (
                       <Text className="text-sm text-muted ml-3">
                         {CATEGORY_LABELS[item.category]}
@@ -141,10 +157,14 @@ export function AddAthleteMaxModal({ visible, userId, unit, onClose }: Props) {
                     )}
                   </Pressable>
                 )}
-                ItemSeparatorComponent={() => <View className="h-px bg-border mx-5" />}
+                ItemSeparatorComponent={() => (
+                  <View className="h-px bg-border mx-5" />
+                )}
                 ListEmptyComponent={
                   <View className="items-center pt-8">
-                    <Text className="text-base text-muted">No exercises found</Text>
+                    <Text className="text-base text-muted">
+                      No exercises found
+                    </Text>
                   </View>
                 }
                 contentContainerStyle={{ flexGrow: 1 }}
@@ -191,7 +211,9 @@ export function AddAthleteMaxModal({ visible, userId, unit, onClose }: Props) {
                 {isPending ? (
                   <ActivityIndicator color={colors.bg} />
                 ) : (
-                  <Text className="text-bg font-bold text-[16px]">Save Max</Text>
+                  <Text className="text-bg font-bold text-[16px]">
+                    Save Max
+                  </Text>
                 )}
               </Pressable>
 

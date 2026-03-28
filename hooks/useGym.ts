@@ -24,8 +24,17 @@ export function useMyGym() {
 export function useCreateGym() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ name, description, address, logoUrl }: { name: string; description?: string; address?: string; logoUrl?: string }) =>
-      createGym(name, description, address, logoUrl),
+    mutationFn: ({
+      name,
+      description,
+      address,
+      logoUrl,
+    }: {
+      name: string;
+      description?: string;
+      address?: string;
+      logoUrl?: string;
+    }) => createGym(name, description, address, logoUrl),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["gym"] }),
   });
 }
@@ -33,8 +42,13 @@ export function useCreateGym() {
 export function useUpdateGym() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ gymId, updates }: { gymId: string; updates: Parameters<typeof updateGym>[1] }) =>
-      updateGym(gymId, updates),
+    mutationFn: ({
+      gymId,
+      updates,
+    }: {
+      gymId: string;
+      updates: Parameters<typeof updateGym>[1];
+    }) => updateGym(gymId, updates),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["gym"] }),
   });
 }

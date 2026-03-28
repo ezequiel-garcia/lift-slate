@@ -12,7 +12,8 @@ export async function getGymByToken(token: string): Promise<GymPreview> {
     p_token: token,
   });
 
-  if (error || !data || data.length === 0) throw new Error("Invalid invite link");
+  if (error || !data || data.length === 0)
+    throw new Error("Invalid invite link");
   return data[0] as GymPreview;
 }
 
