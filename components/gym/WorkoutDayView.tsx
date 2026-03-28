@@ -133,9 +133,13 @@ export function WorkoutDayView({
           canEditWorkout && gymId ? (
             <Pressable
               onPress={() =>
-                router.push(
-                  `/gym/${gymId}/workout/new${selectedDate ? `?date=${selectedDate}` : ""}`,
-                )
+                router.push({
+                  pathname: "/gym/[id]/workout/new",
+                  params: {
+                    id: gymId,
+                    ...(selectedDate ? { date: selectedDate } : {}),
+                  },
+                })
               }
               className="bg-accent rounded-2xl py-3 items-center"
               style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
