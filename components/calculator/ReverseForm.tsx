@@ -1,25 +1,22 @@
-import { View, Text, Pressable } from "react-native";
+import { View, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { UnitPill } from "@/components/calculator/FromOneRMForm";
-import * as Haptics from "expo-haptics";
 import { formatWeight } from "@/lib/units";
+import { MAX_RELIABLE_REPS } from "@/lib/estimate";
 import { colors } from "@/lib/theme";
 import { Input } from "@/components/ui/Input";
 import { Button } from "@/components/ui/Button";
-
-const REVERSE_CHIPS = [60, 70, 75, 80, 85, 90];
 
 type Props = {
   unit: "kg" | "lbs";
   weightInput: string;
   onChangeWeight: (v: string) => void;
   showWeightError: boolean;
-  selectedChip: number | null;
-  onSelectChip: (pct: number) => void;
-  customPctInput: string;
-  onChangeCustomPct: (v: string) => void;
-  showPctError: boolean;
-  estimatedOneRMRaw: number | null;
+  repsInput: string;
+  onChangeReps: (v: string) => void;
+  showRepsError: boolean;
+  estimatedOneRM: number | null;
+  repsNum: number;
   canSave: boolean;
   onSave: () => void;
   showPlaceholder: boolean;
@@ -30,18 +27,15 @@ export function ReverseForm({
   weightInput,
   onChangeWeight,
   showWeightError,
-  selectedChip,
-  onSelectChip,
-  customPctInput,
-  onChangeCustomPct,
-  showPctError,
-  estimatedOneRMRaw,
+  repsInput,
+  onChangeReps,
+  showRepsError,
+  estimatedOneRM,
+  repsNum,
   canSave,
   onSave,
   showPlaceholder,
 }: Props) {
-  const displayPct = customPctInput ? parseFloat(customPctInput) : selectedChip;
-
   return (
     <>
       <View className="mb-5">
@@ -56,48 +50,25 @@ export function ReverseForm({
         />
       </View>
 
-      <Text className="text-label uppercase tracking-wider text-muted mb-3">
-        At Percentage
-      </Text>
-      <View className="flex-row flex-wrap gap-2 mb-3">
-        {REVERSE_CHIPS.map((pct) => {
-          const isActive = selectedChip === pct && !customPctInput;
-          return (
-            <Pressable
-              key={pct}
-              className={`px-4 py-3 rounded-xl ${isActive ? "bg-accent-muted border border-accent" : "bg-surface"}`}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                onSelectChip(pct);
-              }}
-            >
-              <Text
-                className={`text-[15px] font-semibold ${isActive ? "text-accent" : "text-foreground"}`}
-              >
-                {pct}%
-              </Text>
-            </Pressable>
-          );
-        })}
+      <View className="mb-5">
+        <Input
+          label="Reps Performed"
+          placeholder="e.g. 5"
+          keyboardType="number-pad"
+          value={repsInput}
+          onChangeText={onChangeReps}
+          error={showRepsError ? "Enter at least 1 rep" : undefined}
+        />
       </View>
-      <View className="flex-row items-center gap-3 mb-1">
-        <View className="flex-1">
-          <Input
-            placeholder="Custom %"
-            keyboardType="number-pad"
-            value={customPctInput}
-            onChangeText={onChangeCustomPct}
-            error={
-              showPctError ? "Percentage must be between 1 and 100" : undefined
-            }
-          />
+
+      {repsNum > MAX_RELIABLE_REPS && (
+        <View className="flex-row items-center gap-2 mb-4 px-1">
+          <Ionicons name="warning-outline" size={16} color={colors.error} />
+          <Text className="text-error text-sm flex-1">
+            Estimates above {MAX_RELIABLE_REPS} reps are less accurate.
+          </Text>
         </View>
-        <Text className="text-muted text-lg font-semibold">%</Text>
-      </View>
-      {!showPctError && (
-        <Text className="text-muted text-xs mb-5">Enter 1–100</Text>
       )}
-      {showPctError && <View className="mb-2" />}
 
       {showPlaceholder ? (
         <View className="bg-surface rounded-2xl p-8 mb-6 items-center">
@@ -111,12 +82,12 @@ export function ReverseForm({
             Estimate your 1RM
           </Text>
           <Text className="text-sm text-muted text-center">
-            Enter a weight and pick a %.
+            Enter a weight and number of reps.
           </Text>
         </View>
       ) : (
         <>
-          {estimatedOneRMRaw != null && (
+          {estimatedOneRM != null && (
             <View className="bg-surface rounded-2xl p-5 mb-6">
               <Text className="text-label uppercase tracking-wider text-muted mb-2">
                 Estimated 1RM
@@ -125,11 +96,11 @@ export function ReverseForm({
                 className="text-display text-accent"
                 style={{ letterSpacing: -2 }}
               >
-                {formatWeight(parseFloat(estimatedOneRMRaw.toFixed(1)), unit)}
+                {formatWeight(parseFloat(estimatedOneRM.toFixed(1)), unit)}
               </Text>
-              {weightInput && displayPct != null && !isNaN(displayPct) && (
+              {weightInput && repsNum >= 1 && (
                 <Text className="text-xs text-muted mt-1">
-                  Based on {weightInput} {unit} at {displayPct}%
+                  Based on {weightInput} {unit} x {repsNum} reps (Epley formula)
                 </Text>
               )}
             </View>

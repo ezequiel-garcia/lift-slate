@@ -14,9 +14,18 @@ import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createMax } from "@/services/maxes.service";
 import { upsertExerciseNote } from "@/services/exercise_notes.service";
-import { WeightUnit } from "@/lib/units";
+import { WeightUnit, formatWeight } from "@/lib/units";
+import { estimate1RM, MAX_RELIABLE_REPS } from "@/lib/estimate";
 import { useAppStore } from "@/stores/appStore";
 import { colors } from "@/lib/theme";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
+
+type EntryMode = "direct" | "estimate";
+
+const MODE_SEGMENTS = [
+  { value: "direct" as const, label: "Known 1RM" },
+  { value: "estimate" as const, label: "Estimate" },
+];
 
 type Props = {
   visible: boolean;
@@ -26,23 +35,47 @@ type Props = {
 };
 
 export function AddMaxModal({ visible, exerciseId, unit, onClose }: Props) {
+  const [mode, setMode] = useState<EntryMode>("direct");
   const [weight, setWeight] = useState("");
+  const [reps, setReps] = useState("");
   const [notes, setNotes] = useState("");
 
   const queryClient = useQueryClient();
   const showToast = useAppStore((s) => s.showToast);
 
+  const weightNum = parseFloat(weight);
+  const repsNum = parseInt(reps, 10);
+  const weightValid = !isNaN(weightNum) && weightNum > 0;
+  const repsValid = !isNaN(repsNum) && repsNum >= 1;
+
+  const estimated1RM =
+    mode === "estimate" && weightValid && repsValid
+      ? estimate1RM(weightNum, repsNum)
+      : null;
+
   const mutation = useMutation({
     mutationFn: async () => {
-      const trimmedNotes = notes.trim();
+      const submitWeight = mode === "direct" ? weightNum : estimated1RM;
+      if (submitWeight == null || submitWeight <= 0) return;
+
+      const autoNote =
+        mode === "estimate" && weightValid && repsValid
+          ? `Estimated from ${formatWeight(weightNum, unit)} x ${repsNum} reps (Epley)`
+          : "";
+      const userNote = notes.trim();
+      const combinedNotes =
+        mode === "estimate"
+          ? [autoNote, userNote].filter(Boolean).join(" — ")
+          : userNote || undefined;
+
       await createMax({
         exerciseId,
-        weight: parseFloat(weight),
+        weight: submitWeight,
         unit,
-        notes: trimmedNotes || undefined,
+        notes: combinedNotes || undefined,
       });
-      if (trimmedNotes) {
-        await upsertExerciseNote(exerciseId, trimmedNotes);
+      if (combinedNotes) {
+        await upsertExerciseNote(exerciseId, combinedNotes);
       }
     },
     onSuccess: () => {
@@ -58,17 +91,18 @@ export function AddMaxModal({ visible, exerciseId, unit, onClose }: Props) {
     },
   });
 
+  const canSubmit =
+    mode === "direct"
+      ? weightValid && !mutation.isPending
+      : weightValid && repsValid && !mutation.isPending;
+
   const handleClose = () => {
+    setMode("direct");
     setWeight("");
+    setReps("");
     setNotes("");
     onClose();
   };
-
-  const canSubmit =
-    weight.trim().length > 0 &&
-    !isNaN(parseFloat(weight)) &&
-    parseFloat(weight) > 0 &&
-    !mutation.isPending;
 
   return (
     <Modal
@@ -99,18 +133,86 @@ export function AddMaxModal({ visible, exerciseId, unit, onClose }: Props) {
           className="flex-1"
         >
           <View className="flex-1 p-5">
-            <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
-              1RM Weight ({unit})
-            </Text>
-            <TextInput
-              className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-[18px] mb-5"
-              placeholder={unit === "kg" ? "e.g. 120" : "e.g. 265"}
-              placeholderTextColor={colors.muted}
-              keyboardType="decimal-pad"
-              value={weight}
-              onChangeText={setWeight}
-              autoFocus
-            />
+            {/* Mode toggle */}
+            <View className="mb-5">
+              <SegmentedControl
+                segments={MODE_SEGMENTS}
+                selected={mode}
+                onChange={setMode}
+              />
+            </View>
+
+            {mode === "direct" ? (
+              <>
+                <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
+                  1RM Weight ({unit})
+                </Text>
+                <TextInput
+                  className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-[18px] mb-5"
+                  placeholder={unit === "kg" ? "e.g. 120" : "e.g. 265"}
+                  placeholderTextColor={colors.muted}
+                  keyboardType="decimal-pad"
+                  value={weight}
+                  onChangeText={setWeight}
+                  autoFocus
+                />
+              </>
+            ) : (
+              <>
+                <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
+                  Weight Lifted ({unit})
+                </Text>
+                <TextInput
+                  className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-[18px] mb-5"
+                  placeholder={unit === "kg" ? "e.g. 100" : "e.g. 225"}
+                  placeholderTextColor={colors.muted}
+                  keyboardType="decimal-pad"
+                  value={weight}
+                  onChangeText={setWeight}
+                  autoFocus
+                />
+
+                <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
+                  Reps Performed
+                </Text>
+                <TextInput
+                  className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-[18px] mb-5"
+                  placeholder="e.g. 5"
+                  placeholderTextColor={colors.muted}
+                  keyboardType="number-pad"
+                  value={reps}
+                  onChangeText={setReps}
+                />
+
+                {repsValid && repsNum > MAX_RELIABLE_REPS && (
+                  <View className="flex-row items-center gap-2 mb-3 px-1">
+                    <Ionicons
+                      name="warning-outline"
+                      size={16}
+                      color={colors.error}
+                    />
+                    <Text className="text-error text-sm flex-1">
+                      Estimates above {MAX_RELIABLE_REPS} reps are less
+                      accurate.
+                    </Text>
+                  </View>
+                )}
+
+                {estimated1RM != null && (
+                  <View className="bg-surface rounded-2xl p-4 mb-5">
+                    <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-1">
+                      Estimated 1RM
+                    </Text>
+                    <Text className="text-[28px] font-bold text-accent">
+                      {formatWeight(parseFloat(estimated1RM.toFixed(1)), unit)}
+                    </Text>
+                    <Text className="text-xs text-muted mt-1">
+                      Based on {weight} {unit} x {repsNum} reps (Epley formula)
+                    </Text>
+                  </View>
+                )}
+              </>
+            )}
 
             <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
               Notes (optional)

@@ -35,7 +35,6 @@ export default function GymScreen() {
 
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  console.log("myGym", gym);
   useFocusEffect(
     useCallback(() => {
       if (pendingGymDate) {

@@ -14,7 +14,8 @@ import { ReverseForm } from "@/components/calculator/ReverseForm";
 import { PercentageTable } from "@/components/calculator/PercentageTable";
 import { SaveMaxModal } from "@/components/calculator/SaveMaxModal";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
-import { fromKg, toKg } from "@/lib/units";
+import { toKg } from "@/lib/units";
+import { estimate1RM } from "@/lib/estimate";
 import { colors } from "@/lib/theme";
 
 type Mode = "from1rm" | "reverse";
@@ -32,13 +33,12 @@ export default function QuickCalculatorScreen() {
   const [mode, setMode] = useState<Mode>("from1rm");
   const [saveModalOpen, setSaveModalOpen] = useState(false);
 
-  // Mode A
+  // Mode A — From 1RM
   const [oneRMInput, setOneRMInput] = useState("");
 
-  // Mode B
+  // Mode B — Estimate from reps
   const [weightInput, setWeightInput] = useState("");
-  const [selectedChip, setSelectedChip] = useState<number | null>(null);
-  const [customPctInput, setCustomPctInput] = useState("");
+  const [repsInput, setRepsInput] = useState("");
 
   // Mode A derived
   const oneRMValue = parseFloat(oneRMInput);
@@ -46,20 +46,15 @@ export default function QuickCalculatorScreen() {
   const oneRMKg = oneRMValid ? toKg(oneRMValue, unit) : null;
 
   // Mode B derived
-  const activePct = customPctInput ? parseFloat(customPctInput) : selectedChip;
-  const pctValid =
-    activePct != null &&
-    !isNaN(activePct) &&
-    activePct >= 1 &&
-    activePct <= 100;
   const weightValue = parseFloat(weightInput);
   const weightValid = !isNaN(weightValue) && weightValue > 0;
-  const weightKg = weightValid ? toKg(weightValue, unit) : null;
+  const repsNum = parseInt(repsInput, 10);
+  const repsValid = !isNaN(repsNum) && repsNum >= 1;
+
+  const estimatedOneRM =
+    weightValid && repsValid ? estimate1RM(weightValue, repsNum) : null;
   const estimatedOneRMKg =
-    weightKg && pctValid ? weightKg / (activePct! / 100) : null;
-  const estimatedOneRMRaw = estimatedOneRMKg
-    ? fromKg(estimatedOneRMKg, unit)
-    : null;
+    estimatedOneRM != null ? toKg(estimatedOneRM, unit) : null;
 
   const tableOneRMKg = mode === "from1rm" ? oneRMKg : estimatedOneRMKg;
 
@@ -124,21 +119,14 @@ export default function QuickCalculatorScreen() {
                 weightInput={weightInput}
                 onChangeWeight={setWeightInput}
                 showWeightError={weightInput.length > 0 && !weightValid}
-                selectedChip={selectedChip}
-                onSelectChip={(pct) => {
-                  setSelectedChip(pct);
-                  setCustomPctInput("");
-                }}
-                customPctInput={customPctInput}
-                onChangeCustomPct={(v) => {
-                  setCustomPctInput(v);
-                  if (v) setSelectedChip(null);
-                }}
-                showPctError={customPctInput.length > 0 && !pctValid}
-                estimatedOneRMRaw={estimatedOneRMRaw}
-                canSave={estimatedOneRMKg != null}
+                repsInput={repsInput}
+                onChangeReps={setRepsInput}
+                showRepsError={repsInput.length > 0 && !repsValid}
+                estimatedOneRM={estimatedOneRM}
+                repsNum={repsNum}
+                canSave={estimatedOneRM != null}
                 onSave={() => setSaveModalOpen(true)}
-                showPlaceholder={!weightValid || !pctValid}
+                showPlaceholder={!weightValid || !repsValid}
               />
             )}
 
@@ -149,11 +137,13 @@ export default function QuickCalculatorScreen() {
         </ScrollView>
       </KeyboardAvoidingView>
 
-      {estimatedOneRMKg != null && (
+      {estimatedOneRM != null && (
         <SaveMaxModal
           visible={saveModalOpen}
           onClose={() => setSaveModalOpen(false)}
-          estimatedOneRMKg={estimatedOneRMKg}
+          estimatedOneRM={estimatedOneRM}
+          unit={unit}
+          sourceDescription={`${weightInput} ${unit} x ${repsNum} reps`}
         />
       )}
     </SafeAreaView>

@@ -14,15 +14,26 @@ import { useExercises } from "@/hooks/useExercises";
 import { useCreateMax } from "@/hooks/useMaxes";
 import { useAppStore } from "@/stores/appStore";
 import { CATEGORY_LABELS } from "@/lib/constants";
+import { WeightUnit } from "@/lib/units";
 import { colors } from "@/lib/theme";
 
 type Props = {
   visible: boolean;
   onClose: () => void;
-  estimatedOneRMKg: number;
+  /** Estimated 1RM in the user's display unit */
+  estimatedOneRM: number;
+  unit: WeightUnit;
+  /** e.g. "100 kg x 5 reps" — used to build the note */
+  sourceDescription: string;
 };
 
-export function SaveMaxModal({ visible, onClose, estimatedOneRMKg }: Props) {
+export function SaveMaxModal({
+  visible,
+  onClose,
+  estimatedOneRM,
+  unit,
+  sourceDescription,
+}: Props) {
   const { data: exercises = [], isLoading } = useExercises();
   const { mutate: saveMax, isPending: isSaving } = useCreateMax();
   const showToast = useAppStore((s) => s.showToast);
@@ -42,7 +53,12 @@ export function SaveMaxModal({ visible, onClose, estimatedOneRMKg }: Props) {
   function handleSave() {
     if (!selectedId) return;
     saveMax(
-      { exerciseId: selectedId, weight: estimatedOneRMKg, unit: "kg" },
+      {
+        exerciseId: selectedId,
+        weight: estimatedOneRM,
+        unit,
+        notes: `Estimated from ${sourceDescription} (Epley)`,
+      },
       {
         onSuccess: () => {
           showToast("1RM saved!");
