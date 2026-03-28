@@ -11,6 +11,7 @@ import { AddMaxModal } from "@/components/exercises/AddMaxModal";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { colors } from "@/lib/theme";
+import { isValidUUID } from "@/lib/constants";
 
 type Tab = "calculator" | "history";
 
@@ -21,6 +22,12 @@ const TAB_SEGMENTS = [
 
 export default function ExerciseDetailScreen() {
   const { id, addMax } = useLocalSearchParams<{ id: string; addMax?: string }>();
+
+  if (!isValidUUID(id)) {
+    router.replace("/");
+    return null;
+  }
+
   const [activeTab, setActiveTab] = useState<Tab>("calculator");
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);

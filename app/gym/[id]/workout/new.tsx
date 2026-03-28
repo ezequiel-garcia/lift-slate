@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { addDays, format, parseISO } from "date-fns";
 import { useCreateWorkout, useUpdateWorkout } from "@/hooks/useWorkouts";
+import { isValidUUID } from "@/lib/constants";
 import { useProfile } from "@/hooks/useProfile";
 import { useMyGym } from "@/hooks/useGym";
 import { useAppStore } from "@/stores/appStore";
@@ -26,6 +27,11 @@ function newSection(): SectionFormData {
 export default function NewWorkoutScreen() {
   const { id: gymId, workoutId, date } = useLocalSearchParams<{ id: string; workoutId?: string; date?: string }>();
   const isEditMode = !!workoutId;
+
+  if (!isValidUUID(gymId) || (workoutId && !isValidUUID(workoutId))) {
+    router.replace("/(tabs)/gym");
+    return null;
+  }
 
   const { data: gym } = useMyGym();
   const { data: profile } = useProfile();

@@ -14,5 +14,8 @@ export const CATEGORY_LABELS = Object.fromEntries(
   EXERCISE_CATEGORIES.map((c) => [c.value, c.label]),
 ) as Record<(typeof CATEGORY_ORDER)[number], string>;
 
-export const DEFAULT_ROUNDING_KG = 2.5;
-export const DEFAULT_ROUNDING_LBS = 5;
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+export function isValidUUID(value: string | undefined): value is string {
+  return !!value && UUID_REGEX.test(value);
+}

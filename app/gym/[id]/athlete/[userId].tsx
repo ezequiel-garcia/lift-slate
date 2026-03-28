@@ -13,7 +13,7 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { colors } from "@/lib/theme";
 import { WeightUnit } from "@/lib/units";
-import { CATEGORY_ORDER, CATEGORY_LABELS } from "@/lib/constants";
+import { CATEGORY_ORDER, CATEGORY_LABELS, isValidUUID } from "@/lib/constants";
 import { useAthleteMaxes } from "@/hooks/useMaxes";
 import { useGymMembers } from "@/hooks/useGym";
 import { useMyGym } from "@/hooks/useGym";
@@ -30,6 +30,12 @@ type Section = { title: string; data: ExerciseSummary[] };
 
 export default function AthleteMaxesScreen() {
   const { id: gymId, userId } = useLocalSearchParams<{ id: string; userId: string }>();
+
+  if (!isValidUUID(gymId) || !isValidUUID(userId)) {
+    router.replace("/(tabs)/gym");
+    return null;
+  }
+
   const { data: gym } = useMyGym();
   const { data: members } = useGymMembers(gymId);
   const { data: maxes, isLoading, isError, refetch } = useAthleteMaxes(userId);

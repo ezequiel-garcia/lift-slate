@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
+import { isValidUUID } from "@/lib/constants";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
@@ -64,6 +65,12 @@ function MemberAvatar({ member }: { member: GymMember }) {
 
 export default function GymMembersScreen() {
   const { id: gymId } = useLocalSearchParams<{ id: string }>();
+
+  if (!isValidUUID(gymId)) {
+    router.replace("/(tabs)/gym");
+    return null;
+  }
+
   const { data: gym } = useMyGym();
   const { data: members, isLoading } = useGymMembers(gymId);
   const { data: sub } = useGymSubscription(gymId);
