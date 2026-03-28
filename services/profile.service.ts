@@ -6,7 +6,7 @@ export async function getProfile() {
   if (!user) throw new Error("Not authenticated");
   const { data, error } = await supabase
     .from("users")
-    .select("*")
+    .select("id, email, display_name, unit_preference, rounding_increment_kg, allow_coach_edit, avatar_url")
     .eq("id", user.id)
     .single();
   if (error) throw error;

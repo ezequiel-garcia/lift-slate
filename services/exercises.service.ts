@@ -6,7 +6,7 @@ type ExerciseCategory = Database["public"]["Enums"]["exercise_category"];
 export async function getExercises() {
   const { data, error } = await supabase
     .from("exercises")
-    .select("*")
+    .select("id, name, category, is_default, created_by")
     .order("category")
     .order("name");
   if (error) throw error;

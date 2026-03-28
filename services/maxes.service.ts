@@ -29,7 +29,7 @@ export async function getCurrentMaxes() {
 export async function getMaxHistory(exerciseId: string) {
   const { data, error } = await supabase
     .from("maxes")
-    .select("*")
+    .select("id, user_id, exercise_id, weight_kg, recorded_at, notes, source")
     .eq("exercise_id", exerciseId)
     .order("recorded_at", { ascending: false });
   if (error) throw error;
