@@ -1,17 +1,38 @@
 import "../global.css";
 import { View } from "react-native";
-import { Stack } from "expo-router";
+import { Stack, useNavigationContainerRef } from "expo-router";
+import { isRunningInExpoGo } from "expo";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { QueryClient } from "@tanstack/react-query";
+import { QueryCache, QueryClient, MutationCache } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import * as Sentry from "@sentry/react-native";
+import { useEffect } from "react";
 import { colors } from "@/lib/theme";
 import { Toast } from "@/components/ui/Toast";
 
+const navigationIntegration = Sentry.reactNavigationIntegration({
+  enableTimeToInitialDisplay: !isRunningInExpoGo(),
+});
+
+Sentry.init({
+  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  tracesSampleRate: __DEV__ ? 1.0 : 0.2,
+  integrations: [navigationIntegration],
+  enableNativeFramesTracking: !isRunningInExpoGo(),
+  debug: __DEV__,
+});
+
 const queryClient = new QueryClient({
+  queryCache: new QueryCache({
+    onError: (error) => Sentry.captureException(error),
+  }),
+  mutationCache: new MutationCache({
+    onError: (error) => Sentry.captureException(error),
+  }),
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 min — prevents background refetch on every navigation
@@ -53,7 +74,13 @@ const persister = createAsyncStoragePersister({
   },
 });
 
-export default function RootLayout() {
+function RootLayout() {
+  const ref = useNavigationContainerRef();
+
+  useEffect(() => {
+    if (ref) navigationIntegration.registerNavigationContainer(ref);
+  }, [ref]);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
@@ -76,3 +103,5 @@ export default function RootLayout() {
     </GestureHandlerRootView>
   );
 }
+
+export default Sentry.wrap(RootLayout);

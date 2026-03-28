@@ -48,6 +48,14 @@
         {
           "photosPermission": "Allow LiftSlate to access your photos to set a gym logo."
         }
+      ],
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "ezequiel-wa",
+          "project": "liftslate",
+          "url": "https://sentry.io/"
+        }
       ]
     ],
     "experiments": {
