@@ -22,17 +22,15 @@ export async function upsertExerciseNote(
   } = await supabase.auth.getUser();
   if (authError || !user) throw new Error("Not authenticated");
 
-  const { error } = await supabase
-    .from("exercise_notes")
-    .upsert(
-      {
-        user_id: user.id,
-        exercise_id: exerciseId,
-        content,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "user_id,exercise_id" },
-    );
+  const { error } = await supabase.from("exercise_notes").upsert(
+    {
+      user_id: user.id,
+      exercise_id: exerciseId,
+      content,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "user_id,exercise_id" },
+  );
 
   if (error) throw error;
 }
