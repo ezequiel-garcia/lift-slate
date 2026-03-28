@@ -1,24 +1,24 @@
-import { useState } from "react";
-import {
-  Modal,
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  FlatList,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-} from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { CATEGORY_LABELS, CATEGORY_ORDER } from "@/lib/constants";
+import { colors } from "@/lib/theme";
+import { createExercise } from "@/services/exercises.service";
+import { useAppStore } from "@/stores/appStore";
+import { Exercise, ExerciseCategory } from "@/types/exercise";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createExercise } from "@/services/exercises.service";
-import { CATEGORY_ORDER, CATEGORY_LABELS } from "@/lib/constants";
-import { ExerciseCategory, Exercise } from "@/types/exercise";
-import { useAppStore } from "@/stores/appStore";
-import { colors } from "@/lib/theme";
+import { router } from "expo-router";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 type Props = {
   visible: boolean;
@@ -36,14 +36,21 @@ export function AddExerciseModal({
   const [mode, setMode] = useState<"browse" | "create">("browse");
   const [search, setSearch] = useState("");
   const [customName, setCustomName] = useState("");
-  const [customCategory, setCustomCategory] = useState<ExerciseCategory | null>(null);
+  const [customCategory, setCustomCategory] = useState<ExerciseCategory | null>(
+    null,
+  );
 
   const queryClient = useQueryClient();
   const showToast = useAppStore((s) => s.showToast);
 
   const createMutation = useMutation({
-    mutationFn: ({ name, category }: { name: string; category?: ExerciseCategory }) =>
-      createExercise(name, category),
+    mutationFn: ({
+      name,
+      category,
+    }: {
+      name: string;
+      category?: ExerciseCategory;
+    }) => createExercise(name, category),
     onSuccess: (exercise) => {
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
       showToast("Exercise added!");
@@ -71,11 +78,15 @@ export function AddExerciseModal({
     createMutation.mutate({ name, category: customCategory ?? undefined });
   };
 
-  const filtered = search
-    ? availableExercises.filter((e) =>
-        e.name.toLowerCase().includes(search.toLowerCase()),
-      )
-    : availableExercises;
+  const filtered = (
+    search
+      ? availableExercises.filter((e) =>
+          e.name.toLowerCase().includes(search.toLowerCase()),
+        )
+      : availableExercises
+  )
+    .slice()
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <Modal
@@ -114,7 +125,6 @@ export function AddExerciseModal({
                 placeholderTextColor={colors.muted}
                 value={search}
                 onChangeText={setSearch}
-                autoFocus
               />
             </View>
 
@@ -130,7 +140,9 @@ export function AddExerciseModal({
                     style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
                     onPress={() => handlePickExercise(item.id)}
                   >
-                    <Text className="text-[16px] text-foreground flex-1">{item.name}</Text>
+                    <Text className="text-[16px] text-foreground flex-1">
+                      {item.name}
+                    </Text>
                     {item.category && (
                       <Text className="text-sm text-muted ml-3">
                         {CATEGORY_LABELS[item.category]}
@@ -144,7 +156,9 @@ export function AddExerciseModal({
                 ListEmptyComponent={
                   <View className="items-center pt-8">
                     <Text className="text-base text-muted">
-                      {search ? "No exercises found" : "All exercises already added"}
+                      {search
+                        ? "No exercises found"
+                        : "All exercises already added"}
                     </Text>
                   </View>
                 }
@@ -160,7 +174,11 @@ export function AddExerciseModal({
                 setMode("create");
               }}
             >
-              <Ionicons name="add-circle-outline" size={20} color={colors.accent} />
+              <Ionicons
+                name="add-circle-outline"
+                size={20}
+                color={colors.accent}
+              />
               <Text className="text-accent font-semibold text-[15px]">
                 Create custom exercise
               </Text>
@@ -193,11 +211,13 @@ export function AddExerciseModal({
                   <Pressable
                     key={cat}
                     className={`px-4 py-2.5 rounded-xl ${
-                      customCategory === cat
-                        ? "bg-accent/15"
-                        : "bg-surface"
+                      customCategory === cat ? "bg-accent/15" : "bg-surface"
                     }`}
-                    style={customCategory === cat ? { borderWidth: 1, borderColor: colors.accent } : undefined}
+                    style={
+                      customCategory === cat
+                        ? { borderWidth: 1, borderColor: colors.accent }
+                        : undefined
+                    }
                     onPress={() =>
                       setCustomCategory(customCategory === cat ? null : cat)
                     }
@@ -217,7 +237,9 @@ export function AddExerciseModal({
 
               <Pressable
                 className={`mt-6 bg-accent rounded-2xl p-4 items-center ${
-                  !customName.trim() || createMutation.isPending ? "opacity-40" : ""
+                  !customName.trim() || createMutation.isPending
+                    ? "opacity-40"
+                    : ""
                 }`}
                 onPress={handleCreate}
                 disabled={!customName.trim() || createMutation.isPending}
@@ -225,7 +247,9 @@ export function AddExerciseModal({
                 {createMutation.isPending ? (
                   <ActivityIndicator color={colors.bg} />
                 ) : (
-                  <Text className="text-bg font-bold text-[16px]">Create Exercise</Text>
+                  <Text className="text-bg font-bold text-[16px]">
+                    Create Exercise
+                  </Text>
                 )}
               </Pressable>
 

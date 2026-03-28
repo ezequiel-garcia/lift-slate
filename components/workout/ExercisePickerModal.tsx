@@ -1,8 +1,15 @@
-import { useState } from "react";
-import { Modal, View, Text, TextInput, Pressable, FlatList } from "react-native";
 import { useExercises } from "@/hooks/useExercises";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { colors } from "@/lib/theme";
+import { useState } from "react";
+import {
+  FlatList,
+  Modal,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 type Props = {
   visible: boolean;
@@ -15,7 +22,7 @@ export function ExercisePickerModal({ visible, onClose, onSelect }: Props) {
   const { data: exercises = [] } = useExercises();
 
   const filtered = exercises.filter((e) =>
-    e.name.toLowerCase().includes(search.toLowerCase())
+    e.name.toLowerCase().includes(search.toLowerCase()),
   );
 
   function handleSelect(exerciseId: string, exerciseName: string) {
@@ -33,7 +40,9 @@ export function ExercisePickerModal({ visible, onClose, onSelect }: Props) {
     >
       <View className="flex-1 bg-bg">
         <View className="flex-row items-center justify-between px-4 pt-6 pb-4 border-b border-border">
-          <Text className="text-foreground text-lg font-semibold">Select Exercise</Text>
+          <Text className="text-foreground text-lg font-semibold">
+            Select Exercise
+          </Text>
           <Pressable onPress={onClose}>
             <Text className="text-accent font-medium">Cancel</Text>
           </Pressable>
@@ -46,7 +55,6 @@ export function ExercisePickerModal({ visible, onClose, onSelect }: Props) {
             placeholderTextColor={colors.muted}
             value={search}
             onChangeText={setSearch}
-            autoFocus
           />
         </View>
 
@@ -61,7 +69,9 @@ export function ExercisePickerModal({ visible, onClose, onSelect }: Props) {
               <Text className="text-foreground text-base">{item.name}</Text>
               {item.category && (
                 <Text className="text-muted text-sm">
-                  {CATEGORY_LABELS[item.category as keyof typeof CATEGORY_LABELS] ?? item.category}
+                  {CATEGORY_LABELS[
+                    item.category as keyof typeof CATEGORY_LABELS
+                  ] ?? item.category}
                 </Text>
               )}
             </Pressable>
