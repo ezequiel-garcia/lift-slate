@@ -6,6 +6,7 @@ import {
   leaveGym,
   getGymMembers,
   getGymSubscription,
+  getGymInviteDetails,
   deleteGym,
   removeMember,
   regenerateInviteToken,
@@ -75,6 +76,14 @@ export function useRemoveMember() {
   return useMutation({
     mutationFn: (membershipId: string) => removeMember(membershipId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["gym"] }),
+  });
+}
+
+export function useGymInviteDetails(gymId: string | undefined) {
+  return useQuery({
+    queryKey: ["gym", gymId, "invite"],
+    queryFn: () => getGymInviteDetails(gymId!),
+    enabled: !!gymId,
   });
 }
 

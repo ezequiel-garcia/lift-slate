@@ -28,6 +28,7 @@ import {
   useDeleteGym,
   useGymMembers,
   useGymSubscription,
+  useGymInviteDetails,
   useRegenerateInviteToken,
 } from "@/hooks/useGym";
 import { useGenerateTempCode } from "@/hooks/useInvite";
@@ -52,6 +53,7 @@ function formatCountdown(expiresAt: string): string {
 
 export default function GymSettingsScreen() {
   const { data: gym, isLoading } = useMyGym();
+  const { data: inviteDetails } = useGymInviteDetails(gym?.id);
   const { mutate: updateGym } = useUpdateGym();
   const { mutate: deleteGym, isPending: deleting } = useDeleteGym();
   const { mutate: regenerateToken, isPending: regeneratingToken } = useRegenerateInviteToken();
@@ -77,15 +79,15 @@ export default function GymSettingsScreen() {
   }, [gym?.id]);
 
   useEffect(() => {
-    if (!gym?.temp_code_expires) {
+    if (!inviteDetails?.temp_code_expires) {
       setCountdown("");
       return;
     }
-    const update = () => setCountdown(formatCountdown(gym.temp_code_expires!));
+    const update = () => setCountdown(formatCountdown(inviteDetails.temp_code_expires!));
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
-  }, [gym?.temp_code_expires]);
+  }, [inviteDetails?.temp_code_expires]);
 
   function handleNameBlur() {
     if (!gym || name.trim() === gym.name || !name.trim()) return;
@@ -127,9 +129,9 @@ export default function GymSettingsScreen() {
   }
 
   function handleShareLink() {
-    if (!gym?.invite_token) return;
-    const link = getDeepLink(gym.invite_token);
-    Share.share({ message: `Join ${gym.name} on LiftSlate: ${link}`, url: link });
+    if (!inviteDetails?.invite_token) return;
+    const link = getDeepLink(inviteDetails.invite_token);
+    Share.share({ message: `Join ${gym?.name} on LiftSlate: ${link}`, url: link });
   }
 
   function handleRegenerateToken() {
@@ -147,9 +149,9 @@ export default function GymSettingsScreen() {
   function handleGenerateCode() {
     if (!gym) return;
     const hasActive =
-      !!gym.temp_invite_code &&
-      !!gym.temp_code_expires &&
-      new Date(gym.temp_code_expires) > new Date();
+      !!inviteDetails?.temp_invite_code &&
+      !!inviteDetails?.temp_code_expires &&
+      new Date(inviteDetails?.temp_code_expires) > new Date();
 
     if (hasActive) {
       Alert.alert(
@@ -206,11 +208,11 @@ export default function GymSettingsScreen() {
   }
 
   const hasActiveCode =
-    !!gym.temp_invite_code &&
-    !!gym.temp_code_expires &&
-    new Date(gym.temp_code_expires) > new Date();
+    !!inviteDetails?.temp_invite_code &&
+    !!inviteDetails?.temp_code_expires &&
+    new Date(inviteDetails?.temp_code_expires) > new Date();
 
-  const deepLink = gym.invite_token ? getDeepLink(gym.invite_token) : "";
+  const deepLink = inviteDetails?.invite_token ? getDeepLink(inviteDetails?.invite_token) : "";
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
@@ -332,7 +334,7 @@ export default function GymSettingsScreen() {
                     label="Share Link"
                     size="md"
                     onPress={handleShareLink}
-                    disabled={!gym.invite_token}
+                    disabled={!inviteDetails?.invite_token}
                     icon={<Ionicons name="share-outline" size={16} color={colors.bg} />}
                   />
                 </View>
@@ -364,7 +366,7 @@ export default function GymSettingsScreen() {
                     className="text-accent font-bold"
                     style={{ fontSize: 42, letterSpacing: 8 }}
                   >
-                    {gym.temp_invite_code}
+                    {inviteDetails?.temp_invite_code}
                   </Text>
                   <Text className="text-muted text-caption mt-1">{countdown}</Text>
                 </View>

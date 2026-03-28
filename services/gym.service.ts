@@ -37,7 +37,7 @@ export async function getMyGym() {
   const userId = await getCurrentUserId();
   const { data, error } = await supabase
     .from("gym_memberships")
-    .select("id, role, gyms(id, name, description, address, logo_url, owner_id, invite_token, temp_invite_code, temp_code_expires)")
+    .select("id, role, gyms(id, name, description, address, logo_url, owner_id)")
     .eq("user_id", userId)
     .single();
 
@@ -47,6 +47,16 @@ export async function getMyGym() {
   }
   if (!data?.gyms) return null;
   return { ...data.gyms, myRole: data.role as "athlete" | "coach" | "admin", membershipId: data.id };
+}
+
+export async function getGymInviteDetails(gymId: string) {
+  const { data, error } = await supabase
+    .from("gyms")
+    .select("invite_token, temp_invite_code, temp_code_expires")
+    .eq("id", gymId)
+    .single();
+  if (error) throw error;
+  return data;
 }
 
 export async function getGymById(gymId: string) {
