@@ -26,11 +26,6 @@ export default function ExerciseDetailScreen() {
     addMax?: string;
   }>();
 
-  if (!isValidUUID(id)) {
-    router.replace("/");
-    return null;
-  }
-
   const [activeTab, setActiveTab] = useState<Tab>("calculator");
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -47,9 +42,14 @@ export default function ExerciseDetailScreen() {
     historyLoading,
     isError,
     refetch,
-  } = useExerciseDetail(id);
+  } = useExerciseDetail(id ?? "");
   const { mutate: deleteExerciseMaxes } = useDeleteExerciseMaxes();
-  const { mutate: deleteMax } = useDeleteMax(id);
+  const { mutate: deleteMax } = useDeleteMax(id ?? "");
+
+  if (!isValidUUID(id)) {
+    router.replace("/");
+    return null;
+  }
 
   const unit = profile?.unit_preference ?? "kg";
   const currentMax = history[0] ?? null;

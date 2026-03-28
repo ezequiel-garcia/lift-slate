@@ -133,7 +133,7 @@ export default function ResetPasswordScreen() {
           Password updated
         </Text>
         <Text className="text-[15px] text-muted text-center leading-relaxed">
-          Your password has been reset successfully. You're now signed in.
+          Your password has been reset successfully. You&apos;re now signed in.
         </Text>
         <Button label="Continue" onPress={() => router.replace("/(tabs)")} />
       </SafeAreaView>

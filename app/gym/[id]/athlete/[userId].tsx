@@ -15,8 +15,7 @@ import { colors } from "@/lib/theme";
 import { WeightUnit } from "@/lib/units";
 import { CATEGORY_ORDER, CATEGORY_LABELS, isValidUUID } from "@/lib/constants";
 import { useAthleteMaxes } from "@/hooks/useMaxes";
-import { useGymMembers } from "@/hooks/useGym";
-import { useMyGym } from "@/hooks/useGym";
+import { useGymMembers, useMyGym } from "@/hooks/useGym";
 import { ExerciseSummary } from "@/types/exercise";
 import { AthleteMaxRow } from "@/components/gym/AthleteMaxRow";
 import { AddAthleteMaxModal } from "@/components/gym/AddAthleteMaxModal";
@@ -34,14 +33,14 @@ export default function AthleteMaxesScreen() {
     userId: string;
   }>();
 
-  if (!isValidUUID(gymId) || !isValidUUID(userId)) {
-    router.replace("/(tabs)/gym");
-    return null;
-  }
-
   const { data: gym } = useMyGym();
-  const { data: members } = useGymMembers(gymId);
-  const { data: maxes, isLoading, isError, refetch } = useAthleteMaxes(userId);
+  const { data: members } = useGymMembers(gymId ?? "");
+  const {
+    data: maxes,
+    isLoading,
+    isError,
+    refetch,
+  } = useAthleteMaxes(userId ?? "");
   const [refreshing, setRefreshing] = useState(false);
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [editingMax, setEditingMax] = useState<{
@@ -51,6 +50,11 @@ export default function AthleteMaxesScreen() {
     weightKg: number;
     notes: string | null;
   } | null>(null);
+
+  if (!isValidUUID(gymId) || !isValidUUID(userId)) {
+    router.replace("/(tabs)/gym");
+    return null;
+  }
 
   const member = members?.find((m) => m.user_id === userId);
   const athleteName = member?.users?.display_name ?? "Athlete";

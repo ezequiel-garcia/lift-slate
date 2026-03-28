@@ -157,7 +157,7 @@ export default function LoginScreen() {
 
           <View className="flex-row justify-center mt-8">
             <Text className="text-muted text-subtext">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
             </Text>
             <Link href="/(auth)/signup" asChild>
               <Pressable hitSlop={8}>

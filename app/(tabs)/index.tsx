@@ -160,7 +160,7 @@ export default function HomeScreen() {
           {filtered.length === 0 && search ? (
             <View className="flex-1 items-center pt-12">
               <Text className="text-body text-muted">
-                No results for "{search}"
+                No results for &quot;{search}&quot;
               </Text>
             </View>
           ) : (

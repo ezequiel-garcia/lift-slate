@@ -162,10 +162,10 @@ export default function OnboardingScreen() {
                     className="text-[30px] font-extrabold text-foreground"
                     style={{ letterSpacing: -0.5, lineHeight: 36 }}
                   >
-                    What's your name?
+                    What&apos;s your name?
                   </Text>
                   <Text className="text-[15px] text-muted leading-relaxed">
-                    We'll use this to personalise your experience.
+                    We&apos;ll use this to personalise your experience.
                   </Text>
                 </View>
                 <Input
@@ -232,7 +232,7 @@ export default function OnboardingScreen() {
                   </Text>
                   <Text className="text-[15px] text-muted leading-relaxed">
                     Enter your current 1RM for any lifts you track. Skip if
-                    you're just getting started.
+                    you&apos;re just getting started.
                   </Text>
                 </View>
 

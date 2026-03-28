@@ -71,11 +71,6 @@ function MemberAvatar({ member }: { member: GymMember }) {
 export default function GymMembersScreen() {
   const { id: gymId } = useLocalSearchParams<{ id: string }>();
 
-  if (!isValidUUID(gymId)) {
-    router.replace("/(tabs)/gym");
-    return null;
-  }
-
   const { data: gym } = useMyGym();
   const { data: members, isLoading } = useGymMembers(gymId);
   const { data: sub } = useGymSubscription(gymId);
@@ -93,6 +88,11 @@ export default function GymMembersScreen() {
       router.replace("/(tabs)/gym");
     }
   }, [gym?.myRole]);
+
+  if (!isValidUUID(gymId)) {
+    router.replace("/(tabs)/gym");
+    return null;
+  }
 
   const filtered =
     members?.filter((m) => {

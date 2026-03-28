@@ -40,11 +40,6 @@ export default function NewWorkoutScreen() {
   } = useLocalSearchParams<{ id: string; workoutId?: string; date?: string }>();
   const isEditMode = !!workoutId;
 
-  if (!isValidUUID(gymId) || (workoutId && !isValidUUID(workoutId))) {
-    router.replace("/(tabs)/gym");
-    return null;
-  }
-
   const { data: gym } = useMyGym();
   const { data: profile } = useProfile();
 
@@ -179,6 +174,11 @@ export default function NewWorkoutScreen() {
     } catch {
       Alert.alert("Error", "Failed to save workout. Please try again.");
     }
+  }
+
+  if (!isValidUUID(gymId) || (workoutId && !isValidUUID(workoutId))) {
+    router.replace("/(tabs)/gym");
+    return null;
   }
 
   const isSaving = createWorkout.isPending || updateWorkout.isPending;
