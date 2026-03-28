@@ -37,7 +37,7 @@ export async function getMyGym() {
   const userId = await getCurrentUserId();
   const { data, error } = await supabase
     .from("gym_memberships")
-    .select("id, role, gyms(id, name, description, address, logo_url, owner_id)")
+    .select("id, role, gyms(id, name, description, address, logo_url)")
     .eq("user_id", userId)
     .single();
 
