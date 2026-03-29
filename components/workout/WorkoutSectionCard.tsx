@@ -1,27 +1,41 @@
-import { useState } from "react";
-import { View, Text, TextInput, Pressable, Alert } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/lib/theme";
-import { SectionFormData, ItemFormData } from "./types";
-import { WorkoutItemForm } from "./WorkoutItemForm";
+import { Ionicons } from "@expo/vector-icons";
+import { useEffect, useState } from "react";
+import {
+  Alert,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { ExercisePickerModal } from "./ExercisePickerModal";
+import { ItemFormData, SectionFormData } from "./types";
+import { WorkoutItemRow } from "./WorkoutItemRow";
 
 type Props = {
   section: SectionFormData;
   onUpdate: (updated: SectionFormData) => void;
   onDelete: () => void;
-  onMoveUp: () => void;
-  onMoveDown: () => void;
-  isFirst: boolean;
-  isLast: boolean;
-  unit: "kg" | "lbs";
+  /** When non-null, only this block id stays expanded; others are collapsed. */
+  openBlockId?: string | null;
+  onOpenBlockChange?: (id: string | null) => void;
 };
 
-function newItem(itemType: "structured" | "free_text"): ItemFormData {
+function newExerciseItem(): ItemFormData {
   return {
     localId: Math.random().toString(36).slice(2),
-    itemType,
+    itemType: "exercise",
     weightMode: "percentage",
     maxTypeReference: "1RM",
+  };
+}
+
+function newCustomItem(): ItemFormData {
+  return {
+    localId: Math.random().toString(36).slice(2),
+    itemType: "custom_exercise",
+    weightMode: "none",
   };
 }
 
@@ -29,13 +43,46 @@ export function WorkoutSectionCard({
   section,
   onUpdate,
   onDelete,
-  onMoveUp,
-  onMoveDown,
-  isFirst,
-  isLast,
-  unit,
+  openBlockId = null,
+  onOpenBlockChange,
 }: Props) {
-  const [showAddMenu, setShowAddMenu] = useState(false);
+  const [showExercisePicker, setShowExercisePicker] = useState(false);
+  const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
+  const [localCollapsed, setLocalCollapsed] = useState(false);
+
+  const inAccordion = openBlockId !== null;
+  const forcedCollapsed = inAccordion && section.localId !== openBlockId;
+  const blockCollapsed = inAccordion ? forcedCollapsed : localCollapsed;
+
+  useEffect(() => {
+    if (openBlockId === null) {
+      setLocalCollapsed(false);
+    }
+  }, [openBlockId]);
+
+  function expandThisBlock() {
+    setLocalCollapsed(false);
+    if (inAccordion) {
+      onOpenBlockChange?.(section.localId);
+    }
+  }
+
+  function toggleBlockCollapsed() {
+    if (inAccordion) {
+      if (forcedCollapsed) {
+        onOpenBlockChange?.(section.localId);
+      } else {
+        onOpenBlockChange?.(null);
+        setExpandedItemId(null);
+      }
+    } else {
+      setLocalCollapsed((c) => {
+        const next = !c;
+        if (next) setExpandedItemId(null);
+        return next;
+      });
+    }
+  }
 
   function updateItem(index: number, updated: ItemFormData) {
     const items = [...section.items];
@@ -50,119 +97,166 @@ export function WorkoutSectionCard({
     });
   }
 
-  function addItem(type: "structured" | "free_text") {
-    onUpdate({ ...section, items: [...section.items, newItem(type)] });
-    setShowAddMenu(false);
+  function addExercise(exerciseId: string, exerciseName: string) {
+    const item = newExerciseItem();
+    item.exerciseId = exerciseId;
+    item.exerciseName = exerciseName;
+    expandThisBlock();
+    onUpdate({ ...section, items: [...section.items, item] });
+    setExpandedItemId(item.localId);
   }
 
-  function moveItem(from: number, to: number) {
-    const items = [...section.items];
-    const [moved] = items.splice(from, 1);
-    items.splice(to, 0, moved);
-    onUpdate({ ...section, items });
+  function addCustomExercise() {
+    const item = newCustomItem();
+    expandThisBlock();
+    onUpdate({ ...section, items: [...section.items, item] });
+    setExpandedItemId(item.localId);
   }
 
-  function handleDelete() {
+  function confirmRemoveBlock() {
     Alert.alert(
-      "Delete Section",
-      `Delete "${section.title || "this section"}"?`,
+      "Remove block?",
+      `This removes "${section.title?.trim() || "this block"}" and every exercise inside it.`,
       [
         { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: onDelete },
+        { text: "Remove", style: "destructive", onPress: onDelete },
       ],
     );
   }
 
+  const exerciseCount = section.items.length;
+
   return (
     <View className="bg-surface rounded-2xl overflow-hidden border border-border">
-      {/* Section header */}
-      <View className="px-4 pt-4 pb-3 flex-row items-center gap-3 border-b border-border">
-        <TextInput
-          className="flex-1 text-foreground text-base font-semibold"
-          placeholder="Section name..."
-          placeholderTextColor={colors.muted}
-          value={section.title}
-          onChangeText={(v) => onUpdate({ ...section, title: v })}
-        />
-        <View className="flex-row items-center gap-1">
-          <Pressable onPress={onMoveUp} disabled={isFirst} className="p-1">
+      {/* Block header */}
+      <View className="px-4 pt-4 pb-3">
+        <View className="flex-row items-center gap-2">
+          <Pressable
+            onPress={toggleBlockCollapsed}
+            accessibilityLabel={
+              blockCollapsed ? "Expand block" : "Collapse block"
+            }
+            accessibilityRole="button"
+            hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+            className="p-1.5 -ml-1"
+          >
             <Ionicons
-              name="chevron-up"
-              size={18}
-              color={isFirst ? colors.muted : colors.foreground}
+              name={blockCollapsed ? "chevron-forward" : "chevron-down"}
+              size={20}
+              color={colors.muted}
             />
           </Pressable>
-          <Pressable onPress={onMoveDown} disabled={isLast} className="p-1">
-            <Ionicons
-              name="chevron-down"
-              size={18}
-              color={isLast ? colors.muted : colors.foreground}
+
+          {blockCollapsed ? (
+            <Pressable
+              onPress={expandThisBlock}
+              className="flex-1 min-w-0 pr-1"
+              accessibilityRole="button"
+              accessibilityLabel="Expand block"
+            >
+              <Text
+                className="text-foreground text-base font-semibold"
+                numberOfLines={1}
+              >
+                {section.title.trim() || "Untitled block"}
+              </Text>
+              <Text className="text-muted text-xs mt-0.5">
+                {exerciseCount === 0
+                  ? "No exercises"
+                  : `${exerciseCount} ${exerciseCount === 1 ? "exercise" : "exercises"}`}
+              </Text>
+            </Pressable>
+          ) : (
+            <TextInput
+              className="flex-1 text-foreground text-base font-semibold min-w-0"
+              placeholder="Block name..."
+              placeholderTextColor={colors.muted}
+              value={section.title}
+              onChangeText={(v) => onUpdate({ ...section, title: v })}
+              style={{
+                // Keep placeholder and typed text on the same vertical baseline (RN quirk).
+                lineHeight: 22,
+                paddingVertical: 8,
+                ...(Platform.OS === "android" && {
+                  textAlignVertical: "center",
+                  includeFontPadding: false,
+                }),
+              }}
             />
-          </Pressable>
-          <Pressable onPress={handleDelete} className="p-1">
-            <Ionicons name="trash-outline" size={16} color={colors.error} />
+          )}
+
+          <Pressable
+            onPress={confirmRemoveBlock}
+            accessibilityLabel="Remove block"
+            accessibilityRole="button"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            className="p-2 -mr-1"
+          >
+            <Ionicons name="close" size={22} color={colors.muted} />
           </Pressable>
         </View>
       </View>
 
-      {/* Items */}
-      <View className="px-4 py-3 gap-3">
-        {section.items.map((item, i) => (
-          <WorkoutItemForm
-            key={item.localId}
-            item={item}
-            onUpdate={(updated) => updateItem(i, updated)}
-            onDelete={() => deleteItem(i)}
-            onMoveUp={() => moveItem(i, i - 1)}
-            onMoveDown={() => moveItem(i, i + 1)}
-            isFirst={i === 0}
-            isLast={i === section.items.length - 1}
-            unit={unit}
-          />
-        ))}
+      {!blockCollapsed && (
+        <>
+          {/* Divider */}
+          <View className="h-px bg-border" />
 
-        {/* Add item */}
-        {showAddMenu ? (
-          <View className="flex-row gap-2">
+          {/* Exercise list */}
+          <View className="px-3 py-2">
+            {section.items.length === 0 ? (
+              <View className="py-6 items-center">
+                <Text className="text-muted text-sm">No exercises yet</Text>
+              </View>
+            ) : (
+              <View className="gap-1">
+                {section.items.map((item, i) => (
+                  <WorkoutItemRow
+                    key={item.localId}
+                    item={item}
+                    isExpanded={expandedItemId === item.localId}
+                    onToggleExpand={() =>
+                      setExpandedItemId(
+                        expandedItemId === item.localId ? null : item.localId,
+                      )
+                    }
+                    onUpdate={(updated) => updateItem(i, updated)}
+                    onDelete={() => deleteItem(i)}
+                  />
+                ))}
+              </View>
+            )}
+          </View>
+
+          {/* Add exercise buttons */}
+          <View className="px-3 pb-3 flex-row gap-2">
             <Pressable
-              className="flex-1 bg-surface2 rounded-xl py-3 items-center border border-border"
-              onPress={() => addItem("structured")}
+              className="flex-1 flex-row items-center justify-center gap-1.5 bg-accent/10 rounded-xl py-3"
+              onPress={() => setShowExercisePicker(true)}
             >
-              <Ionicons
-                name="barbell-outline"
-                size={16}
-                color={colors.accent}
-              />
-              <Text className="text-accent text-xs font-medium mt-1">
-                Exercise
+              <Ionicons name="add" size={16} color={colors.accent} />
+              <Text className="text-accent text-sm font-semibold">
+                Add exercise
               </Text>
             </Pressable>
             <Pressable
-              className="flex-1 bg-surface2 rounded-xl py-3 items-center border border-border"
-              onPress={() => addItem("free_text")}
+              className="flex-1 flex-row items-center justify-center gap-1.5 bg-surface2 rounded-xl py-3"
+              onPress={addCustomExercise}
             >
-              <Ionicons name="text-outline" size={16} color={colors.accent} />
-              <Text className="text-accent text-xs font-medium mt-1">Text</Text>
-            </Pressable>
-            <Pressable
-              className="flex-1 bg-surface2 rounded-xl py-3 items-center border border-border"
-              onPress={() => setShowAddMenu(false)}
-            >
-              <Ionicons name="close-outline" size={16} color={colors.muted} />
-              <Text className="text-muted text-xs font-medium mt-1">
-                Cancel
+              <Ionicons name="add" size={16} color={colors.muted} />
+              <Text className="text-muted text-sm font-semibold">
+                Custom exercise
               </Text>
             </Pressable>
           </View>
-        ) : (
-          <Pressable
-            className="border border-dashed border-border rounded-xl py-3 items-center"
-            onPress={() => setShowAddMenu(true)}
-          >
-            <Text className="text-accent text-sm font-medium">+ Add Item</Text>
-          </Pressable>
-        )}
-      </View>
+        </>
+      )}
+
+      <ExercisePickerModal
+        visible={showExercisePicker}
+        onClose={() => setShowExercisePicker(false)}
+        onSelect={addExercise}
+      />
     </View>
   );
 }

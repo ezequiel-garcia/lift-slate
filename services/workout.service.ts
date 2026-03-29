@@ -14,7 +14,7 @@ export type WorkoutWithSections = Tables<"workouts"> & {
 
 export type WorkoutItemInput = {
   orderIndex: number;
-  itemType: "structured" | "free_text";
+  itemType: "exercise" | "custom_exercise";
   exerciseId?: string;
   sets?: number;
   reps?: number;
@@ -28,6 +28,8 @@ export type WorkoutItemInput = {
 export type WorkoutSectionInput = {
   title: string;
   orderIndex: number;
+  blockType?: string;
+  repeatScheme?: string;
   items: WorkoutItemInput[];
 };
 
@@ -47,30 +49,13 @@ async function getCurrentUserId() {
   return user.id;
 }
 
-async function insertSectionsAndItems(
-  workoutId: string,
-  sectionInputs: WorkoutSectionInput[],
-): Promise<WorkoutSection[]> {
-  if (sectionInputs.length === 0) return [];
-
-  // Batch insert all sections in one request
-  const sectionsToInsert = sectionInputs.map((s) => ({
-    workout_id: workoutId,
+function buildSectionsJson(sectionInputs: WorkoutSectionInput[]) {
+  return sectionInputs.map((s) => ({
     title: s.title,
     order_index: s.orderIndex,
-  }));
-
-  const { data: sections, error: sectionsError } = await supabase
-    .from("workout_sections")
-    .insert(sectionsToInsert)
-    .select()
-    .order("order_index");
-  if (sectionsError) throw sectionsError;
-
-  // Batch insert all items across all sections in one request
-  const allItems = sections.flatMap((section, i) =>
-    sectionInputs[i].items.map((item) => ({
-      section_id: section.id,
+    block_type: s.blockType ?? null,
+    repeat_scheme: s.repeatScheme ?? null,
+    items: s.items.map((item) => ({
       order_index: item.orderIndex,
       item_type: item.itemType,
       exercise_id: item.exerciseId ?? null,
@@ -82,30 +67,18 @@ async function insertSectionsAndItems(
       content: item.content ?? null,
       notes: item.notes ?? null,
     })),
-  );
-
-  if (allItems.length === 0) {
-    return sections.map((s) => ({ ...s, items: [] as WorkoutItem[] }));
-  }
-
-  const { data: items, error: itemsError } = await supabase
-    .from("workout_items")
-    .insert(allItems)
-    .select();
-  if (itemsError) throw itemsError;
-
-  // Group items by section_id
-  const itemsBySection = new Map<string, typeof items>();
-  for (const item of items ?? []) {
-    const existing = itemsBySection.get(item.section_id) ?? [];
-    existing.push(item);
-    itemsBySection.set(item.section_id, existing);
-  }
-
-  return sections.map((section) => ({
-    ...section,
-    items: (itemsBySection.get(section.id) ?? []) as WorkoutItem[],
   }));
+}
+
+async function upsertSections(
+  workoutId: string,
+  sectionInputs: WorkoutSectionInput[],
+): Promise<void> {
+  const { error } = await supabase.rpc("upsert_workout_sections", {
+    p_workout_id: workoutId,
+    p_sections: buildSectionsJson(sectionInputs),
+  });
+  if (error) throw error;
 }
 
 export async function createWorkout(
@@ -128,8 +101,8 @@ export async function createWorkout(
     .single();
   if (workoutError) throw workoutError;
 
-  const sections = await insertSectionsAndItems(workout.id, input.sections);
-  return { ...workout, sections };
+  await upsertSections(workout.id, input.sections);
+  return getWorkoutById(workout.id);
 }
 
 const WORKOUT_WITH_SECTIONS_QUERY = `
@@ -202,7 +175,7 @@ export async function updateWorkout(
   workoutId: string,
   input: WorkoutInput,
 ): Promise<WorkoutWithSections> {
-  const { data: workout, error: workoutError } = await supabase
+  const { error: workoutError } = await supabase
     .from("workouts")
     .update({
       title: input.title ?? null,
@@ -214,14 +187,8 @@ export async function updateWorkout(
     .single();
   if (workoutError) throw workoutError;
 
-  const { error: deleteError } = await supabase
-    .from("workout_sections")
-    .delete()
-    .eq("workout_id", workoutId);
-  if (deleteError) throw deleteError;
-
-  const sections = await insertSectionsAndItems(workoutId, input.sections);
-  return { ...workout, sections };
+  await upsertSections(workoutId, input.sections);
+  return getWorkoutById(workoutId);
 }
 
 export async function deleteWorkout(workoutId: string): Promise<void> {

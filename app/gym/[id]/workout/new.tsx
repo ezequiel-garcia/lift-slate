@@ -1,30 +1,34 @@
-import { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Pressable,
-  ScrollView,
-  Alert,
-  ActivityIndicator,
-} from "react-native";
-import { useLocalSearchParams, router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Ionicons } from "@expo/vector-icons";
-import { addDays, format, parseISO } from "date-fns";
+import { Button } from "@/components/ui/Button";
+import { WorkoutPreviewModal } from "@/components/workout/WorkoutPreviewModal";
+import { WorkoutSectionCard } from "@/components/workout/WorkoutSectionCard";
+import { ItemFormData, SectionFormData } from "@/components/workout/types";
+import { useMyGym } from "@/hooks/useGym";
 import { useCreateWorkout, useUpdateWorkout } from "@/hooks/useWorkouts";
 import { isValidUUID } from "@/lib/constants";
-import { useProfile } from "@/hooks/useProfile";
-import { useMyGym } from "@/hooks/useGym";
-import { useAppStore } from "@/stores/appStore";
 import { colors } from "@/lib/theme";
-import { Button } from "@/components/ui/Button";
-import { WorkoutSectionCard } from "@/components/workout/WorkoutSectionCard";
-import { WorkoutPreviewModal } from "@/components/workout/WorkoutPreviewModal";
-import { SectionFormData, ItemFormData } from "@/components/workout/types";
 import { getWorkoutById } from "@/services/workout.service";
+import { useAppStore } from "@/stores/appStore";
+import { Ionicons } from "@expo/vector-icons";
+import DateTimePicker, {
+  DateTimePickerEvent,
+} from "@react-native-community/datetimepicker";
+import { addDays, format, parseISO } from "date-fns";
+import { router, useLocalSearchParams } from "expo-router";
+import { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-function newSection(): SectionFormData {
+function newBlock(): SectionFormData {
   return {
     localId: Math.random().toString(36).slice(2),
     title: "",
@@ -41,7 +45,6 @@ export default function NewWorkoutScreen() {
   const isEditMode = !!workoutId;
 
   const { data: gym } = useMyGym();
-  const { data: profile } = useProfile();
 
   useEffect(() => {
     if (
@@ -52,7 +55,6 @@ export default function NewWorkoutScreen() {
       router.replace("/(tabs)/gym");
     }
   }, [gym?.myRole]);
-  const unit = (profile?.unit_preference ?? "kg") as "kg" | "lbs";
 
   const createWorkout = useCreateWorkout();
   const updateWorkout = useUpdateWorkout();
@@ -62,17 +64,18 @@ export default function NewWorkoutScreen() {
   const [scheduledDate, setScheduledDate] = useState(() =>
     date ? parseISO(date) : addDays(new Date(), 1),
   );
-  const [title, setTitle] = useState("");
   const [notes, setNotes] = useState("");
   const [sections, setSections] = useState<SectionFormData[]>([]);
+  /** When set, only this block stays expanded; others collapse. null = each block manages its own collapse. */
+  const [openBlockId, setOpenBlockId] = useState<string | null>(null);
   const [showPreview, setShowPreview] = useState(false);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     if (!isEditMode || !workoutId) return;
 
     getWorkoutById(workoutId)
       .then((workout) => {
-        setTitle(workout.title ?? "");
         setNotes(workout.notes ?? "");
         setScheduledDate(parseISO(workout.scheduled_date));
 
@@ -103,6 +106,13 @@ export default function NewWorkoutScreen() {
       .finally(() => setLoading(false));
   }, [workoutId, isEditMode]);
 
+  useEffect(() => {
+    if (openBlockId === null) return;
+    if (!sections.some((s) => s.localId === openBlockId)) {
+      setOpenBlockId(null);
+    }
+  }, [sections, openBlockId]);
+
   function updateSection(index: number, updated: SectionFormData) {
     setSections((prev) => {
       const next = [...prev];
@@ -112,21 +122,13 @@ export default function NewWorkoutScreen() {
   }
 
   function deleteSection(index: number) {
+    const removedId = sections[index]?.localId;
     setSections((prev) => prev.filter((_, i) => i !== index));
-  }
-
-  function moveSection(from: number, to: number) {
-    setSections((prev) => {
-      const next = [...prev];
-      const [moved] = next.splice(from, 1);
-      next.splice(to, 0, moved);
-      return next;
-    });
+    setOpenBlockId((prev) => (prev === removedId ? null : prev));
   }
 
   function buildWorkoutInput() {
     return {
-      title: title.trim() || undefined,
       scheduledDate: format(scheduledDate, "yyyy-MM-dd"),
       notes: notes.trim() || undefined,
       sections: sections.map((s, si) => ({
@@ -135,11 +137,16 @@ export default function NewWorkoutScreen() {
         items: s.items.map((item, ii) => {
           const base = {
             orderIndex: ii,
-            itemType: item.itemType as "structured" | "free_text",
+            itemType: item.itemType,
             notes: item.notes?.trim() || undefined,
           };
-          if (item.itemType === "free_text") {
-            return { ...base, content: item.content };
+          if (item.itemType === "custom_exercise") {
+            return {
+              ...base,
+              content: item.content,
+              sets: item.sets ? parseInt(item.sets, 10) : undefined,
+              reps: item.reps ? parseInt(item.reps, 10) : undefined,
+            };
           }
           return {
             ...base,
@@ -225,86 +232,82 @@ export default function NewWorkoutScreen() {
         }}
         keyboardShouldPersistTaps="handled"
       >
-        {/* Date picker */}
-        <View className="bg-surface rounded-2xl p-4 border border-border mb-4">
-          <Text className="text-label uppercase tracking-wider text-muted mb-3">
-            Scheduled Date
-          </Text>
-          <View className="flex-row items-center justify-between">
+        {/* Date + notes */}
+        <View className="bg-surface rounded-2xl border border-border mb-4 overflow-hidden">
+          {/* Date row */}
+          <View className="flex-row items-center justify-between px-4 py-3 border-b border-border">
             <Pressable
-              className="w-11 h-11 bg-surface2 rounded-xl items-center justify-center"
+              className="w-9 h-9 bg-surface2 rounded-lg items-center justify-center"
               onPress={() => setScheduledDate((d) => addDays(d, -1))}
             >
               <Ionicons
                 name="chevron-back"
-                size={20}
+                size={18}
                 color={colors.foreground}
               />
             </Pressable>
-            <Text className="text-foreground text-base font-semibold">
-              {formattedDate}
-            </Text>
             <Pressable
-              className="w-11 h-11 bg-surface2 rounded-xl items-center justify-center"
+              className="flex-row items-center gap-2"
+              onPress={() => setShowDatePicker(true)}
+            >
+              <Ionicons
+                name="calendar-outline"
+                size={16}
+                color={colors.accent}
+              />
+              <Text className="text-foreground text-base font-semibold">
+                {formattedDate}
+              </Text>
+            </Pressable>
+            <Pressable
+              className="w-9 h-9 bg-surface2 rounded-lg items-center justify-center"
               onPress={() => setScheduledDate((d) => addDays(d, 1))}
             >
               <Ionicons
                 name="chevron-forward"
-                size={20}
+                size={18}
                 color={colors.foreground}
               />
             </Pressable>
           </View>
+
+          <View className="px-4 py-3 gap-2">
+            <TextInput
+              className="text-muted text-sm"
+              placeholder="General notes (optional)"
+              placeholderTextColor={colors.muted}
+              value={notes}
+              onChangeText={setNotes}
+              multiline
+              numberOfLines={2}
+            />
+          </View>
         </View>
 
-        {/* Title & Notes */}
-        <View className="bg-surface rounded-2xl px-4 py-4 border border-border gap-3 mb-4">
-          <TextInput
-            className="text-foreground text-lg font-semibold"
-            placeholder="Workout title (optional)"
-            placeholderTextColor={colors.muted}
-            value={title}
-            onChangeText={setTitle}
-          />
-          <View className="h-px bg-border" />
-          <TextInput
-            className="text-foreground text-sm"
-            placeholder="General notes (optional)"
-            placeholderTextColor={colors.muted}
-            value={notes}
-            onChangeText={setNotes}
-            multiline
-            numberOfLines={3}
-          />
-        </View>
-
-        {/* Sections */}
-        <View className="gap-4">
+        {/* Blocks */}
+        <View className="gap-3">
           {sections.map((section, i) => (
             <WorkoutSectionCard
               key={section.localId}
               section={section}
               onUpdate={(updated) => updateSection(i, updated)}
               onDelete={() => deleteSection(i)}
-              onMoveUp={() => moveSection(i, i - 1)}
-              onMoveDown={() => moveSection(i, i + 1)}
-              isFirst={i === 0}
-              isLast={i === sections.length - 1}
-              unit={unit}
+              openBlockId={openBlockId}
+              onOpenBlockChange={setOpenBlockId}
             />
           ))}
 
-          {/* Add Section */}
+          {/* Add Block */}
           <Pressable
-            className="border-2 border-dashed border-border rounded-2xl py-5 items-center gap-1"
-            onPress={() => setSections((prev) => [...prev, newSection()])}
+            className="border border-dashed border-border rounded-2xl py-4 items-center flex-row justify-center gap-2"
+            onPress={() => {
+              const nb = newBlock();
+              setSections((prev) => [...prev, nb]);
+              setOpenBlockId(nb.localId);
+            }}
           >
-            <Ionicons
-              name="add-circle-outline"
-              size={22}
-              color={colors.accent}
-            />
-            <Text className="text-accent text-sm font-medium">Add Section</Text>
+            <Ionicons name="add" size={18} color={colors.accent} />
+            <Text className="text-accent text-sm font-semibold">Add Block</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -324,14 +327,62 @@ export default function NewWorkoutScreen() {
         />
       </View>
 
+      {/* Date picker */}
+      {Platform.OS === "ios" ? (
+        <Modal
+          visible={showDatePicker}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowDatePicker(false)}
+        >
+          <Pressable
+            className="flex-1 justify-end bg-black/50"
+            onPress={() => setShowDatePicker(false)}
+          >
+            <Pressable
+              className="bg-surface rounded-t-3xl pb-10"
+              onPress={(e) => e.stopPropagation()}
+            >
+              <View className="flex-row justify-between items-center px-4 py-3 border-b border-border">
+                <Text className="text-foreground font-semibold">
+                  Select Date
+                </Text>
+                <Pressable onPress={() => setShowDatePicker(false)}>
+                  <Text className="text-accent font-semibold">Done</Text>
+                </Pressable>
+              </View>
+              <DateTimePicker
+                value={scheduledDate}
+                mode="date"
+                display="inline"
+                onChange={(_e: DateTimePickerEvent, date?: Date) => {
+                  if (date) setScheduledDate(date);
+                }}
+                themeVariant="dark"
+              />
+            </Pressable>
+          </Pressable>
+        </Modal>
+      ) : (
+        showDatePicker && (
+          <DateTimePicker
+            value={scheduledDate}
+            mode="date"
+            display="default"
+            onChange={(_e: DateTimePickerEvent, date?: Date) => {
+              setShowDatePicker(false);
+              if (date) setScheduledDate(date);
+            }}
+          />
+        )
+      )}
+
       <WorkoutPreviewModal
         visible={showPreview}
         onClose={() => setShowPreview(false)}
-        title={title}
         notes={notes}
         scheduledDate={formattedDate}
         sections={sections}
-        unit={unit}
       />
     </SafeAreaView>
   );

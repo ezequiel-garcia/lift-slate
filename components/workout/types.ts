@@ -1,18 +1,18 @@
 export type ItemFormData = {
   localId: string;
-  itemType: "structured" | "free_text";
-  // structured
+  itemType: "exercise" | "custom_exercise";
+  // exercise (catalog)
   exerciseId?: string;
   exerciseName?: string;
+  // custom_exercise
+  content?: string;
+  // shared
   sets?: string;
   reps?: string;
   weightMode: "percentage" | "none";
   percentage?: string;
   maxTypeReference?: string;
   weightKg?: string;
-  // free_text
-  content?: string;
-  // shared
   notes?: string;
 };
 

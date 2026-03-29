@@ -3,6 +3,7 @@ import { View, Text, Pressable } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { WorkoutWithSections, WorkoutItem } from "@/services/workout.service";
+import { BLOCK_TYPE_LABELS } from "@/components/workout/constants";
 import {
   calculatePercentage,
   formatWeight,
@@ -12,8 +13,15 @@ import {
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ActionSheet } from "@/components/ui/ActionSheet";
 import { colors } from "@/lib/theme";
+import { format, parseISO } from "date-fns";
 
 type MaxMap = Record<string, number>;
+
+function workoutHeadingLabel(workout: WorkoutWithSections): string {
+  const custom = workout.title?.trim();
+  if (custom) return custom;
+  return format(parseISO(workout.scheduled_date), "EEE, MMM d");
+}
 
 interface Props {
   workouts: WorkoutWithSections[];
@@ -35,7 +43,14 @@ function StructuredItem({
   unit: WeightUnit;
 }) {
   const exerciseName = item.exercises?.name ?? "Exercise";
-  const setsReps = item.sets && item.reps ? `${item.sets}×${item.reps}` : null;
+  const setsReps =
+    item.sets && item.reps
+      ? `${item.sets}×${item.reps}`
+      : item.sets
+        ? `${item.sets} sets`
+        : item.reps
+          ? `${item.reps} reps`
+          : null;
 
   let weightLine: React.ReactNode = null;
   let noMax = false;
@@ -97,10 +112,22 @@ function StructuredItem({
   );
 }
 
-function FreeTextItem({ item }: { item: WorkoutItem }) {
+function CustomExerciseItem({ item }: { item: WorkoutItem }) {
+  const setsReps =
+    item.sets && item.reps
+      ? `${item.sets}×${item.reps}`
+      : item.sets
+        ? `${item.sets} sets`
+        : item.reps
+          ? `${item.reps} reps`
+          : null;
+
   return (
     <View className="py-3">
-      <Text className="text-foreground text-base">{item.content}</Text>
+      <Text className="text-foreground text-base font-semibold mb-1">
+        {item.content || "Custom Exercise"}
+      </Text>
+      {setsReps && <Text className="text-muted text-sm">{setsReps}</Text>}
       {!!item.notes && (
         <Text className="text-muted text-sm mt-1">{item.notes}</Text>
       )}
@@ -157,14 +184,14 @@ export function WorkoutDayView({
   return (
     <View className="gap-6">
       {workouts.map((workout) => {
-        const title = workout.title || "Workout";
+        const heading = workoutHeadingLabel(workout);
         return (
           <View key={workout.id}>
             {/* Workout header */}
             <View className="flex-row items-start justify-between mb-2">
               <View className="flex-1 gap-1">
                 <Text className="text-foreground text-xl font-bold">
-                  {title}
+                  {heading}
                 </Text>
                 {!!workout.notes && (
                   <Text className="text-muted text-sm">{workout.notes}</Text>
@@ -189,11 +216,14 @@ export function WorkoutDayView({
             {workout.sections.map((section) => (
               <View key={section.id} className="mb-5">
                 <Text className="text-accent text-xs font-bold uppercase tracking-wider mb-2">
-                  {section.title}
+                  {section.title ||
+                    (section.block_type
+                      ? BLOCK_TYPE_LABELS[section.block_type]
+                      : "")}
                 </Text>
                 <View className="bg-surface rounded-2xl px-4 divide-y divide-border">
                   {section.items.map((item) =>
-                    item.item_type === "structured" ? (
+                    item.item_type === "exercise" ? (
                       <StructuredItem
                         key={item.id}
                         item={item}
@@ -201,7 +231,7 @@ export function WorkoutDayView({
                         unit={unit}
                       />
                     ) : (
-                      <FreeTextItem key={item.id} item={item} />
+                      <CustomExerciseItem key={item.id} item={item} />
                     ),
                   )}
                 </View>
@@ -213,7 +243,7 @@ export function WorkoutDayView({
 
       <ActionSheet
         visible={!!activeWorkoutId}
-        title={activeWorkout?.title || "Workout"}
+        title={activeWorkout ? workoutHeadingLabel(activeWorkout) : "Workout"}
         onClose={() => setActiveWorkoutId(null)}
         options={[
           {

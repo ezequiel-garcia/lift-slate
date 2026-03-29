@@ -376,20 +376,26 @@ export type Database = {
       };
       workout_sections: {
         Row: {
+          block_type: string | null;
           id: string;
           order_index: number;
+          repeat_scheme: string | null;
           title: string;
           workout_id: string;
         };
         Insert: {
+          block_type?: string | null;
           id?: string;
           order_index: number;
+          repeat_scheme?: string | null;
           title: string;
           workout_id: string;
         };
         Update: {
+          block_type?: string | null;
           id?: string;
           order_index?: number;
+          repeat_scheme?: string | null;
           title?: string;
           workout_id?: string;
         };
@@ -463,36 +469,46 @@ export type Database = {
         Args: { p_gym_id: string };
         Returns: string;
       };
+      get_my_gym_id: { Args: never; Returns: string };
+      get_my_gym_role: {
+        Args: never;
+        Returns: Database["public"]["Enums"]["gym_membership_role"];
+      };
+      get_workouts_for_date: {
+        Args: { p_date: string; p_gym_id: string };
+        Returns: Json;
+      };
       join_gym_by_temp_code: { Args: { p_code: string }; Returns: string };
       join_gym_by_token: { Args: { p_token: string }; Returns: string };
       leave_gym: { Args: { p_membership_id: string }; Returns: undefined };
-      regenerate_invite_token: {
-        Args: { p_gym_id: string };
-        Returns: string;
+      preview_gym_by_temp_code: {
+        Args: { p_code: string };
+        Returns: {
+          description: string;
+          id: string;
+          member_count: number;
+          name: string;
+        }[];
       };
       preview_gym_by_token: {
         Args: { p_token: string };
         Returns: {
+          description: string;
           id: string;
-          name: string;
-          description: string | null;
           member_count: number;
+          name: string;
         }[];
       };
-      preview_gym_by_temp_code: {
-        Args: { p_code: string };
-        Returns: {
-          id: string;
-          name: string;
-          description: string | null;
-          member_count: number;
-        }[];
-      };
+      regenerate_invite_token: { Args: { p_gym_id: string }; Returns: string };
       update_member_role: {
         Args: {
           p_membership_id: string;
           p_new_role: Database["public"]["Enums"]["gym_membership_role"];
         };
+        Returns: undefined;
+      };
+      upsert_workout_sections: {
+        Args: { p_sections: Json; p_workout_id: string };
         Returns: undefined;
       };
     };
@@ -503,7 +519,7 @@ export type Database = {
       subscription_plan: "free" | "trial" | "pro";
       subscription_status: "active" | "trial" | "trial_expired" | "cancelled";
       unit_preference: "kg" | "lbs";
-      workout_item_type: "structured" | "free_text";
+      workout_item_type: "exercise" | "custom_exercise";
     };
     CompositeTypes: {
       [_ in never]: never;
@@ -640,7 +656,7 @@ export const Constants = {
       subscription_plan: ["free", "trial", "pro"],
       subscription_status: ["active", "trial", "trial_expired", "cancelled"],
       unit_preference: ["kg", "lbs"],
-      workout_item_type: ["structured", "free_text"],
+      workout_item_type: ["exercise", "custom_exercise"],
     },
   },
 } as const;
