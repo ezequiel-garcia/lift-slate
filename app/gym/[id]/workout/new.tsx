@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/Button";
 import { WorkoutPreviewModal } from "@/components/workout/WorkoutPreviewModal";
 import { WorkoutSectionCard } from "@/components/workout/WorkoutSectionCard";
+import { QUICK_START_TEMPLATES } from "@/components/workout/constants";
 import { ItemFormData, SectionFormData } from "@/components/workout/types";
 import { useMyGym } from "@/hooks/useGym";
 import { useCreateWorkout, useUpdateWorkout } from "@/hooks/useWorkouts";
@@ -9,17 +10,13 @@ import { colors } from "@/lib/theme";
 import { getWorkoutById } from "@/services/workout.service";
 import { useAppStore } from "@/stores/appStore";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePicker, {
-  DateTimePickerEvent,
-} from "@react-native-community/datetimepicker";
+import { CalendarPickerModal } from "@/components/workout/CalendarPickerModal";
 import { addDays, format, parseISO } from "date-fns";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Modal,
-  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -28,10 +25,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-function newBlock(): SectionFormData {
+function newBlock(title = ""): SectionFormData {
   return {
     localId: Math.random().toString(36).slice(2),
-    title: "",
+    title,
     items: [],
   };
 }
@@ -297,18 +294,90 @@ export default function NewWorkoutScreen() {
             />
           ))}
 
-          {/* Add Block */}
-          <Pressable
-            className="border border-dashed border-border rounded-2xl py-4 items-center flex-row justify-center gap-2"
-            onPress={() => {
-              const nb = newBlock();
-              setSections((prev) => [...prev, nb]);
-              setOpenBlockId(nb.localId);
-            }}
-          >
-            <Ionicons name="add" size={18} color={colors.accent} />
-            <Text className="text-accent text-sm font-semibold">Add Block</Text>
-          </Pressable>
+          {sections.length === 0 ? (
+            /* Empty state with quick-start templates */
+            <View className="items-center pt-4 pb-2 gap-6">
+              <View className="items-center gap-1">
+                <Ionicons
+                  name="layers-outline"
+                  size={36}
+                  color={colors.muted}
+                />
+                <Text className="text-foreground text-base font-semibold mt-2">
+                  Start building your workout
+                </Text>
+                <Text className="text-muted text-sm text-center">
+                  Pick a block type to get going
+                </Text>
+              </View>
+
+              <View className="w-full gap-3">
+                <View className="flex-row gap-3">
+                  {QUICK_START_TEMPLATES.slice(0, 2).map((t) => (
+                    <Pressable
+                      key={t.key}
+                      className="flex-1 bg-surface border border-border rounded-2xl py-4 items-center gap-2"
+                      onPress={() => {
+                        const nb = newBlock(t.label);
+                        setSections((prev) => [...prev, nb]);
+                        setOpenBlockId(nb.localId);
+                      }}
+                    >
+                      <Ionicons name={t.icon} size={24} color={colors.accent} />
+                      <Text className="text-foreground text-sm font-semibold">
+                        {t.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+                <View className="flex-row gap-3">
+                  {QUICK_START_TEMPLATES.slice(2).map((t) => (
+                    <Pressable
+                      key={t.key}
+                      className="flex-1 bg-surface border border-border rounded-2xl py-4 items-center gap-2"
+                      onPress={() => {
+                        const nb = newBlock(t.label);
+                        setSections((prev) => [...prev, nb]);
+                        setOpenBlockId(nb.localId);
+                      }}
+                    >
+                      <Ionicons name={t.icon} size={24} color={colors.accent} />
+                      <Text className="text-foreground text-sm font-semibold">
+                        {t.label}
+                      </Text>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
+
+              <Pressable
+                className="flex-row items-center gap-1.5"
+                onPress={() => {
+                  const nb = newBlock();
+                  setSections((prev) => [...prev, nb]);
+                  setOpenBlockId(nb.localId);
+                }}
+              >
+                <Ionicons name="add" size={16} color={colors.muted} />
+                <Text className="text-muted text-sm">Add empty block</Text>
+              </Pressable>
+            </View>
+          ) : (
+            /* Add Block button (shown once blocks exist) */
+            <Pressable
+              className="border border-dashed border-border rounded-2xl py-4 items-center flex-row justify-center gap-2"
+              onPress={() => {
+                const nb = newBlock();
+                setSections((prev) => [...prev, nb]);
+                setOpenBlockId(nb.localId);
+              }}
+            >
+              <Ionicons name="add" size={18} color={colors.accent} />
+              <Text className="text-accent text-sm font-semibold">
+                Add Block
+              </Text>
+            </Pressable>
+          )}
         </View>
       </ScrollView>
 
@@ -327,55 +396,12 @@ export default function NewWorkoutScreen() {
         />
       </View>
 
-      {/* Date picker */}
-      {Platform.OS === "ios" ? (
-        <Modal
-          visible={showDatePicker}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setShowDatePicker(false)}
-        >
-          <Pressable
-            className="flex-1 justify-end bg-black/50"
-            onPress={() => setShowDatePicker(false)}
-          >
-            <Pressable
-              className="bg-surface rounded-t-3xl pb-10"
-              onPress={(e) => e.stopPropagation()}
-            >
-              <View className="flex-row justify-between items-center px-4 py-3 border-b border-border">
-                <Text className="text-foreground font-semibold">
-                  Select Date
-                </Text>
-                <Pressable onPress={() => setShowDatePicker(false)}>
-                  <Text className="text-accent font-semibold">Done</Text>
-                </Pressable>
-              </View>
-              <DateTimePicker
-                value={scheduledDate}
-                mode="date"
-                display="inline"
-                onChange={(_e: DateTimePickerEvent, date?: Date) => {
-                  if (date) setScheduledDate(date);
-                }}
-                themeVariant="dark"
-              />
-            </Pressable>
-          </Pressable>
-        </Modal>
-      ) : (
-        showDatePicker && (
-          <DateTimePicker
-            value={scheduledDate}
-            mode="date"
-            display="default"
-            onChange={(_e: DateTimePickerEvent, date?: Date) => {
-              setShowDatePicker(false);
-              if (date) setScheduledDate(date);
-            }}
-          />
-        )
-      )}
+      <CalendarPickerModal
+        visible={showDatePicker}
+        value={scheduledDate}
+        onClose={() => setShowDatePicker(false)}
+        onChange={setScheduledDate}
+      />
 
       <WorkoutPreviewModal
         visible={showPreview}

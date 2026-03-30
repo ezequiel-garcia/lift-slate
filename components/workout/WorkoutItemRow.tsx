@@ -53,15 +53,8 @@ export function WorkoutItemRow({
         className="flex-row items-center py-2.5 px-2 rounded-xl active:bg-surface2"
         onPress={onToggleExpand}
       >
-        <Ionicons
-          name={
-            item.itemType === "exercise" ? "barbell-outline" : "create-outline"
-          }
-          size={16}
-          color={hasName ? colors.accent : colors.muted}
-        />
         <Text
-          className={`flex-1 ml-2.5 text-sm ${hasName ? "text-foreground" : "text-muted"}`}
+          className={`flex-1 text-sm ${hasName ? "text-foreground" : "text-muted"}`}
           numberOfLines={1}
         >
           {name}

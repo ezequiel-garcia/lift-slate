@@ -56,8 +56,7 @@
           "project": "liftslate",
           "url": "https://sentry.io/"
         }
-      ],
-      "@react-native-community/datetimepicker"
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

@@ -1,14 +1,7 @@
 import { colors } from "@/lib/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  Platform,
-  Pressable,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { Alert, Pressable, Text, TextInput, View } from "react-native";
 import { ExercisePickerModal } from "./ExercisePickerModal";
 import { ItemFormData, SectionFormData } from "./types";
 import { WorkoutItemRow } from "./WorkoutItemRow";
@@ -168,20 +161,11 @@ export function WorkoutSectionCard({
             </Pressable>
           ) : (
             <TextInput
-              className="flex-1 text-foreground text-base font-semibold min-w-0"
+              className="flex-1 text-foreground min-w-0 text-[16px] font-semibold py-0"
               placeholder="Block name..."
               placeholderTextColor={colors.muted}
               value={section.title}
               onChangeText={(v) => onUpdate({ ...section, title: v })}
-              style={{
-                // Keep placeholder and typed text on the same vertical baseline (RN quirk).
-                lineHeight: 22,
-                paddingVertical: 8,
-                ...(Platform.OS === "android" && {
-                  textAlignVertical: "center",
-                  includeFontPadding: false,
-                }),
-              }}
             />
           )}
 
@@ -236,7 +220,7 @@ export function WorkoutSectionCard({
             >
               <Ionicons name="add" size={16} color={colors.accent} />
               <Text className="text-accent text-sm font-semibold">
-                Add exercise
+                Add another exercise
               </Text>
             </Pressable>
             <Pressable
@@ -245,7 +229,7 @@ export function WorkoutSectionCard({
             >
               <Ionicons name="add" size={16} color={colors.muted} />
               <Text className="text-muted text-sm font-semibold">
-                Custom exercise
+                Another custom exercise
               </Text>
             </Pressable>
           </View>

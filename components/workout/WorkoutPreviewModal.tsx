@@ -1,6 +1,4 @@
 import { Modal, View, Text, Pressable, ScrollView } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { colors } from "@/lib/theme";
 import { SectionFormData } from "./types";
 
 type Props = {
@@ -86,16 +84,7 @@ export function WorkoutPreviewModal({
 
                       return (
                         <View key={item.localId} className="py-3">
-                          <View className="flex-row items-center gap-1.5">
-                            <Ionicons
-                              name={
-                                item.itemType === "exercise"
-                                  ? "barbell-outline"
-                                  : "create-outline"
-                              }
-                              size={14}
-                              color={colors.accent}
-                            />
+                          <View className="flex-row items-center">
                             <Text className="text-foreground text-[15px] flex-1">
                               <Text className="font-semibold">{name}</Text>
                               {setsReps && (
@@ -109,7 +98,7 @@ export function WorkoutPreviewModal({
                             </Text>
                           </View>
                           {!!item.notes && (
-                            <Text className="text-muted text-sm mt-1 ml-5">
+                            <Text className="text-muted text-sm mt-1">
                               {item.notes}
                             </Text>
                           )}
