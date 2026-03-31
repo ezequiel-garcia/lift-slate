@@ -8,6 +8,7 @@ import { useDeleteExerciseMaxes, useDeleteMax } from "@/hooks/useMaxes";
 import { CalculatorTab } from "@/components/calculator/CalculatorTab";
 import { HistoryTab } from "@/components/history/HistoryTab";
 import { AddMaxModal } from "@/components/exercises/AddMaxModal";
+import { PRCelebrationModal } from "@/components/exercises/PRCelebrationModal";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { colors } from "@/lib/theme";
@@ -28,6 +29,11 @@ export default function ExerciseDetailScreen() {
 
   const [activeTab, setActiveTab] = useState<Tab>("calculator");
   const [addModalVisible, setAddModalVisible] = useState(false);
+  const [prVisible, setPrVisible] = useState(false);
+  const [prWeightKg, setPrWeightKg] = useState(0);
+  const [prPreviousWeightKg, setPrPreviousWeightKg] = useState<
+    number | undefined
+  >(undefined);
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -155,7 +161,22 @@ export default function ExerciseDetailScreen() {
         visible={addModalVisible}
         exerciseId={id}
         unit={unit}
+        currentMaxKg={currentMax?.weight_kg ?? undefined}
         onClose={() => setAddModalVisible(false)}
+        onPR={(kg) => {
+          setPrPreviousWeightKg(currentMax?.weight_kg ?? undefined);
+          setPrWeightKg(kg);
+          setPrVisible(true);
+        }}
+      />
+      <PRCelebrationModal
+        visible={prVisible}
+        exerciseName={exercise?.name ?? ""}
+        newWeightKg={prWeightKg}
+        previousWeightKg={prPreviousWeightKg}
+        unit={unit}
+        onClose={() => setPrVisible(false)}
+        onViewHistory={() => setActiveTab("history")}
       />
     </SafeAreaView>
   );

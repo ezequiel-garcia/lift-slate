@@ -14,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createMax } from "@/services/maxes.service";
 import { upsertExerciseNote } from "@/services/exercise_notes.service";
-import { WeightUnit, formatWeight } from "@/lib/units";
+import { WeightUnit, formatWeight, toKg } from "@/lib/units";
 import { estimate1RM, MAX_RELIABLE_REPS } from "@/lib/estimate";
 import { useAppStore } from "@/stores/appStore";
 import { colors } from "@/lib/theme";
@@ -31,10 +31,19 @@ type Props = {
   visible: boolean;
   exerciseId: string;
   unit: WeightUnit;
+  currentMaxKg?: number;
   onClose: () => void;
+  onPR?: (newWeightKg: number) => void;
 };
 
-export function AddMaxModal({ visible, exerciseId, unit, onClose }: Props) {
+export function AddMaxModal({
+  visible,
+  exerciseId,
+  unit,
+  currentMaxKg,
+  onClose,
+  onPR,
+}: Props) {
   const [mode, setMode] = useState<EntryMode>("direct");
   const [weight, setWeight] = useState("");
   const [reps, setReps] = useState("");
@@ -56,7 +65,7 @@ export function AddMaxModal({ visible, exerciseId, unit, onClose }: Props) {
   const mutation = useMutation({
     mutationFn: async () => {
       const submitWeight = mode === "direct" ? weightNum : estimated1RM;
-      if (submitWeight == null || submitWeight <= 0) return;
+      if (submitWeight == null || submitWeight <= 0) return { submittedKg: 0 };
 
       const autoNote =
         mode === "estimate" && weightValid && repsValid
@@ -77,8 +86,10 @@ export function AddMaxModal({ visible, exerciseId, unit, onClose }: Props) {
       if (combinedNotes) {
         await upsertExerciseNote(exerciseId, combinedNotes);
       }
+      return { submittedKg: toKg(submitWeight, unit) };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      const submittedKg = data?.submittedKg ?? 0;
       queryClient.invalidateQueries({ queryKey: ["maxes"] });
       queryClient.invalidateQueries({
         queryKey: ["maxes", "history", exerciseId],
@@ -86,8 +97,14 @@ export function AddMaxModal({ visible, exerciseId, unit, onClose }: Props) {
       queryClient.invalidateQueries({
         queryKey: ["exercise_note", exerciseId],
       });
-      showToast("Max saved!");
-      handleClose();
+      const isPR = currentMaxKg == null || submittedKg > currentMaxKg;
+      if (isPR && onPR) {
+        handleClose();
+        onPR(submittedKg);
+      } else {
+        showToast("Max saved!");
+        handleClose();
+      }
     },
   });
 
