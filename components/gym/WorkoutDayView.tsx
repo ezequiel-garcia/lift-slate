@@ -83,14 +83,17 @@ function StructuredItem({
 
   return (
     <View className="py-3">
-      <Text className="text-foreground text-base font-semibold mb-1">
-        {exerciseName}
-      </Text>
-      <View className="flex-row items-center gap-2 flex-wrap">
-        {setsReps && <Text className="text-muted text-sm">{setsReps}</Text>}
-        {setsReps && weightLine && (
-          <Text className="text-border text-sm">·</Text>
+      <View className="flex-row items-baseline flex-wrap">
+        <Text className="text-foreground text-base font-semibold">
+          {exerciseName}
+        </Text>
+        {setsReps && (
+          <Text className="text-muted text-sm">
+            {" · "}
+            {setsReps}
+          </Text>
         )}
+        {weightLine && <Text className="text-muted text-sm">{" · "}</Text>}
         {weightLine}
       </View>
       {noMax && item.exercise_id && (
@@ -124,10 +127,17 @@ function CustomExerciseItem({ item }: { item: WorkoutItem }) {
 
   return (
     <View className="py-3">
-      <Text className="text-foreground text-base font-semibold mb-1">
-        {item.content || "Custom Exercise"}
-      </Text>
-      {setsReps && <Text className="text-muted text-sm">{setsReps}</Text>}
+      <View className="flex-row items-baseline flex-wrap">
+        <Text className="text-foreground text-base font-semibold">
+          {item.content || "Custom Exercise"}
+        </Text>
+        {setsReps && (
+          <Text className="text-muted text-sm">
+            {" · "}
+            {setsReps}
+          </Text>
+        )}
+      </View>
       {!!item.notes && (
         <Text className="text-muted text-sm mt-1">{item.notes}</Text>
       )}

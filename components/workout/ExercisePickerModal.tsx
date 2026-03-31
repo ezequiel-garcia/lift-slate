@@ -1,6 +1,7 @@
 import { useExercises } from "@/hooks/useExercises";
 import { CATEGORY_LABELS } from "@/lib/constants";
 import { colors } from "@/lib/theme";
+import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
   FlatList,
@@ -15,9 +16,15 @@ type Props = {
   visible: boolean;
   onClose: () => void;
   onSelect: (exerciseId: string, exerciseName: string) => void;
+  onAddCustom?: (prefillText: string) => void;
 };
 
-export function ExercisePickerModal({ visible, onClose, onSelect }: Props) {
+export function ExercisePickerModal({
+  visible,
+  onClose,
+  onSelect,
+  onAddCustom,
+}: Props) {
   const [search, setSearch] = useState("");
   const { data: exercises = [] } = useExercises();
 
@@ -27,6 +34,12 @@ export function ExercisePickerModal({ visible, onClose, onSelect }: Props) {
 
   function handleSelect(exerciseId: string, exerciseName: string) {
     onSelect(exerciseId, exerciseName);
+    setSearch("");
+    onClose();
+  }
+
+  function handleAddCustom() {
+    onAddCustom?.(search.trim());
     setSearch("");
     onClose();
   }
@@ -58,6 +71,20 @@ export function ExercisePickerModal({ visible, onClose, onSelect }: Props) {
           />
         </View>
 
+        {onAddCustom && (
+          <Pressable
+            className="px-4 py-2.5 border-b border-border flex-row items-center gap-2 active:bg-surface"
+            onPress={handleAddCustom}
+          >
+            <Ionicons name="create-outline" size={16} color={colors.muted} />
+            <Text className="text-muted text-sm" numberOfLines={1}>
+              {search.trim()
+                ? `Add "${search.trim()}" as custom exercise`
+                : "Add custom exercise"}
+            </Text>
+          </Pressable>
+        )}
+
         <FlatList
           data={filtered}
           keyExtractor={(e) => e.id}
@@ -77,8 +104,27 @@ export function ExercisePickerModal({ visible, onClose, onSelect }: Props) {
             </Pressable>
           )}
           ListEmptyComponent={
-            <View className="py-12 items-center">
-              <Text className="text-muted text-sm">No exercises found</Text>
+            <View className="py-12 items-center px-4">
+              {search.trim() && onAddCustom ? (
+                <Pressable
+                  className="bg-accent/10 rounded-xl px-5 py-3.5 flex-row items-center gap-2"
+                  onPress={handleAddCustom}
+                >
+                  <Ionicons
+                    name="create-outline"
+                    size={18}
+                    color={colors.accent}
+                  />
+                  <Text
+                    className="text-accent text-sm font-semibold"
+                    numberOfLines={1}
+                  >
+                    Add "{search.trim()}" as custom exercise
+                  </Text>
+                </Pressable>
+              ) : (
+                <Text className="text-muted text-sm">No exercises found</Text>
+              )}
             </View>
           }
         />

@@ -99,8 +99,9 @@ export function WorkoutSectionCard({
     setExpandedItemId(item.localId);
   }
 
-  function addCustomExercise() {
+  function addCustomExercise(prefillText: string) {
     const item = newCustomItem();
+    item.content = prefillText || undefined;
     expandThisBlock();
     onUpdate({ ...section, items: [...section.items, item] });
     setExpandedItemId(item.localId);
@@ -212,24 +213,17 @@ export function WorkoutSectionCard({
             )}
           </View>
 
-          {/* Add exercise buttons */}
-          <View className="px-3 pb-3 flex-row gap-2">
+          {/* Add exercise button */}
+          <View className="px-3 pb-3">
             <Pressable
-              className="flex-1 flex-row items-center justify-center gap-1.5 bg-accent/10 rounded-xl py-3"
+              className="flex-row items-center justify-center gap-1.5 bg-accent/10 rounded-xl py-3"
               onPress={() => setShowExercisePicker(true)}
             >
               <Ionicons name="add" size={16} color={colors.accent} />
               <Text className="text-accent text-sm font-semibold">
-                Add another exercise
-              </Text>
-            </Pressable>
-            <Pressable
-              className="flex-1 flex-row items-center justify-center gap-1.5 bg-surface2 rounded-xl py-3"
-              onPress={addCustomExercise}
-            >
-              <Ionicons name="add" size={16} color={colors.muted} />
-              <Text className="text-muted text-sm font-semibold">
-                Another custom exercise
+                {section.items.length > 0
+                  ? "Add another exercise"
+                  : "Add exercise"}
               </Text>
             </Pressable>
           </View>
@@ -240,6 +234,7 @@ export function WorkoutSectionCard({
         visible={showExercisePicker}
         onClose={() => setShowExercisePicker(false)}
         onSelect={addExercise}
+        onAddCustom={addCustomExercise}
       />
     </View>
   );
