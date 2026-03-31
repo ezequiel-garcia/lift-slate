@@ -6,6 +6,8 @@ export const EXERCISE_CATEGORIES = [
   { value: "pull" as const, label: "Pull" },
   { value: "olympic" as const, label: "Olympic" },
   { value: "accessory" as const, label: "Accessory" },
+  { value: "core" as const, label: "Core" },
+  { value: "conditioning" as const, label: "Conditioning" },
 ];
 
 export const CATEGORY_ORDER = EXERCISE_CATEGORIES.map((c) => c.value);

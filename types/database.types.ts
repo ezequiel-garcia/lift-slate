@@ -513,7 +513,14 @@ export type Database = {
       };
     };
     Enums: {
-      exercise_category: "squat" | "press" | "pull" | "olympic" | "accessory";
+      exercise_category:
+        | "squat"
+        | "press"
+        | "pull"
+        | "olympic"
+        | "accessory"
+        | "core"
+        | "conditioning";
       gym_membership_role: "athlete" | "coach" | "admin";
       max_source: "manual" | "workout_log" | "coach";
       subscription_plan: "free" | "trial" | "pro";
@@ -650,7 +657,15 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      exercise_category: ["squat", "press", "pull", "olympic", "accessory"],
+      exercise_category: [
+        "squat",
+        "press",
+        "pull",
+        "olympic",
+        "accessory",
+        "core",
+        "conditioning",
+      ],
       gym_membership_role: ["athlete", "coach", "admin"],
       max_source: ["manual", "workout_log", "coach"],
       subscription_plan: ["free", "trial", "pro"],

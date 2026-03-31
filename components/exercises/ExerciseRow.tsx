@@ -25,6 +25,8 @@ const CATEGORY_ICON: Record<
   pull: { name: "arrow-down", bg: "#1E1028", color: "#C88AFF" },
   olympic: { name: "trophy", bg: "#231E0A", color: "#FFD84A" },
   accessory: { name: "barbell", bg: "#122210", color: "#B4FF4A" },
+  core: { name: "body-outline", bg: "#0E1F1E", color: "#4ECDC4" },
+  conditioning: { name: "flame-outline", bg: "#1F0E0E", color: "#FF6B6B" },
 };
 
 function CategoryIcon({ category }: { category: ExerciseCategory | null }) {
