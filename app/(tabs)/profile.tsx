@@ -4,7 +4,6 @@ import {
   Text,
   Switch,
   ScrollView,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -17,7 +16,9 @@ import Constants from "expo-constants";
 
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useMyGym, useLeaveGym } from "@/hooks/useGym";
-import { signOut } from "@/services/auth.service";
+import { signOut, deleteAccount } from "@/services/auth.service";
+import { DeleteAccountModal } from "@/components/ui/DeleteAccountModal";
+import { LeaveGymModal } from "@/components/ui/LeaveGymModal";
 import { WeightUnit } from "@/lib/units";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Card } from "@/components/ui/Card";
@@ -34,6 +35,8 @@ export default function ProfileScreen() {
   const unit = (profile?.unit_preference ?? "kg") as WeightUnit;
 
   const [displayName, setDisplayName] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
 
   useEffect(() => {
     if (!profile) return;
@@ -57,35 +60,14 @@ export default function ProfileScreen() {
 
   function handleLeaveGym() {
     if (!gym?.membershipId) return;
-    Alert.alert("Leave Gym", `Are you sure you want to leave ${gym.name}?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Leave",
-        style: "destructive",
-        onPress: () =>
-          leaveGym(gym.membershipId!, {
-            onError: (err) => Alert.alert("Error", err.message),
-          }),
-      },
-    ]);
+    leaveGym(gym.membershipId!, {
+      onSuccess: () => setShowLeaveModal(false),
+    });
   }
 
   async function handleSignOut() {
-    Alert.alert("Sign Out", "Are you sure?", [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Sign Out",
-        style: "destructive",
-        onPress: async () => {
-          try {
-            await signOut();
-            router.replace("/(auth)/login");
-          } catch {
-            Alert.alert("Error", "Failed to sign out. Please try again.");
-          }
-        },
-      },
-    ]);
+    await signOut();
+    router.replace("/(auth)/login");
   }
 
   if (isLoading) {
@@ -180,7 +162,7 @@ export default function ProfileScreen() {
                       label="Leave"
                       variant="destructive"
                       size="sm"
-                      onPress={handleLeaveGym}
+                      onPress={() => setShowLeaveModal(true)}
                       disabled={isLeaving}
                     />
                   )}
@@ -218,25 +200,43 @@ export default function ProfileScreen() {
             </View>
           </Card>
 
-          <View className="mt-10 mx-5">
-            <Button
-              label="Sign Out"
-              variant="destructive"
+          <Card className="mx-5 mt-10">
+            <Pressable
               onPress={handleSignOut}
-              icon={
-                <Ionicons
-                  name="log-out-outline"
-                  size={18}
-                  color={colors.error}
-                />
-              }
-            />
-          </View>
+              className="px-4 py-4 flex-row items-center gap-3 active:opacity-60"
+            >
+              <Ionicons name="log-out-outline" size={18} color={colors.muted} />
+              <Text className="text-foreground text-[15px]">Sign Out</Text>
+            </Pressable>
+          </Card>
 
-          <View className="items-center mt-8">
+          <LeaveGymModal
+            visible={showLeaveModal}
+            gymName={gym?.name ?? ""}
+            onCancel={() => setShowLeaveModal(false)}
+            onConfirm={handleLeaveGym}
+            isLeaving={isLeaving}
+          />
+
+          <DeleteAccountModal
+            visible={showDeleteModal}
+            onCancel={() => setShowDeleteModal(false)}
+            onConfirmDelete={async () => {
+              await deleteAccount();
+              router.replace("/(auth)/login");
+            }}
+          />
+
+          <View className="items-center mt-8 gap-3">
             <Text className="text-muted text-caption">
               LiftSlate v{appVersion}
             </Text>
+            <Pressable
+              onPress={() => setShowDeleteModal(true)}
+              style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
+            >
+              <Text className="text-muted text-caption">Delete Account</Text>
+            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>

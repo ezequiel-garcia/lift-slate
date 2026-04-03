@@ -57,6 +57,28 @@ export async function signOut() {
   if (error) throw error;
 }
 
+export async function deleteAccount() {
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) throw new Error("Not authenticated");
+
+  const response = await fetch(
+    `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/delete-account`,
+    {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    },
+  );
+
+  if (!response.ok) {
+    const body = await response.json().catch(() => ({}));
+    throw new Error(body.error ?? "Failed to delete account");
+  }
+
+  await supabase.auth.signOut();
+}
+
 export async function getSession() {
   const {
     data: { session },
