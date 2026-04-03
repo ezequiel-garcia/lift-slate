@@ -25,6 +25,7 @@ interface Props {
   visible: boolean;
   onCancel: () => void;
   onConfirmDelete: () => Promise<void>;
+  isGymOwner?: boolean;
 }
 
 const SPRING = { damping: 28, stiffness: 200, mass: 0.8 };
@@ -44,6 +45,7 @@ export function DeleteAccountModal({
   visible,
   onCancel,
   onConfirmDelete,
+  isGymOwner,
 }: Props) {
   const insets = useSafeAreaInsets();
   const [confirmText, setConfirmText] = useState("");
@@ -55,7 +57,7 @@ export function DeleteAccountModal({
   const backdropOpacity = useSharedValue(0);
 
   const isConfirmed = confirmText.trim().toUpperCase() === CONFIRM_WORD;
-  const canDelete = isConfirmed && !isSubmitting;
+  const canDelete = isConfirmed && !isSubmitting && !isGymOwner;
 
   useEffect(() => {
     if (visible) {
@@ -169,101 +171,148 @@ export function DeleteAccountModal({
               Delete account
             </Text>
 
-            {/* Subtitle */}
-            <Text
-              style={{
-                color: colors.muted,
-                fontSize: 14,
-                lineHeight: 20,
-                textAlign: "center",
-                marginBottom: 16,
-              }}
-            >
-              This is permanent and cannot be undone.{"\n"}All your lifts,
-              history, and account data will be lost.
-            </Text>
-
-            {/* Consequences list */}
-            <View
-              style={{
-                backgroundColor: colors.surface2,
-                borderRadius: 12,
-                paddingVertical: 4,
-                marginBottom: 12,
-              }}
-            >
-              {CONSEQUENCES.map((item, i) => (
+            {isGymOwner ? (
+              <>
+                {/* Gym owner warning */}
                 <View
-                  key={item.icon}
                   style={{
+                    backgroundColor: colors.surface2,
+                    borderRadius: 12,
+                    padding: 16,
+                    marginBottom: 12,
                     flexDirection: "row",
-                    alignItems: "center",
-                    paddingHorizontal: 16,
-                    paddingVertical: 11,
                     gap: 12,
-                    borderBottomWidth: i < CONSEQUENCES.length - 1 ? 1 : 0,
-                    borderBottomColor: colors.border,
-                  }}
-                >
-                  <Ionicons name={item.icon} size={17} color={colors.muted} />
-                  <Text
-                    style={{ color: colors.foreground, fontSize: 14, flex: 1 }}
-                  >
-                    {item.label}
-                  </Text>
-                </View>
-              ))}
-            </View>
-
-            {/* Input */}
-            <View style={{ position: "relative" }}>
-              <TextInput
-                ref={inputRef}
-                value={confirmText}
-                onChangeText={setConfirmText}
-                placeholder="Type DELETE to confirm"
-                placeholderTextColor={colors.muted}
-                autoCapitalize="characters"
-                autoCorrect={false}
-                editable={!isSubmitting}
-                onSubmitEditing={handleConfirm}
-                returnKeyType="done"
-                style={{
-                  backgroundColor: colors.surface2,
-                  borderRadius: 12,
-                  paddingLeft: 14,
-                  paddingRight: isConfirmed ? 40 : 14,
-                  color: colors.foreground,
-                  fontSize: 15,
-                  fontWeight: "500",
-                  borderWidth: 1,
-                  borderColor: colors.border,
-                  height: 48,
-                }}
-              />
-              {isConfirmed && (
-                <View
-                  style={{
-                    position: "absolute",
-                    right: 14,
-                    top: 0,
-                    bottom: 0,
-                    justifyContent: "center",
+                    alignItems: "flex-start",
                   }}
                 >
                   <Ionicons
-                    name="checkmark-circle"
+                    name="alert-circle"
                     size={20}
-                    color={colors.muted}
+                    color={colors.error}
+                    style={{ marginTop: 1 }}
                   />
+                  <Text
+                    style={{
+                      color: colors.foreground,
+                      fontSize: 14,
+                      lineHeight: 20,
+                      flex: 1,
+                    }}
+                  >
+                    You are the owner of a gym. You must delete or transfer your
+                    gym before you can delete your account.
+                  </Text>
                 </View>
-              )}
-            </View>
+              </>
+            ) : (
+              <>
+                {/* Subtitle */}
+                <Text
+                  style={{
+                    color: colors.muted,
+                    fontSize: 14,
+                    lineHeight: 20,
+                    textAlign: "center",
+                    marginBottom: 16,
+                  }}
+                >
+                  This is permanent and cannot be undone.{"\n"}All your lifts,
+                  history, and account data will be lost.
+                </Text>
 
-            {error && (
-              <Text style={{ color: colors.error, fontSize: 13, marginTop: 6 }}>
-                {error}
-              </Text>
+                {/* Consequences list */}
+                <View
+                  style={{
+                    backgroundColor: colors.surface2,
+                    borderRadius: 12,
+                    paddingVertical: 4,
+                    marginBottom: 12,
+                  }}
+                >
+                  {CONSEQUENCES.map((item, i) => (
+                    <View
+                      key={item.icon}
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        paddingHorizontal: 16,
+                        paddingVertical: 11,
+                        gap: 12,
+                        borderBottomWidth: i < CONSEQUENCES.length - 1 ? 1 : 0,
+                        borderBottomColor: colors.border,
+                      }}
+                    >
+                      <Ionicons
+                        name={item.icon}
+                        size={17}
+                        color={colors.muted}
+                      />
+                      <Text
+                        style={{
+                          color: colors.foreground,
+                          fontSize: 14,
+                          flex: 1,
+                        }}
+                      >
+                        {item.label}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+
+                {/* Input */}
+                <View style={{ position: "relative" }}>
+                  <TextInput
+                    ref={inputRef}
+                    value={confirmText}
+                    onChangeText={setConfirmText}
+                    placeholder="Type DELETE to confirm"
+                    placeholderTextColor={colors.muted}
+                    autoCapitalize="characters"
+                    autoCorrect={false}
+                    editable={!isSubmitting}
+                    onSubmitEditing={handleConfirm}
+                    returnKeyType="done"
+                    style={{
+                      backgroundColor: colors.surface2,
+                      borderRadius: 12,
+                      paddingLeft: 14,
+                      paddingRight: isConfirmed ? 40 : 14,
+                      color: colors.foreground,
+                      fontSize: 15,
+                      fontWeight: "500",
+                      borderWidth: 1,
+                      borderColor: colors.border,
+                      height: 48,
+                    }}
+                  />
+                  {isConfirmed && (
+                    <View
+                      style={{
+                        position: "absolute",
+                        right: 14,
+                        top: 0,
+                        bottom: 0,
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Ionicons
+                        name="checkmark-circle"
+                        size={20}
+                        color={colors.muted}
+                      />
+                    </View>
+                  )}
+                </View>
+
+                {error && (
+                  <Text
+                    style={{ color: colors.error, fontSize: 13, marginTop: 6 }}
+                  >
+                    {error}
+                  </Text>
+                )}
+              </>
             )}
 
             {/* Spacer so content doesn't sit flush against the footer */}
@@ -279,48 +328,69 @@ export function DeleteAccountModal({
               gap: 10,
             }}
           >
-            {/* Primary — Delete account */}
-            <Pressable
-              onPress={handleConfirm}
-              disabled={!canDelete}
-              className={`h-[52px] rounded-2xl items-center justify-center active:opacity-85 ${isConfirmed ? "bg-error" : "bg-surface2"}`}
-            >
-              {isSubmitting ? (
-                <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
-                >
-                  <ActivityIndicator size="small" color="#fff" />
-                  <Text
-                    style={{ color: "#fff", fontSize: 16, fontWeight: "600" }}
-                  >
-                    Deleting…
-                  </Text>
-                </View>
-              ) : (
-                <Text
-                  className={`text-base font-semibold ${isConfirmed ? "text-white" : "text-muted"}`}
-                >
-                  Delete account
-                </Text>
-              )}
-            </Pressable>
-
-            {/* Secondary — Cancel */}
-            <Pressable
-              onPress={handleClose}
-              disabled={isSubmitting}
-              className={`h-[52px] rounded-2xl items-center justify-center bg-surface2 border border-border active:opacity-50 ${isSubmitting ? "opacity-50" : ""}`}
-            >
-              <Text
-                style={{
-                  color: colors.foreground,
-                  fontSize: 16,
-                  fontWeight: "600",
-                }}
+            {/* Primary action */}
+            {isGymOwner ? (
+              <Pressable
+                onPress={handleClose}
+                className="h-[52px] rounded-2xl items-center justify-center bg-surface2 active:opacity-85"
               >
-                Cancel
-              </Text>
-            </Pressable>
+                <Text className="text-base font-semibold text-foreground">
+                  Got it
+                </Text>
+              </Pressable>
+            ) : (
+              <Pressable
+                onPress={handleConfirm}
+                disabled={!canDelete}
+                className={`h-[52px] rounded-2xl items-center justify-center active:opacity-85 ${isConfirmed ? "bg-error" : "bg-surface2"}`}
+              >
+                {isSubmitting ? (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 8,
+                    }}
+                  >
+                    <ActivityIndicator size="small" color="#fff" />
+                    <Text
+                      style={{
+                        color: "#fff",
+                        fontSize: 16,
+                        fontWeight: "600",
+                      }}
+                    >
+                      Deleting…
+                    </Text>
+                  </View>
+                ) : (
+                  <Text
+                    className={`text-base font-semibold ${isConfirmed ? "text-white" : "text-muted"}`}
+                  >
+                    Delete account
+                  </Text>
+                )}
+              </Pressable>
+            )}
+
+            {/* Secondary — Cancel (hidden for gym owners since "Got it" closes) */}
+            {!isGymOwner && (
+              <Pressable
+                onPress={handleClose}
+                disabled={isSubmitting}
+                className={`h-[52px] rounded-2xl items-center justify-center bg-surface2 border border-border active:opacity-50 ${isSubmitting ? "opacity-50" : ""}`}
+              >
+                <Text
+                  style={{
+                    color: colors.foreground,
+                    fontSize: 16,
+                    fontWeight: "600",
+                  }}
+                >
+                  Cancel
+                </Text>
+              </Pressable>
+            )}
           </View>
         </Animated.View>
       </KeyboardAvoidingView>

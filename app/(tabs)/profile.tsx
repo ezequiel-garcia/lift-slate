@@ -225,6 +225,7 @@ export default function ProfileScreen() {
               await deleteAccount();
               router.replace("/(auth)/login");
             }}
+            isGymOwner={gym?.myRole === "admin"}
           />
 
           <View className="items-center mt-8 gap-3">
