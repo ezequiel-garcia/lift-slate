@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "LiftSlate",
-    "slug": "LiftSlate",
+    "slug": "liftslate",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -61,6 +61,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "01067df9-46df-43f2-83a1-694e44f71793"
+      }
+    },
+    "owner": "iekekel"
   }
 }
