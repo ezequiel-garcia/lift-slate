@@ -23,6 +23,7 @@
         }
         h1 { font-size: 1.75rem; margin-bottom: 0.25rem; }
         h2 { font-size: 1.25rem; margin-top: 2rem; margin-bottom: 0.75rem; color: #111; }
+        h3 { font-size: 1.05rem; margin-top: 1.25rem; margin-bottom: 0.5rem; color: #222; }
         p, li { font-size: 0.95rem; color: #333; margin-bottom: 0.5rem; }
         ul { padding-left: 1.5rem; margin-bottom: 1rem; }
         .effective-date { color: #666; font-size: 0.9rem; margin-bottom: 2rem; }
@@ -41,42 +42,63 @@
         <h2>1. Information We Collect</h2>
         <p>We collect the following information to provide and improve the app:</p>
 
-        <p><strong>Account Information</strong></p>
+        <h3>a) Account Information</h3>
         <ul>
             <li>Email address</li>
             <li>Display name</li>
             <li>Authentication credentials (securely managed by our authentication provider)</li>
         </ul>
 
-        <p><strong>User-Generated Content</strong></p>
+        <h3>b) Fitness and Exercise Data</h3>
         <ul>
             <li>Exercise data and lift records (max weights, sets, reps, percentages)</li>
             <li>Workout logs and history</li>
-            <li>Unit preferences and app settings</li>
-            <li>Gym information (name, description, logo image) if you create or join a gym</li>
-            <li>Gym membership and role information</li>
             <li>Notes added to exercises or workouts</li>
         </ul>
+        <p>This data is used exclusively for app functionality (tracking your lifts and calculating training weights). It is not used for health analysis, diagnostics, or shared with health platforms.</p>
 
-        <p><strong>Automatically Collected Information</strong></p>
+        <h3>c) Gym and Membership Data</h3>
+        <ul>
+            <li>Gym information (name, description, logo image) if you create or join a gym</li>
+            <li>Gym membership and role information (athlete, coach, admin)</li>
+        </ul>
+
+        <h3>d) Preferences</h3>
+        <ul>
+            <li>Unit preference (kg or lbs)</li>
+            <li>Rounding increment settings</li>
+        </ul>
+
+        <h3>e) Automatically Collected Information</h3>
         <ul>
             <li>Device type and operating system version</li>
             <li>App crash reports and error logs (via Sentry)</li>
-            <li>General app usage patterns for performance monitoring</li>
+            <li>General app performance metrics</li>
         </ul>
 
-        <h2>2. How We Use Your Information</h2>
+        <h2>2. Information We Do NOT Collect</h2>
+        <ul>
+            <li>We do not collect your location data.</li>
+            <li>We do not collect biometric data.</li>
+            <li>We do not collect financial or payment information.</li>
+            <li>We do not use advertising identifiers or tracking pixels.</li>
+            <li>We do not access your device contacts, camera, or microphone (camera access is only requested if you choose to upload a gym logo via the photo library).</li>
+            <li>We do not integrate with Apple HealthKit, Google Health Connect, or any health platform.</li>
+        </ul>
+
+        <h2>3. How We Use Your Information</h2>
         <p>We use your information solely to:</p>
         <ul>
             <li>Provide the core app functionality (tracking lifts, calculating training weights, managing workouts)</li>
             <li>Authenticate your account and maintain your session</li>
             <li>Enable gym features (creating, joining, and managing gyms)</li>
+            <li>Send essential account-related communications (e.g., password resets, security alerts)</li>
             <li>Monitor and fix app errors and crashes</li>
             <li>Improve app performance and reliability</li>
         </ul>
-        <p>We do <strong>not</strong> use your information for advertising, marketing, or profiling purposes. We do <strong>not</strong> sell, rent, or trade your personal information to third parties.</p>
+        <p>We do <strong>not</strong> use your information for advertising, marketing, profiling, or training AI/ML models. We do <strong>not</strong> sell, rent, or trade your personal information to third parties.</p>
 
-        <h2>3. Third-Party Services</h2>
+        <h2>4. Third-Party Services</h2>
         <p>We use the following third-party services to operate the app:</p>
         <ul>
             <li><strong>Supabase</strong> (database and authentication) — stores your account and app data on secure cloud servers hosted on Amazon Web Services (AWS) in the Asia Pacific (Mumbai) region. <a href="https://supabase.com/privacy">Supabase Privacy Policy</a>.</li>
@@ -84,61 +106,102 @@
             <li><strong>Google OAuth</strong> (optional sign-in) — if you choose to sign in with Google, Google processes your authentication. We only receive your email address and name. <a href="https://policies.google.com/privacy">Google Privacy Policy</a>.</li>
             <li><strong>Apple Sign-In</strong> (optional sign-in) — if you choose to sign in with Apple, Apple processes your authentication. You may choose to hide your email. <a href="https://www.apple.com/legal/privacy/">Apple Privacy Policy</a>.</li>
         </ul>
-        <p>These services have their own privacy policies and handle data according to their respective terms.</p>
+        <p>These services have their own privacy policies and handle data according to their respective terms. We do not control how these third parties process your data beyond what is necessary for the app to function.</p>
 
-        <h2>4. Data Storage and Security</h2>
+        <h2>5. Data Storage and Security</h2>
         <ul>
             <li>All data is transmitted over encrypted connections (TLS/HTTPS).</li>
-            <li>Your data is stored on Supabase-managed servers hosted on AWS infrastructure.</li>
-            <li>Authentication tokens are stored securely on your device using platform-native secure storage.</li>
+            <li>Your data is stored on Supabase-managed servers hosted on AWS infrastructure in the Asia Pacific (Mumbai) region.</li>
+            <li>Authentication tokens are stored securely on your device using platform-native secure storage (Keychain on iOS, Keystore on Android).</li>
             <li>Database access is controlled through row-level security policies, ensuring users can only access their own data.</li>
+            <li>We restrict internal access to user data to only what is necessary for operating and maintaining the service.</li>
         </ul>
-        <p>While we take reasonable measures to protect your data, no method of electronic transmission or storage is 100% secure.</p>
+        <p>While we take reasonable measures to protect your data, no method of electronic transmission or storage is 100% secure. We cannot guarantee absolute security.</p>
 
-        <h2>5. Data Sharing</h2>
+        <h2>6. Data Retention</h2>
+        <ul>
+            <li>Your data is retained for as long as your account is active.</li>
+            <li>When you delete your account, all your data is permanently deleted immediately from our servers. This action is irreversible.</li>
+            <li>Anonymized crash and error data retained by Sentry may persist according to Sentry's own retention policies, but this data cannot be linked back to your identity.</li>
+        </ul>
+
+        <h2>7. Data Sharing</h2>
         <p>Your data is shared only in the following limited circumstances:</p>
         <ul>
             <li><strong>Within your gym:</strong> If you join a gym, your display name and role are visible to other gym members. Coaches and admins in your gym may view workouts assigned to you.</li>
             <li><strong>Error reports:</strong> Anonymized crash and error data is sent to Sentry for debugging purposes.</li>
+            <li><strong>Legal requirements:</strong> We may disclose your information if required by law, court order, or governmental authority.</li>
         </ul>
         <p>We do not share your exercise data, lift records, or personal information with any other parties.</p>
 
-        <h2>6. Your Rights</h2>
-        <p>You have the right to:</p>
+        <h2>8. Your Rights</h2>
+        <p>Regardless of your location, you have the right to:</p>
         <ul>
             <li><strong>Access</strong> your data — all your data is visible within the app.</li>
             <li><strong>Correct</strong> your data — you can update your profile, exercises, and maxes at any time.</li>
-            <li><strong>Delete</strong> your data — you can permanently delete your account and all associated data from the Profile screen in the app. Deletion is immediate and irreversible.</li>
-            <li><strong>Data portability</strong> — contact us to request a copy of your data.</li>
+            <li><strong>Delete</strong> your data — you can permanently delete your account and all associated data from the Profile screen in the app, or by contacting us.</li>
+            <li><strong>Data portability</strong> — contact us to request a copy of your data in a machine-readable format.</li>
+            <li><strong>Withdraw consent</strong> — you may stop using the app and request deletion at any time.</li>
         </ul>
+        <p>To exercise any of these rights, contact us at <a href="mailto:liftslate.support@gmail.com">liftslate.support@gmail.com</a>.</p>
 
-        <h2>7. Account Deletion</h2>
+        <h2>9. Account Deletion</h2>
         <p>You can delete your account at any time from the Profile screen within the app. When you delete your account:</p>
         <ul>
             <li>Your profile information is permanently removed.</li>
             <li>All your exercise data, lift records, and workout history are permanently deleted.</li>
             <li>Your gym memberships are removed.</li>
+            <li>If you signed in with Apple, your Apple token is revoked.</li>
             <li>This action is immediate and cannot be undone.</li>
         </ul>
-        <p>If you are unable to access the app, you may request account deletion by contacting us at <a href="mailto:liftslate.support@gmail.com">liftslate.support@gmail.com</a>.</p>
+        <p>If you are unable to access the app, you may request account deletion by emailing <a href="mailto:liftslate.support@gmail.com">liftslate.support@gmail.com</a> or visiting our <a href="./account-deletion.html">Account Deletion page</a>. Requests will be processed within 7 business days.</p>
 
-        <h2>8. Children's Privacy</h2>
-        <p>LiftSlate is not directed at children under the age of 13. We do not knowingly collect personal information from children under 13. If you believe a child under 13 has provided us with personal information, please contact us and we will delete it promptly.</p>
+        <h2>10. Children's Privacy</h2>
+        <p>LiftSlate is not directed at children under the age of 13 (or 16 in the European Economic Area). We do not knowingly collect personal information from children under these ages. If you believe a child has provided us with personal information, please contact us and we will delete it promptly.</p>
 
-        <h2>9. International Users</h2>
-        <p>If you are located in the European Economic Area (EEA), United Kingdom, or another jurisdiction with data protection laws:</p>
+        <h2>11. Third-Party Links</h2>
+        <p>The app may contain links to third-party websites or services (e.g., links in gym descriptions). We are not responsible for the privacy practices or content of those third-party services. We encourage you to review their privacy policies before providing any personal information.</p>
+
+        <h2>12. Do Not Track</h2>
+        <p>LiftSlate does not track users across third-party websites or apps. We do not respond to "Do Not Track" browser signals because we do not engage in cross-site tracking.</p>
+
+        <h2>13. Data Breach Notification</h2>
+        <p>In the event of a data breach that compromises your personal information, we will notify affected users via email within 72 hours of becoming aware of the breach, as required by applicable law. We will also notify relevant authorities where legally required.</p>
+
+        <h2>14. International Data Transfers</h2>
+        <p>Your data is stored on servers located in the Asia Pacific region (AWS Mumbai, India). If you are accessing the app from outside this region, your data will be transferred to and processed in this location.</p>
+        <p>By using the app, you consent to this transfer. We ensure that data is handled in accordance with this Privacy Policy regardless of where it is processed.</p>
+
+        <h2>15. European Economic Area (EEA) and UK Residents</h2>
+        <p>If you are located in the EEA or United Kingdom, the following additional rights and information apply under the General Data Protection Regulation (GDPR):</p>
         <ul>
-            <li>Our legal basis for processing your data is the performance of our contract with you (providing the app service) and your consent.</li>
-            <li>You may exercise your rights under applicable data protection laws (including GDPR) by contacting us.</li>
-            <li>Your data is stored on servers in the Asia Pacific region (AWS Mumbai). By using the app, you consent to this transfer.</li>
+            <li><strong>Legal basis for processing:</strong> We process your data based on (a) the performance of our contract with you (providing the app service), and (b) your consent, which you may withdraw at any time.</li>
+            <li><strong>Right to restrict processing:</strong> You may request that we limit the processing of your data.</li>
+            <li><strong>Right to object:</strong> You may object to our processing of your personal data.</li>
+            <li><strong>Right to lodge a complaint:</strong> You have the right to file a complaint with your local data protection supervisory authority.</li>
+            <li><strong>Data transfers:</strong> Your data is transferred outside the EEA to AWS servers in Mumbai. We rely on your explicit consent for this transfer.</li>
         </ul>
 
-        <h2>10. Changes to This Policy</h2>
-        <p>We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated effective date. Continued use of the app after changes constitutes acceptance of the updated policy.</p>
+        <h2>16. California Residents</h2>
+        <p>If you are a California resident, you have the following additional rights under the California Consumer Privacy Act (CCPA/CPRA):</p>
+        <ul>
+            <li><strong>Right to know:</strong> You may request details about the categories and specific pieces of personal information we collect.</li>
+            <li><strong>Right to delete:</strong> You may request deletion of your personal information.</li>
+            <li><strong>Right to opt-out of sale:</strong> We do not sell your personal information. No opt-out is necessary.</li>
+            <li><strong>Non-discrimination:</strong> We will not discriminate against you for exercising your privacy rights.</li>
+        </ul>
+        <p>To exercise these rights, contact <a href="mailto:liftslate.support@gmail.com">liftslate.support@gmail.com</a>.</p>
 
-        <h2>11. Contact Us</h2>
-        <p>If you have questions about this Privacy Policy or your data, contact us at:</p>
-        <p><a href="mailto:liftslate.support@gmail.com">liftslate.support@gmail.com</a></p>
+        <h2>17. Israeli Residents</h2>
+        <p>If you are a resident of Israel, you have rights under the Protection of Privacy Law, 5741-1981, including the right to access, correct, and request deletion of your personal data. Your data may be transferred and stored outside of Israel as described in Section 14. To exercise your rights, contact us at <a href="mailto:liftslate.support@gmail.com">liftslate.support@gmail.com</a>.</p>
+
+        <h2>18. Changes to This Policy</h2>
+        <p>We may update this Privacy Policy from time to time. Changes will be posted on this page with an updated effective date. For material changes, we will make reasonable efforts to notify you via email or in-app notification. Continued use of the app after changes constitutes acceptance of the updated policy.</p>
+
+        <h2>19. Contact Us</h2>
+        <p>If you have questions about this Privacy Policy, your data, or wish to exercise any of your rights, contact us at:</p>
+        <p><strong>Ezequiel Garcia</strong><br>
+        Email: <a href="mailto:liftslate.support@gmail.com">liftslate.support@gmail.com</a></p>
 
         <div class="footer">
             &copy; 2026 Ezequiel Garcia. All rights reserved.
