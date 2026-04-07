@@ -4,9 +4,9 @@ import {
   Text,
   ScrollView,
   Pressable,
-  Alert,
   ActivityIndicator,
 } from "react-native";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { isValidUUID } from "@/lib/constants";
@@ -79,6 +79,8 @@ export default function GymMembersScreen() {
   const reduceMotion = useReducedMotion();
 
   const [search, setSearch] = useState("");
+  const [pendingMember, setPendingMember] = useState<GymMember | null>(null);
+  const [modalType, setModalType] = useState<"role" | "remove" | null>(null);
 
   const isAdmin = gym?.myRole === "admin";
   const isCoachOrAdmin = gym?.myRole === "coach" || gym?.myRole === "admin";
@@ -108,34 +110,31 @@ export default function GymMembersScreen() {
   const coachCount = members?.filter((m) => m.role === "coach").length ?? 0;
 
   function handleRoleToggle(member: GymMember) {
-    const newRole = member.role === "coach" ? "athlete" : "coach";
-    const label = newRole === "coach" ? "Make Coach" : "Make Athlete";
-    Alert.alert(
-      label,
-      `Make ${member.users?.display_name ?? "this member"} a ${newRole}?`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: label,
-          onPress: () => updateRole({ membershipId: member.id, newRole }),
-        },
-      ],
-    );
+    setPendingMember(member);
+    setModalType("role");
   }
 
   function handleRemove(member: GymMember) {
-    Alert.alert(
-      "Remove Member",
-      `Remove ${member.users?.display_name ?? member.users?.email ?? "this member"} from the gym? They will need to rejoin with an invite link.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Remove",
-          style: "destructive",
-          onPress: () => removeMember(member.id),
-        },
-      ],
-    );
+    setPendingMember(member);
+    setModalType("remove");
+  }
+
+  function handleModalCancel() {
+    setPendingMember(null);
+    setModalType(null);
+  }
+
+  function handleModalConfirm() {
+    if (!pendingMember) return;
+    if (modalType === "role") {
+      const newRole = pendingMember.role === "coach" ? "athlete" : "coach";
+      updateRole(
+        { membershipId: pendingMember.id, newRole },
+        { onSettled: handleModalCancel },
+      );
+    } else if (modalType === "remove") {
+      removeMember(pendingMember.id, { onSettled: handleModalCancel });
+    }
   }
 
   return (
@@ -283,6 +282,28 @@ export default function GymMembersScreen() {
           )}
         </ScrollView>
       )}
+      <ConfirmModal
+        visible={modalType === "role" && !!pendingMember}
+        title={pendingMember?.role === "coach" ? "Make Athlete" : "Make Coach"}
+        message={`Make ${pendingMember?.users?.display_name ?? "this member"} a ${pendingMember?.role === "coach" ? "athlete" : "coach"}?`}
+        confirmLabel={
+          pendingMember?.role === "coach" ? "Make Athlete" : "Make Coach"
+        }
+        variant="primary"
+        onCancel={handleModalCancel}
+        onConfirm={handleModalConfirm}
+        isPending={updatingRole}
+      />
+      <ConfirmModal
+        visible={modalType === "remove" && !!pendingMember}
+        title="Remove Member"
+        message={`Remove ${pendingMember?.users?.display_name ?? pendingMember?.users?.email ?? "this member"} from the gym? They will need to rejoin with an invite link.`}
+        confirmLabel="Remove"
+        variant="destructive"
+        onCancel={handleModalCancel}
+        onConfirm={handleModalConfirm}
+        isPending={removing}
+      />
     </SafeAreaView>
   );
 }

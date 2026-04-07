@@ -72,7 +72,7 @@ export function AthleteMaxRow({
       </Text>
       {onPress && (
         <Ionicons
-          name="create-outline"
+          name="pencil-outline"
           size={16}
           color="#3F3F46"
           style={{ marginLeft: 6 }}

@@ -70,6 +70,7 @@ export default function GymSettingsScreen() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [address, setAddress] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [countdown, setCountdown] = useState("");
 
@@ -92,22 +93,32 @@ export default function GymSettingsScreen() {
     return () => clearInterval(id);
   }, [inviteDetails?.temp_code_expires]);
 
-  function handleNameBlur() {
-    if (!gym || name.trim() === gym.name || !name.trim()) return;
-    updateGym({ gymId: gym.id, updates: { name: name.trim() } });
+  function handleSave() {
+    if (!gym) return;
+    const trimmedName = name.trim();
+    if (!trimmedName) return;
+    const updates: Record<string, string | null> = {};
+    if (trimmedName !== gym.name) updates.name = trimmedName;
+    if (description.trim() !== (gym.description ?? ""))
+      updates.description = description.trim() || null;
+    if (address.trim() !== (gym.address ?? ""))
+      updates.address = address.trim() || null;
+    if (Object.keys(updates).length > 0) {
+      updateGym(
+        { gymId: gym.id, updates },
+        { onSettled: () => setIsEditing(false) },
+      );
+    } else {
+      setIsEditing(false);
+    }
   }
 
-  function handleDescriptionBlur() {
-    if (!gym || description.trim() === (gym.description ?? "")) return;
-    updateGym({
-      gymId: gym.id,
-      updates: { description: description.trim() || null },
-    });
-  }
-
-  function handleAddressBlur() {
-    if (!gym || address.trim() === (gym.address ?? "")) return;
-    updateGym({ gymId: gym.id, updates: { address: address.trim() || null } });
+  function handleCancel() {
+    if (!gym) return;
+    setName(gym.name ?? "");
+    setDescription(gym.description ?? "");
+    setAddress(gym.address ?? "");
+    setIsEditing(false);
   }
 
   async function handlePickLogo() {
@@ -294,43 +305,90 @@ export default function GymSettingsScreen() {
           </Pressable>
 
           <Card className="mx-5">
-            <View className="px-4 py-4">
-              <Input
-                label="Gym Name"
-                value={name}
-                onChangeText={setName}
-                onBlur={handleNameBlur}
-                placeholder="Gym name"
-                returnKeyType="done"
-              />
-            </View>
-
-            <View className="h-px bg-border mx-4" />
-
-            <View className="px-4 py-4">
-              <Input
-                label="Description"
-                value={description}
-                onChangeText={setDescription}
-                onBlur={handleDescriptionBlur}
-                placeholder="Optional"
-                multiline
-                returnKeyType="done"
-              />
-            </View>
-
-            <View className="h-px bg-border mx-4" />
-
-            <View className="px-4 py-4">
-              <Input
-                label="Address"
-                value={address}
-                onChangeText={setAddress}
-                onBlur={handleAddressBlur}
-                placeholder="Optional"
-                returnKeyType="done"
-              />
-            </View>
+            {isEditing ? (
+              <View className="px-4 py-4 gap-4">
+                <Input
+                  label="Gym Name"
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="Gym name"
+                  returnKeyType="next"
+                  autoFocus
+                />
+                <Input
+                  label="Description"
+                  value={description}
+                  onChangeText={setDescription}
+                  placeholder="Optional"
+                  multiline
+                  returnKeyType="next"
+                />
+                <Input
+                  label="Address"
+                  value={address}
+                  onChangeText={setAddress}
+                  placeholder="Optional"
+                  returnKeyType="done"
+                  onSubmitEditing={handleSave}
+                />
+                <View className="flex-row gap-2">
+                  <Button
+                    label="Cancel"
+                    variant="secondary"
+                    size="sm"
+                    onPress={handleCancel}
+                    style={{ flex: 1 }}
+                  />
+                  <Button
+                    label="Save"
+                    variant={name.trim() ? "primary" : "secondary"}
+                    size="sm"
+                    onPress={handleSave}
+                    disabled={!name.trim()}
+                    style={{ flex: 1 }}
+                  />
+                </View>
+              </View>
+            ) : (
+              <Pressable
+                onPress={() => setIsEditing(true)}
+                className="px-4 py-4 active:opacity-60"
+              >
+                <View className="flex-row items-start justify-between">
+                  <View className="flex-1 pr-4 gap-3">
+                    <View>
+                      <Text className="text-label uppercase tracking-wider text-muted mb-1">
+                        Gym Name
+                      </Text>
+                      <Text className="text-foreground text-[15px]">
+                        {gym.name ?? "—"}
+                      </Text>
+                    </View>
+                    <View>
+                      <Text className="text-label uppercase tracking-wider text-muted mb-1">
+                        Description
+                      </Text>
+                      <Text className="text-foreground text-[15px]">
+                        {gym.description ?? "—"}
+                      </Text>
+                    </View>
+                    <View>
+                      <Text className="text-label uppercase tracking-wider text-muted mb-1">
+                        Address
+                      </Text>
+                      <Text className="text-foreground text-[15px]">
+                        {gym.address ?? "—"}
+                      </Text>
+                    </View>
+                  </View>
+                  <Ionicons
+                    name="pencil-outline"
+                    size={16}
+                    color={colors.muted}
+                  />
+                </View>
+              </Pressable>
+            )}
           </Card>
 
           {/* === INVITE MANAGEMENT === */}
