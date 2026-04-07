@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
+import * as WebBrowser from "expo-web-browser";
 
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useMyGym, useLeaveGym } from "@/hooks/useGym";
@@ -35,6 +36,7 @@ export default function ProfileScreen() {
   const unit = (profile?.unit_preference ?? "kg") as WeightUnit;
 
   const [displayName, setDisplayName] = useState("");
+  const [isEditingName, setIsEditingName] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
 
@@ -43,10 +45,22 @@ export default function ProfileScreen() {
     setDisplayName(profile.display_name ?? "");
   }, [profile]);
 
-  function handleDisplayNameBlur() {
+  function handleSaveDisplayName() {
     const trimmed = displayName.trim();
-    if (trimmed === (profile?.display_name ?? "")) return;
-    update({ display_name: trimmed });
+    if (trimmed && trimmed !== (profile?.display_name ?? "")) {
+      update(
+        { display_name: trimmed },
+        { onSettled: () => setIsEditingName(false) },
+      );
+    } else {
+      setDisplayName(profile?.display_name ?? "");
+      setIsEditingName(false);
+    }
+  }
+
+  function handleCancelDisplayName() {
+    setDisplayName(profile?.display_name ?? "");
+    setIsEditingName(false);
   }
 
   function handleUnitToggle(selected: WeightUnit) {
@@ -100,16 +114,66 @@ export default function ProfileScreen() {
           <SectionHeader title="Account" icon="person-outline" />
 
           <Card className="mx-5">
-            <View className="px-4 py-4">
-              <Input
-                label="Display Name"
-                value={displayName}
-                onChangeText={setDisplayName}
-                onBlur={handleDisplayNameBlur}
-                placeholder="Your name"
-                returnKeyType="done"
-                autoCapitalize="words"
-              />
+            <View className="px-4 py-4 gap-4">
+              {isEditingName ? (
+                <View className="gap-3">
+                  <Input
+                    label="Display Name"
+                    value={displayName}
+                    onChangeText={setDisplayName}
+                    placeholder="Your name"
+                    returnKeyType="done"
+                    autoCapitalize="words"
+                    autoFocus
+                    onSubmitEditing={handleSaveDisplayName}
+                  />
+                  <View className="flex-row gap-2">
+                    <Button
+                      label="Cancel"
+                      variant="secondary"
+                      size="sm"
+                      onPress={handleCancelDisplayName}
+                      style={{ flex: 1 }}
+                    />
+                    <Button
+                      label={isPending ? "Saving..." : "Save"}
+                      variant={displayName.trim() ? "primary" : "secondary"}
+                      size="sm"
+                      onPress={handleSaveDisplayName}
+                      disabled={isPending || !displayName.trim()}
+                      style={{ flex: 1 }}
+                    />
+                  </View>
+                </View>
+              ) : (
+                <Pressable
+                  onPress={() => setIsEditingName(true)}
+                  className="flex-row items-center justify-between active:opacity-60"
+                >
+                  <View>
+                    <Text className="text-label uppercase tracking-wider text-muted mb-1">
+                      Display Name
+                    </Text>
+                    <Text className="text-foreground text-[15px]">
+                      {profile?.display_name ?? "—"}
+                    </Text>
+                  </View>
+                  <Ionicons
+                    name="pencil-outline"
+                    size={16}
+                    color={colors.muted}
+                  />
+                </Pressable>
+              )}
+              <View className="h-px bg-border" />
+              <View>
+                <Text className="text-label uppercase tracking-wider text-muted mb-1">
+                  Email
+                </Text>
+                <Text className="text-muted text-[15px]">
+                  {profile?.email ?? "—"}
+                </Text>
+              </View>
             </View>
           </Card>
 
@@ -200,13 +264,66 @@ export default function ProfileScreen() {
             </View>
           </Card>
 
+          <SectionHeader title="Legal" icon="document-text-outline" />
+
+          <Card className="mx-5">
+            <Pressable
+              onPress={() =>
+                WebBrowser.openBrowserAsync(
+                  "https://ezequiel-garcia.github.io/lift-slate/privacy-policy.html",
+                )
+              }
+              className="px-4 py-4 flex-row items-center active:opacity-60"
+            >
+              <Ionicons
+                name="shield-checkmark-outline"
+                size={18}
+                color={colors.muted}
+              />
+              <Text className="text-foreground text-[15px] flex-1 ml-3">
+                Privacy Policy
+              </Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+            </Pressable>
+            <View className="h-px bg-border mx-4" />
+            <Pressable
+              onPress={() =>
+                WebBrowser.openBrowserAsync(
+                  "https://ezequiel-garcia.github.io/lift-slate/terms-of-service.html",
+                )
+              }
+              className="px-4 py-4 flex-row items-center active:opacity-60"
+            >
+              <Ionicons name="reader-outline" size={18} color={colors.muted} />
+              <Text className="text-foreground text-[15px] flex-1 ml-3">
+                Terms of Service
+              </Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+            </Pressable>
+          </Card>
+
           <Card className="mx-5 mt-10">
             <Pressable
               onPress={handleSignOut}
-              className="px-4 py-4 flex-row items-center gap-3 active:opacity-60"
+              className="px-4 py-4 active:opacity-60"
             >
-              <Ionicons name="log-out-outline" size={18} color={colors.muted} />
               <Text className="text-foreground text-[15px]">Sign Out</Text>
+            </Pressable>
+          </Card>
+
+          <SectionHeader title="Danger Zone" icon="warning-outline" />
+
+          <Card className="mx-5">
+            <Pressable
+              onPress={() => setShowDeleteModal(true)}
+              className="px-4 py-4 active:opacity-60"
+            >
+              <Text className="text-error text-[15px] font-medium">
+                Delete Account
+              </Text>
+              <Text className="text-muted text-caption mt-0.5">
+                Permanently delete your account and all data
+              </Text>
             </Pressable>
           </Card>
 
@@ -228,16 +345,10 @@ export default function ProfileScreen() {
             isGymOwner={gym?.myRole === "admin"}
           />
 
-          <View className="items-center mt-8 gap-3">
+          <View className="items-center mt-8 mb-4">
             <Text className="text-muted text-caption">
               LiftSlate v{appVersion}
             </Text>
-            <Pressable
-              onPress={() => setShowDeleteModal(true)}
-              style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
-            >
-              <Text className="text-muted text-caption">Delete Account</Text>
-            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
