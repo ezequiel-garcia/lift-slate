@@ -33,15 +33,30 @@ type Props = {
   userId: string;
   unit: WeightUnit;
   onClose: () => void;
+  initialExerciseId?: string;
+  initialExerciseName?: string;
 };
 
-export function AddAthleteMaxModal({ visible, userId, unit, onClose }: Props) {
-  const [step, setStep] = useState<"exercise" | "weight">("exercise");
+export function AddAthleteMaxModal({
+  visible,
+  userId,
+  unit,
+  onClose,
+  initialExerciseId,
+  initialExerciseName,
+}: Props) {
+  const [step, setStep] = useState<"exercise" | "weight">(
+    initialExerciseId ? "weight" : "exercise",
+  );
   const [search, setSearch] = useState("");
   const [selectedExercise, setSelectedExercise] = useState<{
     id: string;
     name: string;
-  } | null>(null);
+  } | null>(
+    initialExerciseId
+      ? { id: initialExerciseId, name: initialExerciseName! }
+      : null,
+  );
   const [mode, setMode] = useState<EntryMode>("direct");
   const [weight, setWeight] = useState("");
   const [reps, setReps] = useState("");
@@ -68,9 +83,13 @@ export function AddAthleteMaxModal({ visible, userId, unit, onClose }: Props) {
       : null;
 
   function handleClose() {
-    setStep("exercise");
+    setStep(initialExerciseId ? "weight" : "exercise");
     setSearch("");
-    setSelectedExercise(null);
+    setSelectedExercise(
+      initialExerciseId
+        ? { id: initialExerciseId, name: initialExerciseName! }
+        : null,
+    );
     setMode("direct");
     setWeight("");
     setReps("");

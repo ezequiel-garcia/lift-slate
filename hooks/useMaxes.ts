@@ -72,6 +72,16 @@ export function useUpdateAthleteMax(userId: string) {
   });
 }
 
+export function useDeleteAthleteMax(userId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => deleteMax(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["maxes", "athlete", userId] });
+    },
+  });
+}
+
 export function useDeleteExerciseMaxes() {
   const queryClient = useQueryClient();
   return useMutation({

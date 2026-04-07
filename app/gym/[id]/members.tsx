@@ -6,7 +6,6 @@ import {
   Pressable,
   ActivityIndicator,
 } from "react-native";
-import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useLocalSearchParams } from "expo-router";
 import { isValidUUID } from "@/lib/constants";
@@ -15,13 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 
 import { colors } from "@/lib/theme";
-import {
-  useMyGym,
-  useGymMembers,
-  useGymSubscription,
-  useRemoveMember,
-} from "@/hooks/useGym";
-import { useUpdateMemberRole } from "@/hooks/useRoles";
+import { useMyGym, useGymMembers, useGymSubscription } from "@/hooks/useGym";
 import { GymMember } from "@/services/gym.service";
 import { Input } from "@/components/ui/Input";
 
@@ -74,15 +67,10 @@ export default function GymMembersScreen() {
   const { data: gym } = useMyGym();
   const { data: members, isLoading } = useGymMembers(gymId);
   const { data: sub } = useGymSubscription(gymId);
-  const { mutate: updateRole, isPending: updatingRole } = useUpdateMemberRole();
-  const { mutate: removeMember, isPending: removing } = useRemoveMember();
   const reduceMotion = useReducedMotion();
 
   const [search, setSearch] = useState("");
-  const [pendingMember, setPendingMember] = useState<GymMember | null>(null);
-  const [modalType, setModalType] = useState<"role" | "remove" | null>(null);
 
-  const isAdmin = gym?.myRole === "admin";
   const isCoachOrAdmin = gym?.myRole === "coach" || gym?.myRole === "admin";
 
   useEffect(() => {
@@ -108,34 +96,6 @@ export default function GymMembersScreen() {
 
   const athleteCount = members?.filter((m) => m.role === "athlete").length ?? 0;
   const coachCount = members?.filter((m) => m.role === "coach").length ?? 0;
-
-  function handleRoleToggle(member: GymMember) {
-    setPendingMember(member);
-    setModalType("role");
-  }
-
-  function handleRemove(member: GymMember) {
-    setPendingMember(member);
-    setModalType("remove");
-  }
-
-  function handleModalCancel() {
-    setPendingMember(null);
-    setModalType(null);
-  }
-
-  function handleModalConfirm() {
-    if (!pendingMember) return;
-    if (modalType === "role") {
-      const newRole = pendingMember.role === "coach" ? "athlete" : "coach";
-      updateRole(
-        { membershipId: pendingMember.id, newRole },
-        { onSettled: handleModalCancel },
-      );
-    } else if (modalType === "remove") {
-      removeMember(pendingMember.id, { onSettled: handleModalCancel });
-    }
-  }
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
@@ -221,44 +181,7 @@ export default function GymMembersScreen() {
 
                   <RoleBadge role={member.role as Role} />
 
-                  {isAdmin && member.role !== "admin" && (
-                    <View className="flex-row gap-1 ml-1">
-                      <Pressable
-                        onPress={() => handleRoleToggle(member)}
-                        disabled={updatingRole || removing}
-                        className="w-10 h-10 items-center justify-center"
-                        style={({ pressed }) => ({
-                          opacity: pressed ? 0.6 : 1,
-                        })}
-                      >
-                        <Ionicons
-                          name={
-                            member.role === "coach"
-                              ? "person-outline"
-                              : "ribbon-outline"
-                          }
-                          size={18}
-                          color={colors.muted}
-                        />
-                      </Pressable>
-                      <Pressable
-                        onPress={() => handleRemove(member)}
-                        disabled={updatingRole || removing}
-                        className="w-10 h-10 items-center justify-center"
-                        style={({ pressed }) => ({
-                          opacity: pressed ? 0.6 : 1,
-                        })}
-                      >
-                        <Ionicons
-                          name="person-remove-outline"
-                          size={18}
-                          color={colors.error}
-                        />
-                      </Pressable>
-                    </View>
-                  )}
-
-                  {canViewMaxes && !isAdmin && (
+                  {canViewMaxes && (
                     <Ionicons
                       name="chevron-forward"
                       size={16}
@@ -282,28 +205,6 @@ export default function GymMembersScreen() {
           )}
         </ScrollView>
       )}
-      <ConfirmModal
-        visible={modalType === "role" && !!pendingMember}
-        title={pendingMember?.role === "coach" ? "Make Athlete" : "Make Coach"}
-        message={`Make ${pendingMember?.users?.display_name ?? "this member"} a ${pendingMember?.role === "coach" ? "athlete" : "coach"}?`}
-        confirmLabel={
-          pendingMember?.role === "coach" ? "Make Athlete" : "Make Coach"
-        }
-        variant="primary"
-        onCancel={handleModalCancel}
-        onConfirm={handleModalConfirm}
-        isPending={updatingRole}
-      />
-      <ConfirmModal
-        visible={modalType === "remove" && !!pendingMember}
-        title="Remove Member"
-        message={`Remove ${pendingMember?.users?.display_name ?? pendingMember?.users?.email ?? "this member"} from the gym? They will need to rejoin with an invite link.`}
-        confirmLabel="Remove"
-        variant="destructive"
-        onCancel={handleModalCancel}
-        onConfirm={handleModalConfirm}
-        isPending={removing}
-      />
     </SafeAreaView>
   );
 }

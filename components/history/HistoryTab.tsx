@@ -25,7 +25,7 @@ type Max = {
 type Props = {
   history: Max[];
   unit: WeightUnit;
-  onAddMax: () => void;
+  onAddMax?: () => void;
   onDeleteMax?: (id: string) => void;
   refreshing?: boolean;
   onRefresh?: () => void;
@@ -134,13 +134,17 @@ export function HistoryTab({
               icon="time-outline"
               title="No history yet"
               description="Start tracking to see your progress here"
-              action={<Button label="Log your first max" onPress={onAddMax} />}
+              action={
+                onAddMax ? (
+                  <Button label="Log your first max" onPress={onAddMax} />
+                ) : undefined
+              }
             />
           </View>
         )
       }
       ListFooterComponent={
-        history.length > 0 ? (
+        history.length > 0 && onAddMax ? (
           <View className="mx-5 mt-2">
             <Button
               label="Add New Max"

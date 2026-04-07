@@ -32,6 +32,7 @@ type Props = {
   unit: WeightUnit;
   onAddMax: () => void;
   isLoading?: boolean;
+  readonly?: boolean;
 };
 
 export function CalculatorTab({
@@ -40,6 +41,7 @@ export function CalculatorTab({
   unit,
   onAddMax,
   isLoading,
+  readonly,
 }: Props) {
   const [selectedPct, setSelectedPct] = useState<number | null>(null);
   const [customPct, setCustomPct] = useState("");
@@ -144,19 +146,27 @@ export function CalculatorTab({
         </View>
       )}
 
-      {/* Add new max */}
-      <Pressable
-        className="mt-2 bg-surface rounded-2xl p-4 items-center flex-row justify-center gap-2"
-        style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-        onPress={onAddMax}
-      >
-        <Ionicons name="add-circle-outline" size={20} color={colors.accent} />
-        <Text className="text-accent font-semibold text-[15px]">
-          Add New Max
-        </Text>
-      </Pressable>
+      {!readonly && (
+        <>
+          {/* Add new max */}
+          <Pressable
+            className="mt-2 bg-surface rounded-2xl p-4 items-center flex-row justify-center gap-2"
+            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+            onPress={onAddMax}
+          >
+            <Ionicons
+              name="add-circle-outline"
+              size={20}
+              color={colors.accent}
+            />
+            <Text className="text-accent font-semibold text-[15px]">
+              Add New Max
+            </Text>
+          </Pressable>
 
-      <ExerciseNotes exerciseId={exerciseId} />
+          <ExerciseNotes exerciseId={exerciseId} />
+        </>
+      )}
     </ScrollView>
   );
 }

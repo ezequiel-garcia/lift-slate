@@ -15,19 +15,18 @@ import { colors } from "@/lib/theme";
 import { WeightUnit } from "@/lib/units";
 import { CATEGORY_ORDER, CATEGORY_LABELS, isValidUUID } from "@/lib/constants";
 import { useAthleteMaxes } from "@/hooks/useMaxes";
-import { useGymMembers, useMyGym } from "@/hooks/useGym";
+import { useGymMembers, useMyGym, useRemoveMember } from "@/hooks/useGym";
+import { useUpdateMemberRole } from "@/hooks/useRoles";
 import { ExerciseSummary } from "@/types/exercise";
 import { AthleteMaxRow } from "@/components/gym/AthleteMaxRow";
-import { AddAthleteMaxModal } from "@/components/gym/AddAthleteMaxModal";
-import { EditAthleteMaxModal } from "@/components/gym/EditAthleteMaxModal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { Button } from "@/components/ui/Button";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 type Section = { title: string; data: ExerciseSummary[] };
 
-export default function AthleteMaxesScreen() {
+export default function AthleteProfileScreen() {
   const { id: gymId, userId } = useLocalSearchParams<{
     id: string;
     userId: string;
@@ -41,15 +40,11 @@ export default function AthleteMaxesScreen() {
     isError,
     refetch,
   } = useAthleteMaxes(userId ?? "");
+  const { mutate: updateRole, isPending: updatingRole } = useUpdateMemberRole();
+  const { mutate: removeMember, isPending: removing } = useRemoveMember();
+
   const [refreshing, setRefreshing] = useState(false);
-  const [addModalVisible, setAddModalVisible] = useState(false);
-  const [editingMax, setEditingMax] = useState<{
-    id: string;
-    exerciseId: string;
-    exerciseName: string;
-    weightKg: number;
-    notes: string | null;
-  } | null>(null);
+  const [modalType, setModalType] = useState<"role" | "remove" | null>(null);
 
   if (!isValidUUID(gymId) || !isValidUUID(userId)) {
     router.replace("/(tabs)/gym");
@@ -60,8 +55,9 @@ export default function AthleteMaxesScreen() {
   const athleteName = member?.users?.display_name ?? "Athlete";
   const allowCoachEdit = member?.users?.allow_coach_edit ?? false;
   const athleteUnit: WeightUnit = member?.users?.unit_preference ?? "kg";
+  const isAdmin = gym?.myRole === "admin";
   const isCoachOrAdmin = gym?.myRole === "coach" || gym?.myRole === "admin";
-  const canEdit = isCoachOrAdmin && allowCoachEdit;
+  const canManage = isAdmin && member?.role !== "admin";
 
   const exerciseSummaries: ExerciseSummary[] = (() => {
     if (!maxes) return [];
@@ -112,17 +108,23 @@ export default function AthleteMaxesScreen() {
     setRefreshing(false);
   }
 
-  function handleEditMax(item: ExerciseSummary) {
-    if (!canEdit) return;
-    const max = maxes?.find((m) => m.exercise_id === item.exerciseId);
-    if (!max) return;
-    setEditingMax({
-      id: max.id,
-      exerciseId: max.exercise_id,
-      exerciseName: item.name,
-      weightKg: max.weight_kg,
-      notes: max.notes,
-    });
+  function handleModalConfirm() {
+    if (!member) return;
+    if (modalType === "role") {
+      const newRole = member.role === "coach" ? "athlete" : "coach";
+      updateRole(
+        { membershipId: member.id, newRole },
+        { onSettled: () => setModalType(null) },
+      );
+    } else if (modalType === "remove") {
+      removeMember(member.id, {
+        onSuccess: () => {
+          setModalType(null);
+          router.back();
+        },
+        onError: () => setModalType(null),
+      });
+    }
   }
 
   if (isLoading) {
@@ -149,11 +151,7 @@ export default function AthleteMaxesScreen() {
             {athleteName}
           </Text>
           <Text className="text-muted text-caption">
-            {canEdit
-              ? "Tap a lift to edit"
-              : allowCoachEdit
-                ? "View only"
-                : "Editing disabled by athlete"}
+            {allowCoachEdit ? "Tap a lift to view" : "View only"}
           </Text>
         </View>
         {!allowCoachEdit && (
@@ -171,21 +169,9 @@ export default function AthleteMaxesScreen() {
       ) : exerciseSummaries.length === 0 ? (
         <View className="flex-1 justify-center">
           <EmptyState
-            icon={allowCoachEdit ? "barbell-outline" : "lock-closed-outline"}
-            title={allowCoachEdit ? "No lifts recorded" : "Editing disabled"}
-            description={
-              allowCoachEdit
-                ? `${athleteName} hasn't recorded any lifts yet.`
-                : `${athleteName} has disabled coach access to their lifts.`
-            }
-            action={
-              canEdit ? (
-                <Button
-                  label="Add First Max"
-                  onPress={() => setAddModalVisible(true)}
-                />
-              ) : undefined
-            }
+            icon="barbell-outline"
+            title="No lifts recorded"
+            description={`${athleteName} hasn't recorded any lifts yet.`}
           />
         </View>
       ) : (
@@ -198,14 +184,18 @@ export default function AthleteMaxesScreen() {
               category={item.category}
               currentWeightKg={item.currentWeightKg}
               unit={athleteUnit}
-              onPress={canEdit ? () => handleEditMax(item) : undefined}
+              onPress={() =>
+                router.push(
+                  `/gym/${gymId}/athlete/${userId}/exercise/${item.exerciseId}`,
+                )
+              }
             />
           )}
           renderSectionHeader={({ section }) => (
             <SectionHeader title={section.title} />
           )}
           stickySectionHeadersEnabled={false}
-          contentContainerStyle={{ paddingBottom: 120 }}
+          contentContainerStyle={{ paddingBottom: canManage ? 200 : 40 }}
           ItemSeparatorComponent={() => (
             <View className="h-px bg-border ml-[72px] mr-5" />
           )}
@@ -219,43 +209,52 @@ export default function AthleteMaxesScreen() {
         />
       )}
 
-      {canEdit && exerciseSummaries.length > 0 && (
-        <Pressable
-          className="absolute bottom-8 right-5 bg-accent rounded-2xl flex-row items-center px-5 py-3.5 gap-2"
-          style={({ pressed }) => ({
-            opacity: pressed ? 0.85 : 1,
-            shadowColor: colors.accent,
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.25,
-            shadowRadius: 12,
-            elevation: 6,
-          })}
-          onPress={() => setAddModalVisible(true)}
-        >
-          <Ionicons name="add" size={22} color={colors.bg} />
-          <Text className="text-bg font-bold text-[15px]">Add Max</Text>
-        </Pressable>
+      {/* Manage Member section — admin only */}
+      {canManage && (
+        <View className="absolute bottom-0 left-0 right-0 bg-bg border-t border-border">
+          <Pressable
+            className="px-5 py-4"
+            style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
+            onPress={() => setModalType("role")}
+            disabled={updatingRole || removing}
+          >
+            <Text className="text-foreground text-[16px]">
+              {member?.role === "coach" ? "Make Athlete" : "Make Coach"}
+            </Text>
+          </Pressable>
+          <View className="h-px bg-border mx-5" />
+          <Pressable
+            className="px-5 py-4"
+            style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1 })}
+            onPress={() => setModalType("remove")}
+            disabled={updatingRole || removing}
+          >
+            <Text className="text-error text-[16px]">Remove from Gym</Text>
+          </Pressable>
+          <View className="pb-8" />
+        </View>
       )}
 
-      <AddAthleteMaxModal
-        visible={addModalVisible}
-        userId={userId}
-        unit={athleteUnit}
-        onClose={() => setAddModalVisible(false)}
+      <ConfirmModal
+        visible={modalType === "role"}
+        title={member?.role === "coach" ? "Make Athlete" : "Make Coach"}
+        message={`Make ${athleteName} a ${member?.role === "coach" ? "athlete" : "coach"}?`}
+        confirmLabel={member?.role === "coach" ? "Make Athlete" : "Make Coach"}
+        variant="primary"
+        onCancel={() => setModalType(null)}
+        onConfirm={handleModalConfirm}
+        isPending={updatingRole}
       />
-
-      {editingMax && (
-        <EditAthleteMaxModal
-          visible={!!editingMax}
-          userId={userId}
-          maxId={editingMax.id}
-          exerciseName={editingMax.exerciseName}
-          currentWeightKg={editingMax.weightKg}
-          currentNotes={editingMax.notes}
-          unit={athleteUnit}
-          onClose={() => setEditingMax(null)}
-        />
-      )}
+      <ConfirmModal
+        visible={modalType === "remove"}
+        title="Remove Member"
+        message={`Remove ${athleteName} from the gym? They will need to rejoin with an invite link.`}
+        confirmLabel="Remove"
+        variant="destructive"
+        onCancel={() => setModalType(null)}
+        onConfirm={handleModalConfirm}
+        isPending={removing}
+      />
     </SafeAreaView>
   );
 }

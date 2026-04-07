@@ -251,7 +251,7 @@ export default function ProfileScreen() {
                   Allow Coach Edits
                 </Text>
                 <Text className="text-muted text-caption mt-0.5">
-                  Let coaches view and edit your maxes
+                  Let coaches add and edit your maxes
                 </Text>
               </View>
               <Switch
