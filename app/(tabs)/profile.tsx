@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
+import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
@@ -297,6 +298,19 @@ export default function ProfileScreen() {
               <Ionicons name="reader-outline" size={18} color={colors.muted} />
               <Text className="text-foreground text-[15px] flex-1 ml-3">
                 Terms of Service
+              </Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+            </Pressable>
+            <View className="h-px bg-border mx-4" />
+            <Pressable
+              onPress={() =>
+                Linking.openURL("mailto:liftslate.support@gmail.com")
+              }
+              className="px-4 py-4 flex-row items-center active:opacity-60"
+            >
+              <Ionicons name="mail-outline" size={18} color={colors.muted} />
+              <Text className="text-foreground text-[15px] flex-1 ml-3">
+                Contact Support
               </Text>
               <Ionicons name="chevron-forward" size={16} color={colors.muted} />
             </Pressable>
