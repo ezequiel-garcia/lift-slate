@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
+import * as AppleAuthentication from "expo-apple-authentication";
 
 export async function signUp(email: string, password: string) {
   const { data, error } = await supabase.auth.signUp({ email, password });
@@ -37,6 +38,26 @@ export async function signInWithGoogle() {
     await supabase.auth.exchangeCodeForSession(code);
   if (exchangeError) throw exchangeError;
   return session;
+}
+
+export async function signInWithApple() {
+  const credential = await AppleAuthentication.signInAsync({
+    requestedScopes: [
+      AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+      AppleAuthentication.AppleAuthenticationScope.EMAIL,
+    ],
+  });
+
+  if (!credential.identityToken) {
+    throw new Error("Apple Sign In failed: no identity token returned.");
+  }
+
+  const { data, error } = await supabase.auth.signInWithIdToken({
+    provider: "apple",
+    token: credential.identityToken,
+  });
+  if (error) throw error;
+  return data;
 }
 
 export async function resetPassword(email: string) {
