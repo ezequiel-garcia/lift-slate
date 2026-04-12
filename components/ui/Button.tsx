@@ -15,7 +15,7 @@ import { colors, animation } from "@/lib/theme";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
-type Variant = "primary" | "secondary" | "destructive" | "ghost";
+type Variant = "primary" | "secondary" | "destructive" | "ghost" | "apple";
 type Size = "lg" | "md" | "sm";
 
 type Props = {
@@ -45,6 +45,10 @@ const variantClasses: Record<Variant, { container: string; text: string }> = {
   ghost: {
     container: "bg-transparent",
     text: "text-muted font-semibold",
+  },
+  apple: {
+    container: "bg-[#000000] border border-[#333333]",
+    text: "text-white font-semibold",
   },
 };
 
@@ -84,7 +88,7 @@ export function Button({
   };
 
   const handlePress = () => {
-    if (variant === "primary") {
+    if (variant === "primary" || variant === "apple") {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     onPress();
@@ -105,7 +109,13 @@ export function Button({
     >
       {loading ? (
         <ActivityIndicator
-          color={variant === "primary" ? colors.bg : colors.foreground}
+          color={
+            variant === "primary"
+              ? colors.bg
+              : variant === "apple"
+                ? "#ffffff"
+                : colors.foreground
+          }
           size="small"
         />
       ) : (

@@ -177,7 +177,7 @@ export default function LoginScreen() {
                 {APPLE_AVAILABLE && (
                   <Button
                     label="Continue with Apple"
-                    variant="primary"
+                    variant="apple"
                     onPress={handleAppleSignIn}
                     disabled={loading}
                     icon={<AppleIcon size={18} color="#fff" />}
