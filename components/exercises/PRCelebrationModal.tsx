@@ -94,7 +94,7 @@ export function PRCelebrationModal({
     }, intervalMs);
 
     return () => clearInterval(interval);
-  }, [visible]);
+  }, [visible, opacity, scale, prevDisplay, targetDisplay]);
 
   const contentStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],

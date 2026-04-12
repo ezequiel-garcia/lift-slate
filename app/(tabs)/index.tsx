@@ -16,7 +16,6 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
   useReducedMotion,
-  FadeIn,
 } from "react-native-reanimated";
 import { useMyLifts } from "@/hooks/useMyLifts";
 import { useDeleteExerciseMaxes } from "@/hooks/useMaxes";
@@ -77,7 +76,7 @@ export default function HomeScreen() {
       }
       lastScrollY.value = y;
     },
-    [reduceMotion],
+    [reduceMotion, fabTranslateY, lastScrollY],
   );
 
   function handleDeleteExercise(exerciseId: string, name: string) {

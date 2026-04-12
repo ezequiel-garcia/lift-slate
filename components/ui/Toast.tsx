@@ -43,7 +43,7 @@ export function Toast() {
         }),
       ),
     );
-  }, [toast]);
+  }, [toast, hideToast, opacity, reduceMotion, translateY]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,

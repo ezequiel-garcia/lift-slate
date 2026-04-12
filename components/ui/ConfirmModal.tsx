@@ -43,7 +43,7 @@ export function ConfirmModal({
       backdropOpacity.value = withTiming(1, { duration: 220 });
       translateY.value = withSpring(0, SPRING);
     }
-  }, [visible]);
+  }, [visible, backdropOpacity, translateY]);
 
   function handleClose() {
     if (isPending) return;

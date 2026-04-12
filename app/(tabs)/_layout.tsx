@@ -26,7 +26,7 @@ export default function TabsLayout() {
   useEffect(() => {
     if (!session) return;
     queryClient.prefetchQuery({ queryKey: ["gym", "mine"], queryFn: getMyGym });
-  }, [session]);
+  }, [session, queryClient]);
 
   if (isLoading) return null;
   if (!session) return <Redirect href="/(auth)/login" />;
