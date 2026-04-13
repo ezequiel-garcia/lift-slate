@@ -16,6 +16,8 @@ const CATEGORY_ICON: Record<
   pull: { name: "arrow-down", bg: "#1E1028", color: "#C88AFF" },
   olympic: { name: "trophy", bg: "#231E0A", color: "#FFD84A" },
   accessory: { name: "barbell", bg: "#122210", color: "#B4FF4A" },
+  core: { name: "body", bg: "#0E1F1F", color: "#4AFFD4" },
+  conditioning: { name: "flame", bg: "#1F0E0E", color: "#FF6B6B" },
 };
 
 type Props = {
