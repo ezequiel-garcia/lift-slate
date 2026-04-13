@@ -1,5 +1,5 @@
 import { colors } from "@/lib/theme";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { ActivityIndicator, Modal, Pressable, Text, View } from "react-native";
 import Animated, {
   runOnJS,
@@ -37,7 +37,7 @@ export function LeaveGymModal({
       backdropOpacity.value = withTiming(1, { duration: 220 });
       translateY.value = withSpring(0, SPRING);
     }
-  }, [visible]);
+  }, [visible, backdropOpacity, translateY]);
 
   function handleClose() {
     if (isLeaving) return;
@@ -125,8 +125,9 @@ export function LeaveGymModal({
               marginBottom: 24,
             }}
           >
-            You'll lose access to gym workouts and coach edits. You can rejoin
-            later with an invite.
+            {
+              "You'll lose access to gym workouts and coach edits. You can rejoin later with an invite."
+            }
           </Text>
 
           <Pressable

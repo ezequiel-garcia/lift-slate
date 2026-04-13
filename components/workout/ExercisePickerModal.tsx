@@ -119,7 +119,7 @@ export function ExercisePickerModal({
                     className="text-accent text-sm font-semibold"
                     numberOfLines={1}
                   >
-                    Add "{search.trim()}" as custom exercise
+                    {`Add "${search.trim()}" as custom exercise`}
                   </Text>
                 </Pressable>
               ) : (

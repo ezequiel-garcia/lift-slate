@@ -73,7 +73,7 @@ export default function CreateGymScreen() {
         );
       }
 
-      const gym = await createGym.mutateAsync({
+      await createGym.mutateAsync({
         name: trimmedName,
         description: description.trim() || undefined,
         address: address.trim() || undefined,

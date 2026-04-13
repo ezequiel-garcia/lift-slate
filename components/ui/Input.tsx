@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { View, Text, TextInput, type TextInputProps } from "react-native";
 import Animated, {
   useSharedValue,
@@ -25,7 +24,6 @@ export function Input({
   style,
   ...rest
 }: Props) {
-  const [isFocused, setIsFocused] = useState(false);
   const focusProgress = useSharedValue(0);
 
   const borderStyle = useAnimatedStyle(() => ({
@@ -40,7 +38,6 @@ export function Input({
   }));
 
   const handleFocus = (e: any) => {
-    setIsFocused(true);
     focusProgress.value = withTiming(1, {
       duration: animation.duration.normal,
     });
@@ -48,7 +45,6 @@ export function Input({
   };
 
   const handleBlur = (e: any) => {
-    setIsFocused(false);
     focusProgress.value = withTiming(0, {
       duration: animation.duration.normal,
     });

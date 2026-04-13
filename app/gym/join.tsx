@@ -49,7 +49,7 @@ export default function JoinGymScreen() {
       if (token) setPendingInviteToken(token);
       router.replace("/(auth)/login");
     }
-  }, [authLoading, session]);
+  }, [authLoading, session, setPendingInviteToken, token]);
 
   if (authLoading || !session) {
     return (

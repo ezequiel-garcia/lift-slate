@@ -38,7 +38,7 @@ export default function ExerciseDetailScreen() {
 
   useEffect(() => {
     if (addMax === "true") setAddModalVisible(true);
-  }, []);
+  }, [addMax]);
 
   const {
     exercise,

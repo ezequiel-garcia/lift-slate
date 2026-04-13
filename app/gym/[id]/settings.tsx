@@ -79,7 +79,7 @@ export default function GymSettingsScreen() {
     setName(gym.name ?? "");
     setDescription(gym.description ?? "");
     setAddress(gym.address ?? "");
-  }, [gym?.id]);
+  }, [gym]);
 
   useEffect(() => {
     if (!inviteDetails?.temp_code_expires) {

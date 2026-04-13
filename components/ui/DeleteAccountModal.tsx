@@ -67,7 +67,7 @@ export function DeleteAccountModal({
       translateY.value = withSpring(0, SPRING);
       setTimeout(() => inputRef.current?.focus(), 150);
     }
-  }, [visible]);
+  }, [visible, backdropOpacity, translateY]);
 
   function handleClose() {
     if (isSubmitting) return;

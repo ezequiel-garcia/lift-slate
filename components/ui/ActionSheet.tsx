@@ -39,7 +39,7 @@ export function ActionSheet({ visible, title, options, onClose }: Props) {
       backdropOpacity.value = withTiming(1, { duration: 220 });
       translateY.value = withSpring(0, SPRING);
     }
-  }, [visible]);
+  }, [visible, backdropOpacity, translateY]);
 
   function handleClose() {
     backdropOpacity.value = withTiming(0, { duration: 200 });

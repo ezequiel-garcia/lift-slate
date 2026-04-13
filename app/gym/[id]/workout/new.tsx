@@ -51,7 +51,7 @@ export default function NewWorkoutScreen() {
     ) {
       router.replace("/(tabs)/gym");
     }
-  }, [gym?.myRole]);
+  }, [gym]);
 
   const createWorkout = useCreateWorkout();
   const updateWorkout = useUpdateWorkout();

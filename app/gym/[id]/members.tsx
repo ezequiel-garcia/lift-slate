@@ -77,7 +77,7 @@ export default function GymMembersScreen() {
     if (gym !== undefined && !isCoachOrAdmin) {
       router.replace("/(tabs)/gym");
     }
-  }, [gym?.myRole]);
+  }, [gym, isCoachOrAdmin]);
 
   if (!isValidUUID(gymId)) {
     router.replace("/(tabs)/gym");

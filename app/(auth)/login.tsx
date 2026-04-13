@@ -15,8 +15,10 @@ import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { GoogleIcon } from "@/components/ui/GoogleIcon";
+import { AppleIcon } from "@/components/ui/AppleIcon";
 
 const GOOGLE_CONFIGURED = !!process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
+const APPLE_AVAILABLE = Platform.OS === "ios";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -35,6 +37,23 @@ export default function LoginScreen() {
     }
     return hasDisplayName ? "/(tabs)" : "/(auth)/onboarding";
   }
+
+  const handleAppleSignIn = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const result = await authService.signInWithApple();
+      if (!result) return;
+      const profile = await profileService.getProfile();
+      router.replace(getPostLoginRoute(!!profile.display_name));
+    } catch (e: unknown) {
+      // ERR_CANCELED means the user dismissed the sheet — not an error
+      if ((e as { code?: string })?.code === "ERR_CANCELED") return;
+      setError(e instanceof Error ? e.message : "Apple sign in failed.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGoogleSignIn = async () => {
     setError("");
@@ -138,20 +157,33 @@ export default function LoginScreen() {
             />
           </View>
 
-          {GOOGLE_CONFIGURED && (
+          {(GOOGLE_CONFIGURED || APPLE_AVAILABLE) && (
             <>
               <View className="flex-row items-center my-8 gap-4">
                 <View className="flex-1 h-px bg-border" />
                 <Text className="text-muted text-caption">or</Text>
                 <View className="flex-1 h-px bg-border" />
               </View>
-              <Button
-                label="Continue with Google"
-                variant="secondary"
-                onPress={handleGoogleSignIn}
-                disabled={loading}
-                icon={<GoogleIcon size={20} />}
-              />
+              <View className="gap-3">
+                {GOOGLE_CONFIGURED && (
+                  <Button
+                    label="Continue with Google"
+                    variant="secondary"
+                    onPress={handleGoogleSignIn}
+                    disabled={loading}
+                    icon={<GoogleIcon size={20} />}
+                  />
+                )}
+                {APPLE_AVAILABLE && (
+                  <Button
+                    label="Continue with Apple"
+                    variant="apple"
+                    onPress={handleAppleSignIn}
+                    disabled={loading}
+                    icon={<AppleIcon size={18} color="#fff" />}
+                  />
+                )}
+              </View>
             </>
           )}
 

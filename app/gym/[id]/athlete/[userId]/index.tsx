@@ -56,7 +56,6 @@ export default function AthleteProfileScreen() {
   const allowCoachEdit = member?.users?.allow_coach_edit ?? false;
   const athleteUnit: WeightUnit = member?.users?.unit_preference ?? "kg";
   const isAdmin = gym?.myRole === "admin";
-  const isCoachOrAdmin = gym?.myRole === "coach" || gym?.myRole === "admin";
   const canManage = isAdmin && member?.role !== "admin";
 
   const exerciseSummaries: ExerciseSummary[] = (() => {
