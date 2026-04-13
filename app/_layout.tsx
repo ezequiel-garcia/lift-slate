@@ -2,6 +2,7 @@ import "../global.css";
 import { View } from "react-native";
 import { Stack, useNavigationContainerRef } from "expo-router";
 import { isRunningInExpoGo } from "expo";
+import Constants from "expo-constants";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QueryCache, QueryClient, MutationCache } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -18,8 +19,12 @@ const navigationIntegration = Sentry.reactNavigationIntegration({
   enableTimeToInitialDisplay: !isRunningInExpoGo(),
 });
 
+const appVariant =
+  (Constants.expoConfig?.extra?.variant as string | undefined) ?? "development";
+
 Sentry.init({
   dsn: process.env.EXPO_PUBLIC_SENTRY_DSN,
+  environment: appVariant,
   tracesSampleRate: __DEV__ ? 1.0 : 0.2,
   integrations: [navigationIntegration],
   enableNativeFramesTracking: !isRunningInExpoGo(),

@@ -9,7 +9,13 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
-    "test": "jest"
+    "test": "jest",
+    "db:link:dev": "supabase link --project-ref $SUPABASE_DEV_REF",
+    "db:link:prod": "supabase link --project-ref $SUPABASE_PROD_REF",
+    "db:push": "supabase db push",
+    "db:pull": "supabase db pull",
+    "db:status": "supabase migration list",
+    "fn:deploy": "supabase functions deploy delete-account"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
