@@ -155,7 +155,6 @@ export default function CreateGymScreen() {
               value={name}
               onChangeText={setName}
               autoCapitalize="words"
-              autoFocus
             />
             <Input
               label="Description"
