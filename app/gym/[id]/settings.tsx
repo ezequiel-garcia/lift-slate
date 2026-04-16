@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   Pressable,
-  Alert,
   ActivityIndicator,
   Share,
   KeyboardAvoidingView,
@@ -21,7 +20,9 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { colors } from "@/lib/theme";
+import { useAppStore } from "@/stores/appStore";
 import {
   useMyGym,
   useUpdateGym,
@@ -73,6 +74,10 @@ export default function GymSettingsScreen() {
   const [isEditing, setIsEditing] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const [countdown, setCountdown] = useState("");
+  const [regenerateLinkVisible, setRegenerateLinkVisible] = useState(false);
+  const [generateCodeVisible, setGenerateCodeVisible] = useState(false);
+  const [deleteGymVisible, setDeleteGymVisible] = useState(false);
+  const showToast = useAppStore((s) => s.showToast);
 
   useEffect(() => {
     if (!gym) return;
@@ -144,7 +149,7 @@ export default function GymSettingsScreen() {
       );
       updateGym({ gymId: gym.id, updates: { logo_url: url } });
     } catch (e: any) {
-      Alert.alert("Error", e.message ?? "Failed to upload logo");
+      showToast(e.message ?? "Failed to upload logo", "error");
     } finally {
       setUploadingLogo(false);
     }
@@ -161,18 +166,7 @@ export default function GymSettingsScreen() {
 
   function handleRegenerateToken() {
     if (!gym) return;
-    Alert.alert(
-      "Regenerate Link?",
-      "The old invite link will stop working immediately. All new members must use the new link.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Regenerate",
-          style: "destructive",
-          onPress: () => regenerateToken(gym.id),
-        },
-      ],
-    );
+    setRegenerateLinkVisible(true);
   }
 
   function handleGenerateCode() {
@@ -183,14 +177,7 @@ export default function GymSettingsScreen() {
       new Date(inviteDetails?.temp_code_expires) > new Date();
 
     if (hasActive) {
-      Alert.alert(
-        "Generate New Code?",
-        "The current code will stop working immediately.",
-        [
-          { text: "Cancel", style: "cancel" },
-          { text: "Generate", onPress: () => generateCode(gym.id) },
-        ],
-      );
+      setGenerateCodeVisible(true);
     } else {
       generateCode(gym.id);
     }
@@ -198,34 +185,7 @@ export default function GymSettingsScreen() {
 
   function handleDeleteGym() {
     if (!gym) return;
-    Alert.alert(
-      "Delete Gym?",
-      "This will permanently delete the gym, remove all members, and delete all workouts. This cannot be undone.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Continue",
-          style: "destructive",
-          onPress: () =>
-            Alert.alert(
-              "Are you absolutely sure?",
-              `"${gym.name}" and all its data will be permanently deleted.`,
-              [
-                { text: "Cancel", style: "cancel" },
-                {
-                  text: "Delete Forever",
-                  style: "destructive",
-                  onPress: () =>
-                    deleteGym(gym.id, {
-                      onSuccess: () => router.replace("/(tabs)/gym"),
-                      onError: (e: any) => Alert.alert("Error", e.message),
-                    }),
-                },
-              ],
-            ),
-        },
-      ],
-    );
+    setDeleteGymVisible(true);
   }
 
   if (isLoading || !gym) {
@@ -502,6 +462,50 @@ export default function GymSettingsScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      <ConfirmModal
+        visible={regenerateLinkVisible}
+        title="Regenerate Link?"
+        message="The old invite link will stop working immediately. All new members must use the new link."
+        confirmLabel="Regenerate"
+        variant="destructive"
+        onCancel={() => setRegenerateLinkVisible(false)}
+        onConfirm={() => {
+          setRegenerateLinkVisible(false);
+          if (gym) regenerateToken(gym.id);
+        }}
+      />
+      <ConfirmModal
+        visible={generateCodeVisible}
+        title="Generate New Code?"
+        message="The current code will stop working immediately."
+        confirmLabel="Generate"
+        variant="primary"
+        onCancel={() => setGenerateCodeVisible(false)}
+        onConfirm={() => {
+          setGenerateCodeVisible(false);
+          if (gym) generateCode(gym.id);
+        }}
+      />
+      <ConfirmModal
+        visible={deleteGymVisible}
+        title="Delete Gym?"
+        message={`"${gym?.name}" and all its data — members, workouts, history — will be permanently deleted. This cannot be undone.`}
+        confirmLabel="Delete Forever"
+        variant="destructive"
+        isPending={deleting}
+        onCancel={() => setDeleteGymVisible(false)}
+        onConfirm={() => {
+          if (gym)
+            deleteGym(gym.id, {
+              onSuccess: () => router.replace("/(tabs)/gym"),
+              onError: (e: any) => {
+                setDeleteGymVisible(false);
+                showToast(e.message, "error");
+              },
+            });
+        }}
+      />
     </SafeAreaView>
   );
 }

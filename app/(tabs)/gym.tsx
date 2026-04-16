@@ -3,6 +3,7 @@ import { GymBanner, type MyGym } from "@/components/gym/GymBanner";
 import { WorkoutDayView } from "@/components/gym/WorkoutDayView";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { LeaveGymModal } from "@/components/ui/LeaveGymModal";
 import { useLeaveGym, useMyGym } from "@/hooks/useGym";
 import { useMaxes } from "@/hooks/useMaxes";
 import { useProfile } from "@/hooks/useProfile";
@@ -16,7 +17,6 @@ import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -121,25 +121,19 @@ function InGymView({
 }) {
   const { data: workouts, isLoading, refetch } = workoutsQuery;
   const [refreshing, setRefreshing] = useState(false);
-  const { mutate: leaveGym } = useLeaveGym();
+  const [leaveModalVisible, setLeaveModalVisible] = useState(false);
+  const { mutate: leaveGym, isPending: isLeaving } = useLeaveGym();
   const { mutate: deleteWorkout } = useDeleteWorkout();
+  const showToast = useAppStore((s) => s.showToast);
 
   const isAdmin = gym.myRole === "admin";
   const canCreateWorkout = gym.myRole === "admin" || gym.myRole === "coach";
 
   function handleLeaveGym() {
     if (!gym.membershipId) return;
-    Alert.alert("Leave Gym", `Are you sure you want to leave ${gym.name}?`, [
-      { text: "Cancel", style: "cancel" },
-      {
-        text: "Leave",
-        style: "destructive",
-        onPress: () =>
-          leaveGym(gym.membershipId, {
-            onError: (err: Error) => Alert.alert("Error", err.message),
-          }),
-      },
-    ]);
+    leaveGym(gym.membershipId, {
+      onError: (err: Error) => showToast(err.message, "error"),
+    });
   }
 
   const unit = profile?.unit_preference ?? "kg";
@@ -217,7 +211,7 @@ function InGymView({
       >
         {/* Gym banner card */}
         <View className="mt-2 mb-8">
-          <GymBanner gym={gym} onLeave={handleLeaveGym} />
+          <GymBanner gym={gym} onLeave={() => setLeaveModalVisible(true)} />
         </View>
 
         {/* Date navigator */}
@@ -244,6 +238,16 @@ function InGymView({
           )}
         </View>
       </ScrollView>
+      <LeaveGymModal
+        visible={leaveModalVisible}
+        gymName={gym.name}
+        isLeaving={isLeaving}
+        onCancel={() => setLeaveModalVisible(false)}
+        onConfirm={() => {
+          setLeaveModalVisible(false);
+          handleLeaveGym();
+        }}
+      />
     </SafeAreaView>
   );
 }

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { View, Text, Pressable, ActivityIndicator, Alert } from "react-native";
+import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -11,6 +11,7 @@ import { AddMaxModal } from "@/components/exercises/AddMaxModal";
 import { PRCelebrationModal } from "@/components/exercises/PRCelebrationModal";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { colors } from "@/lib/theme";
 import { isValidUUID } from "@/lib/constants";
 
@@ -35,6 +36,7 @@ export default function ExerciseDetailScreen() {
     number | undefined
   >(undefined);
   const [refreshing, setRefreshing] = useState(false);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
   useEffect(() => {
     if (addMax === "true") setAddModalVisible(true);
@@ -61,21 +63,7 @@ export default function ExerciseDetailScreen() {
   const currentMax = history[0] ?? null;
 
   function handleDelete() {
-    Alert.alert(
-      "Remove Exercise",
-      `Remove ${exercise?.name ?? "this exercise"} from your lifts? All recorded maxes will be deleted.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Remove",
-          style: "destructive",
-          onPress: () => {
-            router.back();
-            deleteExerciseMaxes(id);
-          },
-        },
-      ],
-    );
+    setDeleteModalVisible(true);
   }
 
   async function handleRefresh() {
@@ -177,6 +165,19 @@ export default function ExerciseDetailScreen() {
         unit={unit}
         onClose={() => setPrVisible(false)}
         onViewHistory={() => setActiveTab("history")}
+      />
+      <ConfirmModal
+        visible={deleteModalVisible}
+        title="Remove Exercise"
+        message={`Remove ${exercise?.name ?? "this exercise"} from your lifts? All recorded maxes will be deleted.`}
+        confirmLabel="Remove"
+        variant="destructive"
+        onCancel={() => setDeleteModalVisible(false)}
+        onConfirm={() => {
+          setDeleteModalVisible(false);
+          router.back();
+          deleteExerciseMaxes(id);
+        }}
       />
     </SafeAreaView>
   );

@@ -6,7 +6,6 @@ import {
   Pressable,
   ActivityIndicator,
   ScrollView,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
@@ -30,6 +29,7 @@ export default function JoinGymScreen() {
   const { token } = useLocalSearchParams<{ token?: string }>();
   const { session, isLoading: authLoading } = useAuth();
   const setPendingInviteToken = useAppStore((s) => s.setPendingInviteToken);
+  const showToast = useAppStore((s) => s.showToast);
   const [code, setCode] = useState("");
 
   const tokenQuery = useGymPreviewByToken(
@@ -80,14 +80,14 @@ export default function JoinGymScreen() {
   function onJoinError(e: Error) {
     const msg = e.message.toLowerCase();
     if (msg.includes("already")) {
-      Alert.alert(
-        "Already a Member",
+      showToast(
         "You're already in a gym. Leave it first to join another.",
+        "error",
       );
     } else if (msg.includes("limit") || msg.includes("full")) {
-      Alert.alert("Gym is Full", "This gym has reached its member limit.");
+      showToast("This gym has reached its member limit.", "error");
     } else {
-      Alert.alert("Error", e.message);
+      showToast(e.message, "error");
     }
   }
 

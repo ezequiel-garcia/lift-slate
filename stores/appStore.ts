@@ -2,7 +2,8 @@ import { create } from "zustand";
 
 interface AppState {
   toast: string | null;
-  showToast: (msg: string) => void;
+  toastType: "success" | "error";
+  showToast: (msg: string, type?: "success" | "error") => void;
   hideToast: () => void;
   pendingGymDate: Date | null;
   setPendingGymDate: (date: Date) => void;
@@ -14,7 +15,8 @@ interface AppState {
 
 export const useAppStore = create<AppState>((set) => ({
   toast: null,
-  showToast: (msg) => set({ toast: msg }),
+  toastType: "success",
+  showToast: (msg, type = "success") => set({ toast: msg, toastType: type }),
   hideToast: () => set({ toast: null }),
   pendingGymDate: null,
   setPendingGymDate: (date) => set({ pendingGymDate: date }),

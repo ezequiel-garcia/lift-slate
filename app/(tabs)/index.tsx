@@ -5,7 +5,6 @@ import {
   SectionList,
   Pressable,
   RefreshControl,
-  Alert,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from "react-native";
@@ -27,6 +26,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { ExerciseListSkeleton } from "@/components/ui/Skeleton";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { colors, animation } from "@/lib/theme";
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -35,6 +35,10 @@ export default function HomeScreen() {
   const [search, setSearch] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const [pendingDeleteExercise, setPendingDeleteExercise] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const reduceMotion = useReducedMotion();
 
   const {
@@ -80,18 +84,7 @@ export default function HomeScreen() {
   );
 
   function handleDeleteExercise(exerciseId: string, name: string) {
-    Alert.alert(
-      "Remove Exercise",
-      `Remove ${name} from your lifts? All recorded maxes will be deleted.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Remove",
-          style: "destructive",
-          onPress: () => deleteExerciseMaxes(exerciseId),
-        },
-      ],
-    );
+    setPendingDeleteExercise({ id: exerciseId, name });
   }
 
   async function handleRefresh() {
@@ -223,6 +216,19 @@ export default function HomeScreen() {
         onClose={() => setModalVisible(false)}
         availableExercises={availableExercises}
         isLoadingExercises={isLoadingExercises}
+      />
+      <ConfirmModal
+        visible={pendingDeleteExercise !== null}
+        title="Remove Exercise"
+        message={`Remove ${pendingDeleteExercise?.name ?? "this exercise"} from your lifts? All recorded maxes will be deleted.`}
+        confirmLabel="Remove"
+        variant="destructive"
+        onCancel={() => setPendingDeleteExercise(null)}
+        onConfirm={() => {
+          if (pendingDeleteExercise)
+            deleteExerciseMaxes(pendingDeleteExercise.id);
+          setPendingDeleteExercise(null);
+        }}
       />
     </SafeAreaView>
   );

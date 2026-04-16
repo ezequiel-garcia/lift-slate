@@ -4,16 +4,17 @@ import {
   Text,
   Pressable,
   RefreshControl,
-  Alert,
   ActivityIndicator,
 } from "react-native";
 import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
+import { useState } from "react";
 import { formatWeight, fromKg, WeightUnit } from "@/lib/units";
 import { colors } from "@/lib/theme";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 
 type Max = {
   id: string;
@@ -41,6 +42,7 @@ export function HistoryTab({
   onRefresh,
   isLoading,
 }: Props) {
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const prWeightKg = history.reduce(
     (best, m) => Math.max(best, m.weight_kg),
     0,
@@ -94,16 +96,7 @@ export function HistoryTab({
               <Pressable
                 hitSlop={12}
                 className="w-8 h-8 items-center justify-center"
-                onPress={() =>
-                  Alert.alert("Delete Entry", "Remove this max entry?", [
-                    { text: "Cancel", style: "cancel" },
-                    {
-                      text: "Delete",
-                      style: "destructive",
-                      onPress: () => onDeleteMax(item.id),
-                    },
-                  ])
-                }
+                onPress={() => setPendingDeleteId(item.id)}
               >
                 <Ionicons name="trash-outline" size={16} color={colors.muted} />
               </Pressable>
@@ -118,58 +111,76 @@ export function HistoryTab({
   };
 
   return (
-    <FlatList
-      data={history}
-      keyExtractor={(item) => item.id}
-      renderItem={renderItem}
-      contentContainerStyle={{ paddingTop: 8, paddingBottom: 100, flexGrow: 1 }}
-      ListEmptyComponent={
-        isLoading ? (
-          <View className="flex-1 items-center justify-center py-16">
-            <ActivityIndicator color={colors.accent} />
-          </View>
-        ) : (
-          <View className="flex-1 justify-center">
-            <EmptyState
-              icon="time-outline"
-              title="No history yet"
-              description="Start tracking to see your progress here"
-              action={
-                onAddMax ? (
-                  <Button label="Log your first max" onPress={onAddMax} />
-                ) : undefined
-              }
+    <>
+      <FlatList
+        data={history}
+        keyExtractor={(item) => item.id}
+        renderItem={renderItem}
+        contentContainerStyle={{
+          paddingTop: 8,
+          paddingBottom: 100,
+          flexGrow: 1,
+        }}
+        ListEmptyComponent={
+          isLoading ? (
+            <View className="flex-1 items-center justify-center py-16">
+              <ActivityIndicator color={colors.accent} />
+            </View>
+          ) : (
+            <View className="flex-1 justify-center">
+              <EmptyState
+                icon="time-outline"
+                title="No history yet"
+                description="Start tracking to see your progress here"
+                action={
+                  onAddMax ? (
+                    <Button label="Log your first max" onPress={onAddMax} />
+                  ) : undefined
+                }
+              />
+            </View>
+          )
+        }
+        ListFooterComponent={
+          history.length > 0 && onAddMax ? (
+            <View className="mx-5 mt-2">
+              <Button
+                label="Add New Max"
+                variant="secondary"
+                onPress={onAddMax}
+                icon={
+                  <Ionicons
+                    name="add-circle-outline"
+                    size={20}
+                    color={colors.accent}
+                  />
+                }
+              />
+            </View>
+          ) : null
+        }
+        refreshControl={
+          onRefresh ? (
+            <RefreshControl
+              refreshing={!!refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.accent}
             />
-          </View>
-        )
-      }
-      ListFooterComponent={
-        history.length > 0 && onAddMax ? (
-          <View className="mx-5 mt-2">
-            <Button
-              label="Add New Max"
-              variant="secondary"
-              onPress={onAddMax}
-              icon={
-                <Ionicons
-                  name="add-circle-outline"
-                  size={20}
-                  color={colors.accent}
-                />
-              }
-            />
-          </View>
-        ) : null
-      }
-      refreshControl={
-        onRefresh ? (
-          <RefreshControl
-            refreshing={!!refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.accent}
-          />
-        ) : undefined
-      }
-    />
+          ) : undefined
+        }
+      />
+      <ConfirmModal
+        visible={pendingDeleteId !== null}
+        title="Delete Max"
+        message="Remove this max from your history?"
+        confirmLabel="Delete"
+        variant="destructive"
+        onCancel={() => setPendingDeleteId(null)}
+        onConfirm={() => {
+          if (pendingDeleteId) onDeleteMax?.(pendingDeleteId);
+          setPendingDeleteId(null);
+        }}
+      />
+    </>
   );
 }

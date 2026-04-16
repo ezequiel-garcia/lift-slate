@@ -1,7 +1,8 @@
 import { colors } from "@/lib/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
-import { Alert, Pressable, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { ExercisePickerModal } from "./ExercisePickerModal";
 import { ItemFormData, SectionFormData } from "./types";
 import { WorkoutItemRow } from "./WorkoutItemRow";
@@ -42,6 +43,7 @@ export function WorkoutSectionCard({
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [localCollapsed, setLocalCollapsed] = useState(false);
+  const [deleteBlockVisible, setDeleteBlockVisible] = useState(false);
 
   const inAccordion = openBlockId !== null;
   const forcedCollapsed = inAccordion && section.localId !== openBlockId;
@@ -108,14 +110,7 @@ export function WorkoutSectionCard({
   }
 
   function confirmRemoveBlock() {
-    Alert.alert(
-      "Remove block?",
-      `This removes "${section.title?.trim() || "this block"}" and every exercise inside it.`,
-      [
-        { text: "Cancel", style: "cancel" },
-        { text: "Remove", style: "destructive", onPress: onDelete },
-      ],
-    );
+    setDeleteBlockVisible(true);
   }
 
   const exerciseCount = section.items.length;
@@ -235,6 +230,18 @@ export function WorkoutSectionCard({
         onClose={() => setShowExercisePicker(false)}
         onSelect={addExercise}
         onAddCustom={addCustomExercise}
+      />
+      <ConfirmModal
+        visible={deleteBlockVisible}
+        title="Remove Block?"
+        message={`This removes "${section.title?.trim() || "this block"}" and every exercise inside it.`}
+        confirmLabel="Remove"
+        variant="destructive"
+        onCancel={() => setDeleteBlockVisible(false)}
+        onConfirm={() => {
+          setDeleteBlockVisible(false);
+          onDelete();
+        }}
       />
     </View>
   );

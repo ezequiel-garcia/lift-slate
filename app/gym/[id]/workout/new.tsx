@@ -16,7 +16,6 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   Text,
@@ -56,6 +55,7 @@ export default function NewWorkoutScreen() {
   const createWorkout = useCreateWorkout();
   const updateWorkout = useUpdateWorkout();
   const setPendingGymDate = useAppStore((s) => s.setPendingGymDate);
+  const showToast = useAppStore((s) => s.showToast);
 
   const [loading, setLoading] = useState(isEditMode);
   const [scheduledDate, setScheduledDate] = useState(() =>
@@ -99,7 +99,7 @@ export default function NewWorkoutScreen() {
           })),
         );
       })
-      .catch(() => Alert.alert("Error", "Failed to load workout."))
+      .catch(() => showToast("Failed to load workout.", "error"))
       .finally(() => setLoading(false));
   }, [workoutId, isEditMode]);
 
@@ -176,7 +176,7 @@ export default function NewWorkoutScreen() {
       setPendingGymDate(scheduledDate);
       router.back();
     } catch {
-      Alert.alert("Error", "Failed to save workout. Please try again.");
+      showToast("Failed to save workout. Please try again.", "error");
     }
   }
 

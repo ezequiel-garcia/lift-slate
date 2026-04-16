@@ -16,6 +16,7 @@ import { colors, animation } from "@/lib/theme";
 
 export function Toast() {
   const toast = useAppStore((s) => s.toast);
+  const toastType = useAppStore((s) => s.toastType);
   const hideToast = useAppStore((s) => s.hideToast);
   const [message, setMessage] = useState("");
   const reduceMotion = useReducedMotion();
@@ -76,7 +77,11 @@ export function Toast() {
         animatedStyle,
       ]}
     >
-      <Ionicons name="checkmark-circle" size={18} color={colors.accent} />
+      <Ionicons
+        name={toastType === "error" ? "alert-circle" : "checkmark-circle"}
+        size={18}
+        color={toastType === "error" ? colors.error : colors.accent}
+      />
       <Text
         style={{ color: colors.foreground, fontSize: 15, fontWeight: "600" }}
       >
