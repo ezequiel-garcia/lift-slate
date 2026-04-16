@@ -29,19 +29,14 @@ export async function createGym(
   logoUrl?: string,
 ) {
   const userId = await getCurrentUserId();
-  const { data, error } = await supabase
-    .from("gyms")
-    .insert({
-      name,
-      description: description ?? null,
-      address: address ?? null,
-      logo_url: logoUrl ?? null,
-      owner_id: userId,
-    })
-    .select()
-    .single();
+  const { error } = await supabase.from("gyms").insert({
+    name,
+    description: description ?? null,
+    address: address ?? null,
+    logo_url: logoUrl ?? null,
+    owner_id: userId,
+  });
   if (error) throw error;
-  return data;
 }
 
 export async function getMyGym() {

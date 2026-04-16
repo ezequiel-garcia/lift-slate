@@ -89,7 +89,7 @@ export default function CreateGymScreen() {
           "You already belong to a gym. Leave your current gym before creating a new one.",
         );
       } else {
-        setError(raw || "Failed to create gym.");
+        setError("Something went wrong. Please try again.");
       }
     } finally {
       setLoading(false);
