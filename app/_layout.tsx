@@ -93,7 +93,7 @@ function RootLayout() {
           client={queryClient}
           persistOptions={{ persister, buster: "v1" }}
         >
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, backgroundColor: colors.bg }}>
             <StatusBar style="light" />
             <Stack
               screenOptions={{

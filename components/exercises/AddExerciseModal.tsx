@@ -134,6 +134,7 @@ export function AddExerciseModal({
               <FlatList
                 data={filtered}
                 keyExtractor={(e) => e.id}
+                keyboardShouldPersistTaps="handled"
                 renderItem={({ item }) => (
                   <Pressable
                     className="flex-row items-center justify-between px-5 py-4"
