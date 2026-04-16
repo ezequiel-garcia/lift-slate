@@ -122,18 +122,6 @@ export async function getGymMembers(gymId: string): Promise<GymMember[]> {
   return data as GymMember[];
 }
 
-export async function getGymSubscription(gymId: string) {
-  const { data, error } = await supabase
-    .from("gym_subscriptions")
-    .select(
-      "id, gym_id, plan, max_athletes, max_coaches, trial_started_at, trial_ends_at, status",
-    )
-    .eq("gym_id", gymId)
-    .single();
-  if (error) throw error;
-  return data;
-}
-
 export async function leaveGym(membershipId: string) {
   const { error } = await supabase.rpc("leave_gym", {
     p_membership_id: membershipId,

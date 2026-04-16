@@ -5,7 +5,6 @@ import {
   updateGym,
   leaveGym,
   getGymMembers,
-  getGymSubscription,
   getGymInviteDetails,
   deleteGym,
   removeMember,
@@ -65,14 +64,6 @@ export function useGymMembers(gymId: string | undefined) {
   return useQuery({
     queryKey: ["gym", gymId, "members"],
     queryFn: () => getGymMembers(gymId!),
-    enabled: !!gymId,
-  });
-}
-
-export function useGymSubscription(gymId: string | undefined) {
-  return useQuery({
-    queryKey: ["gym", gymId, "subscription"],
-    queryFn: () => getGymSubscription(gymId!),
     enabled: !!gymId,
   });
 }
