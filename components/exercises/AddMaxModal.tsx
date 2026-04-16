@@ -34,6 +34,7 @@ type Props = {
   currentMaxKg?: number;
   onClose: () => void;
   onPR?: (newWeightKg: number) => void;
+  showNotRelevant?: boolean;
 };
 
 export function AddMaxModal({
@@ -43,6 +44,7 @@ export function AddMaxModal({
   currentMaxKg,
   onClose,
   onPR,
+  showNotRelevant,
 }: Props) {
   const [mode, setMode] = useState<EntryMode>("direct");
   const [weight, setWeight] = useState("");
@@ -255,6 +257,31 @@ export function AddMaxModal({
                 <Text className="text-bg font-bold text-[16px]">Save Max</Text>
               )}
             </Pressable>
+
+            {showNotRelevant && (
+              <Pressable
+                className="mt-3 p-4 items-center"
+                style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+                disabled={mutation.isPending}
+                onPress={async () => {
+                  await createMax({
+                    exerciseId,
+                    weight: 0,
+                    unit: "kg",
+                  });
+                  queryClient.invalidateQueries({ queryKey: ["maxes"] });
+                  queryClient.invalidateQueries({
+                    queryKey: ["maxes", "history", exerciseId],
+                  });
+                  showToast("Exercise added!");
+                  handleClose();
+                }}
+              >
+                <Text className="text-muted font-semibold text-[15px]">
+                  Not relevant
+                </Text>
+              </Pressable>
+            )}
 
             {mutation.isError && (
               <Text className="text-error text-base text-center mt-3">

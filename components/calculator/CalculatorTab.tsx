@@ -66,7 +66,7 @@ export function CalculatorTab({
         </Text>
         {isLoading ? (
           <ActivityIndicator color={colors.accent} />
-        ) : currentMax ? (
+        ) : currentMax && currentMax.weight_kg > 0 ? (
           <Text
             className="text-[56px] font-bold text-foreground"
             style={{ letterSpacing: -2 }}
@@ -74,76 +74,82 @@ export function CalculatorTab({
             {formatWeight(fromKg(currentMax.weight_kg, unit), unit)}
           </Text>
         ) : (
-          <Text className="text-muted text-base">No max recorded yet</Text>
+          <Text className="text-muted text-base">
+            {currentMax ? "Not relevant" : "No max recorded yet"}
+          </Text>
         )}
       </View>
 
-      {/* Percentage grid */}
-      <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-3">
-        Percentage
-      </Text>
-      <View className="flex-row flex-wrap gap-2 mb-6">
-        {COMMON_PERCENTAGES.map((pct) => {
-          const isActive = selectedPct === pct && !customPct;
-          return (
-            <Pressable
-              key={pct}
-              className={`px-4 py-3 rounded-xl ${
-                isActive ? "bg-accent/15" : "bg-surface"
-              }`}
-              style={
-                isActive
-                  ? { borderWidth: 1, borderColor: colors.accent }
-                  : undefined
-              }
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setSelectedPct(pct);
-                setCustomPct("");
-              }}
-            >
-              <Text
-                className={`text-[15px] font-semibold ${isActive ? "text-accent" : "text-foreground"}`}
-              >
-                {pct}%
-              </Text>
-            </Pressable>
-          );
-        })}
-      </View>
+      {currentMax && currentMax.weight_kg > 0 && (
+        <>
+          {/* Percentage grid */}
+          <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-3">
+            Percentage
+          </Text>
+          <View className="flex-row flex-wrap gap-2 mb-6">
+            {COMMON_PERCENTAGES.map((pct) => {
+              const isActive = selectedPct === pct && !customPct;
+              return (
+                <Pressable
+                  key={pct}
+                  className={`px-4 py-3 rounded-xl ${
+                    isActive ? "bg-accent/15" : "bg-surface"
+                  }`}
+                  style={
+                    isActive
+                      ? { borderWidth: 1, borderColor: colors.accent }
+                      : undefined
+                  }
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setSelectedPct(pct);
+                    setCustomPct("");
+                  }}
+                >
+                  <Text
+                    className={`text-[15px] font-semibold ${isActive ? "text-accent" : "text-foreground"}`}
+                  >
+                    {pct}%
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
 
-      {/* Custom percentage */}
-      <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
-        Custom
-      </Text>
-      <View className="flex-row items-center gap-3 mb-6">
-        <TextInput
-          className="flex-1 bg-surface rounded-xl px-4 py-3.5 text-foreground text-[16px]"
-          placeholder="e.g. 67.5"
-          placeholderTextColor={colors.muted}
-          keyboardType="decimal-pad"
-          value={customPct}
-          onChangeText={(v) => {
-            setCustomPct(v);
-            if (v) setSelectedPct(null);
-          }}
-        />
-        <Text className="text-muted text-lg font-semibold">%</Text>
-      </View>
-
-      {/* Result */}
-      {result && (
-        <View className="bg-surface rounded-2xl p-6 mb-3 items-center">
+          {/* Custom percentage */}
           <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
-            {activePct}% of 1RM
+            Custom
           </Text>
-          <Text
-            className="text-[48px] font-bold text-accent"
-            style={{ letterSpacing: -2 }}
-          >
-            {formatWeight(result, unit)}
-          </Text>
-        </View>
+          <View className="flex-row items-center gap-3 mb-6">
+            <TextInput
+              className="flex-1 bg-surface rounded-xl px-4 py-3.5 text-foreground text-[16px]"
+              placeholder="e.g. 67.5"
+              placeholderTextColor={colors.muted}
+              keyboardType="decimal-pad"
+              value={customPct}
+              onChangeText={(v) => {
+                setCustomPct(v);
+                if (v) setSelectedPct(null);
+              }}
+            />
+            <Text className="text-muted text-lg font-semibold">%</Text>
+          </View>
+
+          {/* Result */}
+          {result && (
+            <View className="bg-surface rounded-2xl p-6 mb-3 items-center">
+              <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
+                {activePct}% of 1RM
+              </Text>
+              <Text
+                className="text-[48px] font-bold text-accent"
+                style={{ letterSpacing: -2 }}
+              >
+                {formatWeight(result, unit)}
+              </Text>
+            </View>
+          )}
+        </>
       )}
 
       {!readonly && (

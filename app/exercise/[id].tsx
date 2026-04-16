@@ -133,7 +133,7 @@ export default function ExerciseDetailScreen() {
             />
           ) : (
             <HistoryTab
-              history={history}
+              history={history.filter((m) => m.weight_kg > 0)}
               unit={unit}
               onAddMax={() => setAddModalVisible(true)}
               onDeleteMax={(maxId) => deleteMax(maxId)}
@@ -151,6 +151,7 @@ export default function ExerciseDetailScreen() {
         unit={unit}
         currentMaxKg={currentMax?.weight_kg ?? undefined}
         onClose={() => setAddModalVisible(false)}
+        showNotRelevant={!currentMax}
         onPR={(kg) => {
           setPrPreviousWeightKg(currentMax?.weight_kg ?? undefined);
           setPrWeightKg(kg);

@@ -100,6 +100,7 @@ export function ExerciseRow({
   onDelete,
   index = 0,
 }: Props) {
+  const hasMax = currentWeightKg > 0;
   const displayWeight = fromKg(currentWeightKg, unit);
   const reduceMotion = useReducedMotion();
 
@@ -137,8 +138,10 @@ export function ExerciseRow({
               {name}
             </Text>
           </View>
-          <Text className="text-[17px] font-bold text-foreground tabular-nums">
-            {formatWeight(displayWeight, unit)}
+          <Text
+            className={`text-[17px] font-bold tabular-nums ${hasMax ? "text-foreground" : "text-muted"}`}
+          >
+            {hasMax ? formatWeight(displayWeight, unit) : "—"}
           </Text>
           <Ionicons
             name="chevron-forward"
