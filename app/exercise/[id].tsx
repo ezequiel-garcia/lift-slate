@@ -26,6 +26,8 @@ export default function ExerciseDetailScreen() {
     addMax?: string;
   }>();
 
+  const validId = isValidUUID(id) ? id : null;
+
   const [activeTab, setActiveTab] = useState<Tab>("reference");
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [prVisible, setPrVisible] = useState(false);
@@ -48,11 +50,11 @@ export default function ExerciseDetailScreen() {
     historyLoading,
     isError,
     refetch,
-  } = useExerciseDetail(id ?? "");
+  } = useExerciseDetail(validId ?? "");
   const { mutate: deleteExerciseMaxes } = useDeleteAllReferencesForExercise();
-  const { mutate: deleteMax } = useDeleteExerciseReference(id ?? "");
+  const { mutate: deleteMax } = useDeleteExerciseReference(validId ?? "");
 
-  if (!isValidUUID(id)) {
+  if (!validId) {
     router.replace("/");
     return null;
   }
@@ -160,7 +162,7 @@ export default function ExerciseDetailScreen() {
 
           {activeTab === "reference" && !isBodyweight ? (
             <CalculatorTab
-              exerciseId={id}
+              exerciseId={validId}
               equipmentType={equipmentType}
               currentMax={currentMax}
               unit={unit}
@@ -183,7 +185,7 @@ export default function ExerciseDetailScreen() {
 
       <AddMaxModal
         visible={addModalVisible}
-        exerciseId={id}
+        exerciseId={validId}
         equipmentType={equipmentType}
         unit={unit}
         currentMaxKg={currentMax?.weight_kg ?? undefined}
@@ -214,7 +216,7 @@ export default function ExerciseDetailScreen() {
         onConfirm={() => {
           setDeleteModalVisible(false);
           router.back();
-          deleteExerciseMaxes(id);
+          deleteExerciseMaxes(validId);
         }}
       />
     </SafeAreaView>
