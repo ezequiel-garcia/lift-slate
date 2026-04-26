@@ -54,18 +54,12 @@ export default function ExerciseDetailScreen() {
   const { mutate: deleteExerciseMaxes } = useDeleteAllReferencesForExercise();
   const { mutate: deleteMax } = useDeleteExerciseReference(validId ?? "");
 
-  if (!validId) {
-    router.replace("/");
-    return null;
-  }
-
   const unit = profile?.unit_preference ?? "kg";
   const equipmentType = exercise?.equipment_type;
 
   const isBodyweight = equipmentType === "bodyweight";
   const isOneRM = !equipmentType || equipmentType === "barbell";
 
-  // Strip placeholder records (weight=0 or reps=0) from display
   const displayHistory = useMemo(
     () =>
       history.filter((m) =>
@@ -77,7 +71,7 @@ export default function ExerciseDetailScreen() {
   const currentMax = useMemo(() => {
     const first = displayHistory[0];
     if (!first) return null;
-    if (isBodyweight) return null; // bodyweight uses reps, not passed to CalculatorTab
+    if (isBodyweight) return null;
     return first.weight_kg != null
       ? {
           id: first.id,
@@ -87,6 +81,11 @@ export default function ExerciseDetailScreen() {
         }
       : null;
   }, [displayHistory, isBodyweight]);
+
+  if (!validId) {
+    router.replace("/");
+    return null;
+  }
 
   // Tab config: bodyweight has no "reference" tab (just history)
   const tabSegments = isBodyweight
