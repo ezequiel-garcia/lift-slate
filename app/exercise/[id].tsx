@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
@@ -18,12 +18,7 @@ import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { colors } from "@/lib/theme";
 import { isValidUUID } from "@/lib/constants";
 
-type Tab = "calculator" | "history";
-
-const TAB_SEGMENTS = [
-  { value: "calculator" as const, label: "Calculator" },
-  { value: "history" as const, label: "History" },
-];
+type Tab = "reference" | "history";
 
 export default function ExerciseDetailScreen() {
   const { id, addMax } = useLocalSearchParams<{
@@ -31,7 +26,7 @@ export default function ExerciseDetailScreen() {
     addMax?: string;
   }>();
 
-  const [activeTab, setActiveTab] = useState<Tab>("calculator");
+  const [activeTab, setActiveTab] = useState<Tab>("reference");
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [prVisible, setPrVisible] = useState(false);
   const [prWeightKg, setPrWeightKg] = useState(0);
@@ -63,11 +58,47 @@ export default function ExerciseDetailScreen() {
   }
 
   const unit = profile?.unit_preference ?? "kg";
-  const weightHistory = history.filter(
-    (m): m is typeof m & { weight_kg: number } =>
-      m.weight_kg != null && m.weight_kg > 0,
+  const equipmentType = exercise?.equipment_type;
+
+  const isBodyweight = equipmentType === "bodyweight";
+  const isOneRM =
+    !equipmentType ||
+    equipmentType === "barbell" ||
+    equipmentType === "dumbbell";
+
+  // Strip placeholder records (weight=0 or reps=0) from display
+  const displayHistory = useMemo(
+    () =>
+      history.filter((m) =>
+        isBodyweight ? (m.reps ?? 0) > 0 : (m.weight_kg ?? 0) > 0,
+      ),
+    [history, isBodyweight],
   );
-  const currentMax = weightHistory[0] ?? null;
+
+  const currentMax = useMemo(() => {
+    const first = displayHistory[0];
+    if (!first) return null;
+    if (isBodyweight) return null; // bodyweight uses reps, not passed to CalculatorTab
+    return first.weight_kg != null
+      ? {
+          id: first.id,
+          weight_kg: first.weight_kg,
+          recorded_at: first.recorded_at,
+          notes: first.notes,
+        }
+      : null;
+  }, [displayHistory, isBodyweight]);
+
+  // Tab config: bodyweight has no "reference" tab (just history)
+  const tabSegments = isBodyweight
+    ? [{ value: "history" as const, label: "History" }]
+    : [
+        {
+          value: "reference" as const,
+          label: isOneRM ? "Calculator" : "Working Weight",
+        },
+        { value: "history" as const, label: "History" },
+      ];
 
   function handleDelete() {
     setDeleteModalVisible(true);
@@ -120,19 +151,20 @@ export default function ExerciseDetailScreen() {
         />
       ) : (
         <>
-          {/* Tab bar */}
-          <View className="mx-5 mt-1 mb-3">
-            <SegmentedControl
-              segments={TAB_SEGMENTS}
-              selected={activeTab}
-              onChange={setActiveTab}
-            />
-          </View>
+          {tabSegments.length > 1 && (
+            <View className="mx-5 mt-1 mb-3">
+              <SegmentedControl
+                segments={tabSegments}
+                selected={activeTab}
+                onChange={setActiveTab}
+              />
+            </View>
+          )}
 
-          {/* Content */}
-          {activeTab === "calculator" ? (
+          {activeTab === "reference" && !isBodyweight ? (
             <CalculatorTab
               exerciseId={id}
+              equipmentType={equipmentType}
               currentMax={currentMax}
               unit={unit}
               onAddMax={() => setAddModalVisible(true)}
@@ -140,7 +172,7 @@ export default function ExerciseDetailScreen() {
             />
           ) : (
             <HistoryTab
-              history={weightHistory}
+              history={displayHistory}
               unit={unit}
               onAddMax={() => setAddModalVisible(true)}
               onDeleteMax={(maxId) => deleteMax(maxId)}
@@ -155,11 +187,11 @@ export default function ExerciseDetailScreen() {
       <AddMaxModal
         visible={addModalVisible}
         exerciseId={id}
-        equipmentType={exercise?.equipment_type}
+        equipmentType={equipmentType}
         unit={unit}
         currentMaxKg={currentMax?.weight_kg ?? undefined}
         onClose={() => setAddModalVisible(false)}
-        showNotRelevant={!currentMax}
+        showNotRelevant={displayHistory.length === 0}
         onPR={(kg) => {
           setPrPreviousWeightKg(currentMax?.weight_kg ?? undefined);
           setPrWeightKg(kg);
@@ -178,7 +210,7 @@ export default function ExerciseDetailScreen() {
       <ConfirmModal
         visible={deleteModalVisible}
         title="Remove Exercise"
-        message={`Remove ${exercise?.name ?? "this exercise"} from your lifts? All recorded maxes will be deleted.`}
+        message={`Remove ${exercise?.name ?? "this exercise"} from your lifts? All recorded history will be deleted.`}
         confirmLabel="Remove"
         variant="destructive"
         onCancel={() => setDeleteModalVisible(false)}
