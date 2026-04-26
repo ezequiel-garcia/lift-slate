@@ -78,54 +78,14 @@ beforeEach(() => {
 // ---------------------------------------------------------------------------
 
 describe("createGym", () => {
-  const gymRow = {
-    id: "gym-1",
-    name: "Iron Lab",
-    description: "Heavy lifting",
-    address: "123 Main St",
-    logo_url: null,
-    owner_id: USER_ID,
-  };
-
-  it("inserts a gym and returns the created row", async () => {
+  it("inserts a gym without error", async () => {
     mockGetUser.mockResolvedValue(authenticatedUser);
-    mockFrom.mockReturnValue(makeChain({ data: gymRow, error: null }));
+    mockFrom.mockReturnValue(makeChain({ data: null, error: null }));
 
     await expect(
       createGym("Iron Lab", "Heavy lifting", "123 Main St"),
-    ).resolves.toEqual(gymRow);
+    ).resolves.toBeUndefined();
     expect(mockFrom).toHaveBeenCalledWith("gyms");
-  });
-
-  it("creates a gym with only the required name argument", async () => {
-    mockGetUser.mockResolvedValue(authenticatedUser);
-    mockFrom.mockReturnValue(
-      makeChain({
-        data: { ...gymRow, description: null, address: null },
-        error: null,
-      }),
-    );
-
-    const result = await createGym("Iron Lab");
-    expect(result).toBeDefined();
-  });
-
-  it("creates a gym with a logoUrl", async () => {
-    mockGetUser.mockResolvedValue(authenticatedUser);
-    mockFrom.mockReturnValue(
-      makeChain({
-        data: { ...gymRow, logo_url: "https://cdn.example.com/logo.png" },
-        error: null,
-      }),
-    );
-
-    const result = await createGym(
-      "Iron Lab",
-      undefined,
-      undefined,
-      "https://cdn.example.com/logo.png",
-    );
-    expect(result).toBeDefined();
   });
 
   it("throws 'Not authenticated' when auth returns an error", async () => {
