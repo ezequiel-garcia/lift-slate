@@ -44,6 +44,7 @@ export function HistoryTab({
   isLoading,
 }: Props) {
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+  const reducedMotion = useReducedMotion();
 
   const isRepsMode = history.length > 0 && history[0].weight_kg == null;
 
@@ -97,7 +98,7 @@ export function HistoryTab({
     return (
       <Animated.View
         entering={
-          useReducedMotion()
+          reducedMotion
             ? undefined
             : FadeIn.delay(Math.min(index, 8) * 40).duration(300)
         }
