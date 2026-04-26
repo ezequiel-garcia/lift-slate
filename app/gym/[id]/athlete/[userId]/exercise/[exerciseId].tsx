@@ -7,7 +7,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/lib/theme";
 import { WeightUnit } from "@/lib/units";
 import { isValidUUID } from "@/lib/constants";
-import { useAthleteMaxes, useDeleteAthleteMax } from "@/hooks/useMaxes";
+import {
+  useAthleteReferences,
+  useDeleteAthleteReference,
+} from "@/hooks/useExerciseReferences";
 import { useGymMembers, useMyGym } from "@/hooks/useGym";
 import { CalculatorTab } from "@/components/calculator/CalculatorTab";
 import { HistoryTab } from "@/components/history/HistoryTab";
@@ -40,8 +43,8 @@ export default function AthleteExerciseDetailScreen() {
     isLoading,
     isError,
     refetch,
-  } = useAthleteMaxes(userId ?? "");
-  const { mutate: deleteMax } = useDeleteAthleteMax(userId ?? "");
+  } = useAthleteReferences(userId ?? "");
+  const { mutate: deleteMax } = useDeleteAthleteReference(userId ?? "");
 
   const [activeTab, setActiveTab] = useState<Tab>("calculator");
   const [addModalVisible, setAddModalVisible] = useState(false);
@@ -60,7 +63,6 @@ export default function AthleteExerciseDetailScreen() {
 
   const history = allMaxes?.filter((m) => m.exercise_id === exerciseId) ?? [];
   const exerciseName = history[0]?.exercises?.name ?? "Exercise";
-  const currentMax = history[0] ?? null;
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -113,24 +115,31 @@ export default function AthleteExerciseDetailScreen() {
             />
           </View>
 
-          {activeTab === "calculator" ? (
-            <CalculatorTab
-              exerciseId={exerciseId}
-              currentMax={currentMax}
-              unit={athleteUnit}
-              onAddMax={() => setAddModalVisible(true)}
-              readonly={!canEdit}
-            />
-          ) : (
-            <HistoryTab
-              history={history}
-              unit={athleteUnit}
-              onAddMax={canEdit ? () => setAddModalVisible(true) : undefined}
-              onDeleteMax={canEdit ? (id) => deleteMax(id) : undefined}
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-            />
-          )}
+          {(() => {
+            const weightHistory = history.filter(
+              (m): m is typeof m & { weight_kg: number } =>
+                m.weight_kg != null && m.weight_kg > 0,
+            );
+            const filteredCurrentMax = weightHistory[0] ?? null;
+            return activeTab === "calculator" ? (
+              <CalculatorTab
+                exerciseId={exerciseId}
+                currentMax={filteredCurrentMax}
+                unit={athleteUnit}
+                onAddMax={() => setAddModalVisible(true)}
+                readonly={!canEdit}
+              />
+            ) : (
+              <HistoryTab
+                history={weightHistory}
+                unit={athleteUnit}
+                onAddMax={canEdit ? () => setAddModalVisible(true) : undefined}
+                onDeleteMax={canEdit ? (id) => deleteMax(id) : undefined}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+              />
+            );
+          })()}
         </>
       )}
 

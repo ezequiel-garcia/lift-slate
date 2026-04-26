@@ -1,8 +1,8 @@
-import { CATEGORY_LABELS, CATEGORY_ORDER } from "@/lib/constants";
+import { EQUIPMENT_LABELS, EQUIPMENT_ORDER } from "@/lib/constants";
 import { colors } from "@/lib/theme";
 import { createExercise } from "@/services/exercises.service";
 import { useAppStore } from "@/stores/appStore";
-import { Exercise, ExerciseCategory } from "@/types/exercise";
+import { Exercise, EquipmentType } from "@/types/exercise";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
@@ -36,9 +36,8 @@ export function AddExerciseModal({
   const [mode, setMode] = useState<"browse" | "create">("browse");
   const [search, setSearch] = useState("");
   const [customName, setCustomName] = useState("");
-  const [customCategory, setCustomCategory] = useState<ExerciseCategory | null>(
-    null,
-  );
+  const [customEquipment, setCustomEquipment] =
+    useState<EquipmentType>("barbell");
 
   const queryClient = useQueryClient();
   const showToast = useAppStore((s) => s.showToast);
@@ -46,11 +45,11 @@ export function AddExerciseModal({
   const createMutation = useMutation({
     mutationFn: ({
       name,
-      category,
+      equipmentType,
     }: {
       name: string;
-      category?: ExerciseCategory;
-    }) => createExercise(name, category),
+      equipmentType: EquipmentType;
+    }) => createExercise(name, equipmentType),
     onSuccess: (exercise) => {
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
       showToast("Exercise added!");
@@ -63,7 +62,7 @@ export function AddExerciseModal({
     setMode("browse");
     setSearch("");
     setCustomName("");
-    setCustomCategory(null);
+    setCustomEquipment("barbell");
     onClose();
   };
 
@@ -75,7 +74,7 @@ export function AddExerciseModal({
   const handleCreate = () => {
     const name = customName.trim();
     if (!name) return;
-    createMutation.mutate({ name, category: customCategory ?? undefined });
+    createMutation.mutate({ name, equipmentType: customEquipment });
   };
 
   const filtered = (
@@ -144,11 +143,9 @@ export function AddExerciseModal({
                     <Text className="text-[16px] text-foreground flex-1">
                       {item.name}
                     </Text>
-                    {item.category && (
-                      <Text className="text-sm text-muted ml-3">
-                        {CATEGORY_LABELS[item.category]}
-                      </Text>
-                    )}
+                    <Text className="text-sm text-muted ml-3">
+                      {EQUIPMENT_LABELS[item.equipment_type]}
+                    </Text>
                   </Pressable>
                 )}
                 ItemSeparatorComponent={() => (
@@ -205,32 +202,30 @@ export function AddExerciseModal({
               />
 
               <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mt-6 mb-3">
-                Category (optional)
+                Equipment
               </Text>
               <View className="flex-row flex-wrap gap-2">
-                {CATEGORY_ORDER.map((cat) => (
+                {EQUIPMENT_ORDER.map((eq) => (
                   <Pressable
-                    key={cat}
+                    key={eq}
                     className={`px-4 py-2.5 rounded-xl ${
-                      customCategory === cat ? "bg-accent/15" : "bg-surface"
+                      customEquipment === eq ? "bg-accent/15" : "bg-surface"
                     }`}
                     style={
-                      customCategory === cat
+                      customEquipment === eq
                         ? { borderWidth: 1, borderColor: colors.accent }
                         : undefined
                     }
-                    onPress={() =>
-                      setCustomCategory(customCategory === cat ? null : cat)
-                    }
+                    onPress={() => setCustomEquipment(eq)}
                   >
                     <Text
                       className={`text-[15px] ${
-                        customCategory === cat
+                        customEquipment === eq
                           ? "text-accent font-semibold"
                           : "text-muted"
                       }`}
                     >
-                      {CATEGORY_LABELS[cat]}
+                      {EQUIPMENT_LABELS[eq]}
                     </Text>
                   </Pressable>
                 ))}

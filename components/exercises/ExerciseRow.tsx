@@ -9,44 +9,94 @@ import Animated, {
 } from "react-native-reanimated";
 import type { SharedValue } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { fromKg, formatWeight, WeightUnit } from "@/lib/units";
-import type { ExerciseCategory } from "@/types/exercise";
+import type { EquipmentType } from "@/types/exercise";
 
-const CATEGORY_ICON: Record<
-  NonNullable<ExerciseCategory>,
+const EQUIPMENT_ICON: Record<
+  EquipmentType,
   {
-    name: React.ComponentProps<typeof Ionicons>["name"];
+    library: "ionicons" | "materialCommunity";
+    name: string;
+    size: number;
     bg: string;
     color: string;
   }
 > = {
-  squat: { name: "body", bg: "#131C2E", color: "#5B9BFF" },
-  press: { name: "arrow-up", bg: "#231810", color: "#FF9A5C" },
-  pull: { name: "arrow-down", bg: "#1E1028", color: "#C88AFF" },
-  olympic: { name: "trophy", bg: "#231E0A", color: "#FFD84A" },
-  accessory: { name: "barbell", bg: "#122210", color: "#B4FF4A" },
-  core: { name: "body-outline", bg: "#0E1F1E", color: "#4ECDC4" },
-  conditioning: { name: "flame-outline", bg: "#1F0E0E", color: "#FF6B6B" },
+  barbell: {
+    library: "ionicons",
+    name: "barbell",
+    size: 20,
+    bg: "#122210",
+    color: "#B4FF4A",
+  },
+  dumbbell: {
+    library: "materialCommunity",
+    name: "dumbbell",
+    size: 20,
+    bg: "#131C2E",
+    color: "#5B9BFF",
+  },
+  kettlebell: {
+    library: "materialCommunity",
+    name: "kettlebell",
+    size: 24,
+    bg: "#1E1028",
+    color: "#C88AFF",
+  },
+  bodyweight: {
+    library: "ionicons",
+    name: "body",
+    size: 20,
+    bg: "#0E1F1F",
+    color: "#4AFFD4",
+  },
+  machine: {
+    library: "ionicons",
+    name: "settings",
+    size: 20,
+    bg: "#231810",
+    color: "#FF9A5C",
+  },
+  other: {
+    library: "ionicons",
+    name: "ellipsis-horizontal",
+    size: 20,
+    bg: "#1A1A1E",
+    color: "#888",
+  },
 };
 
-function CategoryIcon({ category }: { category: ExerciseCategory | null }) {
-  const cfg = category ? CATEGORY_ICON[category] : null;
+function EquipmentIcon({ equipmentType }: { equipmentType: EquipmentType }) {
+  const cfg = EQUIPMENT_ICON[equipmentType];
   return (
     <View
       style={{
         width: 42,
         height: 42,
         borderRadius: 11,
-        backgroundColor: cfg?.bg ?? "#1A1A1E",
+        backgroundColor: cfg.bg,
         justifyContent: "center",
         alignItems: "center",
       }}
     >
-      <Ionicons
-        name={cfg?.name ?? "barbell-outline"}
-        size={20}
-        color={cfg?.color ?? "#555"}
-      />
+      {cfg.library === "materialCommunity" ? (
+        <MaterialCommunityIcons
+          name={
+            cfg.name as React.ComponentProps<
+              typeof MaterialCommunityIcons
+            >["name"]
+          }
+          size={cfg.size}
+          color={cfg.color}
+        />
+      ) : (
+        <Ionicons
+          name={cfg.name as React.ComponentProps<typeof Ionicons>["name"]}
+          size={cfg.size}
+          color={cfg.color}
+        />
+      )}
     </View>
   );
 }
@@ -84,8 +134,9 @@ function DeleteAction({
 type Props = {
   exerciseId: string;
   name: string;
-  category: ExerciseCategory | null;
-  currentWeightKg: number;
+  equipmentType: EquipmentType;
+  currentWeightKg: number | null;
+  currentReps?: number | null;
   unit: WeightUnit;
   onDelete?: (exerciseId: string, name: string) => void;
   index?: number;
@@ -94,13 +145,19 @@ type Props = {
 export function ExerciseRow({
   exerciseId,
   name,
-  category,
+  equipmentType,
   currentWeightKg,
+  currentReps,
   unit,
   onDelete,
   index = 0,
 }: Props) {
-  const displayWeight = fromKg(currentWeightKg, unit);
+  const isRepsOnly = equipmentType === "bodyweight";
+  const hasValue = isRepsOnly
+    ? currentReps != null && currentReps > 0
+    : currentWeightKg != null && currentWeightKg > 0;
+  const displayWeight =
+    currentWeightKg != null ? fromKg(currentWeightKg, unit) : 0;
   const reduceMotion = useReducedMotion();
 
   return (
@@ -128,7 +185,7 @@ export function ExerciseRow({
           style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
           onPress={() => router.push(`/exercise/${exerciseId}` as never)}
         >
-          <CategoryIcon category={category} />
+          <EquipmentIcon equipmentType={equipmentType} />
           <View className="flex-1 mx-3.5">
             <Text
               className="text-body font-medium text-foreground"
@@ -137,8 +194,16 @@ export function ExerciseRow({
               {name}
             </Text>
           </View>
-          <Text className="text-[17px] font-bold text-foreground tabular-nums">
-            {formatWeight(displayWeight, unit)}
+          <Text
+            className={`text-[17px] font-bold tabular-nums ${hasValue ? "text-foreground" : "text-muted"}`}
+          >
+            {isRepsOnly
+              ? hasValue
+                ? `${currentReps} reps`
+                : "—"
+              : hasValue
+                ? formatWeight(displayWeight, unit)
+                : "—"}
           </Text>
           <Ionicons
             name="chevron-forward"

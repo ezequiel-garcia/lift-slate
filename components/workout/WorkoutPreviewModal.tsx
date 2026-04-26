@@ -1,5 +1,14 @@
 import { Modal, View, Text, Pressable, ScrollView } from "react-native";
-import { SectionFormData } from "./types";
+import { ItemFormData, PRESCRIPTION_LABELS, SectionFormData } from "./types";
+
+function prescriptionText(item: ItemFormData): string {
+  const mode = item.prescriptionMode;
+  if (!mode) return "";
+  if (mode === "percentage" && item.percentage) return ` @ ${item.percentage}%`;
+  if (mode === "absolute" && item.weightKg) return ` @ ${item.weightKg}kg`;
+  if (mode === "reps_only") return "";
+  return ` (${PRESCRIPTION_LABELS[mode]})`;
+}
 
 type Props = {
   visible: boolean;
@@ -77,10 +86,7 @@ export function WorkoutPreviewModal({
                             ? `${item.sets} sets`
                             : null;
 
-                      const weightText =
-                        item.weightMode === "percentage" && item.percentage
-                          ? ` @ ${item.percentage}%`
-                          : "";
+                      const weightText = prescriptionText(item);
 
                       return (
                         <View key={item.localId} className="py-3">

@@ -1,10 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { View, Text, Pressable, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useExerciseDetail } from "@/hooks/useExerciseDetail";
-import { useDeleteExerciseMaxes, useDeleteMax } from "@/hooks/useMaxes";
+import {
+  useDeleteAllReferencesForExercise,
+  useDeleteExerciseReference,
+} from "@/hooks/useExerciseReferences";
 import { CalculatorTab } from "@/components/calculator/CalculatorTab";
 import { HistoryTab } from "@/components/history/HistoryTab";
 import { AddMaxModal } from "@/components/exercises/AddMaxModal";
@@ -15,12 +18,7 @@ import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { colors } from "@/lib/theme";
 import { isValidUUID } from "@/lib/constants";
 
-type Tab = "calculator" | "history";
-
-const TAB_SEGMENTS = [
-  { value: "calculator" as const, label: "Calculator" },
-  { value: "history" as const, label: "History" },
-];
+type Tab = "reference" | "history";
 
 export default function ExerciseDetailScreen() {
   const { id, addMax } = useLocalSearchParams<{
@@ -28,7 +26,9 @@ export default function ExerciseDetailScreen() {
     addMax?: string;
   }>();
 
-  const [activeTab, setActiveTab] = useState<Tab>("calculator");
+  const validId = isValidUUID(id) ? id : null;
+
+  const [activeTab, setActiveTab] = useState<Tab>("reference");
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [prVisible, setPrVisible] = useState(false);
   const [prWeightKg, setPrWeightKg] = useState(0);
@@ -50,17 +50,53 @@ export default function ExerciseDetailScreen() {
     historyLoading,
     isError,
     refetch,
-  } = useExerciseDetail(id ?? "");
-  const { mutate: deleteExerciseMaxes } = useDeleteExerciseMaxes();
-  const { mutate: deleteMax } = useDeleteMax(id ?? "");
+  } = useExerciseDetail(validId ?? "");
+  const { mutate: deleteExerciseMaxes } = useDeleteAllReferencesForExercise();
+  const { mutate: deleteMax } = useDeleteExerciseReference(validId ?? "");
 
-  if (!isValidUUID(id)) {
+  const unit = profile?.unit_preference ?? "kg";
+  const equipmentType = exercise?.equipment_type;
+
+  const isBodyweight = equipmentType === "bodyweight";
+  const isOneRM = !equipmentType || equipmentType === "barbell";
+
+  const displayHistory = useMemo(
+    () =>
+      history.filter((m) =>
+        isBodyweight ? (m.reps ?? 0) > 0 : (m.weight_kg ?? 0) > 0,
+      ),
+    [history, isBodyweight],
+  );
+
+  const currentMax = useMemo(() => {
+    const first = displayHistory[0];
+    if (!first) return null;
+    if (isBodyweight) return null;
+    return first.weight_kg != null
+      ? {
+          id: first.id,
+          weight_kg: first.weight_kg,
+          recorded_at: first.recorded_at,
+          notes: first.notes,
+        }
+      : null;
+  }, [displayHistory, isBodyweight]);
+
+  if (!validId) {
     router.replace("/");
     return null;
   }
 
-  const unit = profile?.unit_preference ?? "kg";
-  const currentMax = history[0] ?? null;
+  // Tab config: bodyweight has no "reference" tab (just history)
+  const tabSegments = isBodyweight
+    ? [{ value: "history" as const, label: "History" }]
+    : [
+        {
+          value: "reference" as const,
+          label: isOneRM ? "Calculator" : "Working Weight",
+        },
+        { value: "history" as const, label: "History" },
+      ];
 
   function handleDelete() {
     setDeleteModalVisible(true);
@@ -113,19 +149,20 @@ export default function ExerciseDetailScreen() {
         />
       ) : (
         <>
-          {/* Tab bar */}
-          <View className="mx-5 mt-1 mb-3">
-            <SegmentedControl
-              segments={TAB_SEGMENTS}
-              selected={activeTab}
-              onChange={setActiveTab}
-            />
-          </View>
+          {tabSegments.length > 1 && (
+            <View className="mx-5 mt-1 mb-3">
+              <SegmentedControl
+                segments={tabSegments}
+                selected={activeTab}
+                onChange={setActiveTab}
+              />
+            </View>
+          )}
 
-          {/* Content */}
-          {activeTab === "calculator" ? (
+          {activeTab === "reference" && !isBodyweight ? (
             <CalculatorTab
-              exerciseId={id}
+              exerciseId={validId}
+              equipmentType={equipmentType}
               currentMax={currentMax}
               unit={unit}
               onAddMax={() => setAddModalVisible(true)}
@@ -133,7 +170,7 @@ export default function ExerciseDetailScreen() {
             />
           ) : (
             <HistoryTab
-              history={history}
+              history={displayHistory}
               unit={unit}
               onAddMax={() => setAddModalVisible(true)}
               onDeleteMax={(maxId) => deleteMax(maxId)}
@@ -147,10 +184,12 @@ export default function ExerciseDetailScreen() {
 
       <AddMaxModal
         visible={addModalVisible}
-        exerciseId={id}
+        exerciseId={validId}
+        equipmentType={equipmentType}
         unit={unit}
         currentMaxKg={currentMax?.weight_kg ?? undefined}
         onClose={() => setAddModalVisible(false)}
+        showNotRelevant={displayHistory.length === 0}
         onPR={(kg) => {
           setPrPreviousWeightKg(currentMax?.weight_kg ?? undefined);
           setPrWeightKg(kg);
@@ -169,14 +208,14 @@ export default function ExerciseDetailScreen() {
       <ConfirmModal
         visible={deleteModalVisible}
         title="Remove Exercise"
-        message={`Remove ${exercise?.name ?? "this exercise"} from your lifts? All recorded maxes will be deleted.`}
+        message={`Remove ${exercise?.name ?? "this exercise"} from your lifts? All recorded history will be deleted.`}
         confirmLabel="Remove"
         variant="destructive"
         onCancel={() => setDeleteModalVisible(false)}
         onConfirm={() => {
           setDeleteModalVisible(false);
           router.back();
-          deleteExerciseMaxes(id);
+          deleteExerciseMaxes(validId);
         }}
       />
     </SafeAreaView>

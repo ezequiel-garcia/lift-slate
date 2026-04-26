@@ -1,13 +1,13 @@
 import { supabase } from "@/lib/supabase";
 import { Database } from "@/types/database.types";
 
-type ExerciseCategory = Database["public"]["Enums"]["exercise_category"];
+type EquipmentType = Database["public"]["Enums"]["equipment_type"];
 
 export async function getExercises() {
   const { data, error } = await supabase
     .from("exercises")
     .select("*")
-    .order("category")
+    .order("equipment_type")
     .order("name");
   if (error) throw error;
   return data;
@@ -24,7 +24,7 @@ export async function getExercisesByNames(names: string[]) {
 
 export async function createExercise(
   name: string,
-  category?: ExerciseCategory,
+  equipmentType?: EquipmentType,
 ) {
   const {
     data: { user },
@@ -34,7 +34,12 @@ export async function createExercise(
 
   const { data, error } = await supabase
     .from("exercises")
-    .insert({ name, category, created_by: user.id, is_default: false })
+    .insert({
+      name,
+      equipment_type: equipmentType,
+      created_by: user.id,
+      is_default: false,
+    })
     .select()
     .single();
   if (error) throw error;
@@ -43,11 +48,16 @@ export async function createExercise(
 
 export async function updateExercise(
   id: string,
-  updates: { name?: string; category?: ExerciseCategory },
+  updates: { name?: string; equipmentType?: EquipmentType },
 ) {
+  const patch: { name?: string; equipment_type?: EquipmentType } = {};
+  if (updates.name !== undefined) patch.name = updates.name;
+  if (updates.equipmentType !== undefined)
+    patch.equipment_type = updates.equipmentType;
+
   const { data, error } = await supabase
     .from("exercises")
-    .update(updates)
+    .update(patch)
     .eq("id", id)
     .select()
     .single();

@@ -14,7 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 
 import { colors } from "@/lib/theme";
-import { useMyGym, useGymMembers, useGymSubscription } from "@/hooks/useGym";
+import { useMyGym, useGymMembers } from "@/hooks/useGym";
 import { GymMember } from "@/services/gym.service";
 import { Input } from "@/components/ui/Input";
 
@@ -66,7 +66,6 @@ export default function GymMembersScreen() {
 
   const { data: gym } = useMyGym();
   const { data: members, isLoading } = useGymMembers(gymId);
-  const { data: sub } = useGymSubscription(gymId);
   const reduceMotion = useReducedMotion();
 
   const [search, setSearch] = useState("");
@@ -94,9 +93,6 @@ export default function GymMembersScreen() {
       );
     }) ?? [];
 
-  const athleteCount = members?.filter((m) => m.role === "athlete").length ?? 0;
-  const coachCount = members?.filter((m) => m.role === "coach").length ?? 0;
-
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
       {/* Header */}
@@ -113,9 +109,6 @@ export default function GymMembersScreen() {
           {members && (
             <Text className="text-muted text-caption">
               {members.length} member{members.length !== 1 ? "s" : ""}
-              {sub
-                ? `  ·  ${athleteCount}/${sub.max_athletes} athletes  ·  ${coachCount}/${sub.max_coaches} coaches`
-                : ""}
             </Text>
           )}
         </View>

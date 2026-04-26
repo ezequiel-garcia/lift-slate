@@ -14,7 +14,6 @@ import { router } from "expo-router";
 import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { format } from "date-fns";
 
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Card } from "@/components/ui/Card";
@@ -28,7 +27,6 @@ import {
   useUpdateGym,
   useDeleteGym,
   useGymMembers,
-  useGymSubscription,
   useGymInviteDetails,
   useRegenerateInviteToken,
 } from "@/hooks/useGym";
@@ -361,8 +359,7 @@ export default function GymSettingsScreen() {
                 Permanent Link
               </Text>
               <Text className="text-muted text-caption mb-3 leading-relaxed">
-                Anyone with this link can join your gym (subject to subscription
-                limits).
+                Anyone with this link can join your gym.
               </Text>
               {deepLink ? (
                 <Text
@@ -440,10 +437,6 @@ export default function GymSettingsScreen() {
             </View>
           </Card>
 
-          {/* === SUBSCRIPTION === */}
-          <SectionHeader title="Subscription" icon="card-outline" />
-          <SubscriptionSection gymId={gym.id} />
-
           {/* === DANGER ZONE === */}
           <SectionHeader title="Danger Zone" icon="warning-outline" />
           <View className="mx-5 mb-4">
@@ -507,84 +500,5 @@ export default function GymSettingsScreen() {
         }}
       />
     </SafeAreaView>
-  );
-}
-
-function SubscriptionSection({ gymId }: { gymId: string }) {
-  const { data: sub, isLoading } = useGymSubscription(gymId);
-  const { data: members } = useGymMembers(gymId);
-
-  if (isLoading) {
-    return (
-      <View className="mx-5 h-24 bg-surface rounded-2xl items-center justify-center">
-        <ActivityIndicator color={colors.accent} />
-      </View>
-    );
-  }
-  if (!sub) return null;
-
-  const athleteCount = members?.filter((m) => m.role === "athlete").length ?? 0;
-  const coachCount = members?.filter((m) => m.role === "coach").length ?? 0;
-  const planLabel =
-    sub.plan === "free" ? "Free" : sub.plan === "trial" ? "Trial" : "Pro";
-  const isTrialActive = sub.status === "trial" && !!sub.trial_ends_at;
-  const atAthleteLimit = athleteCount >= sub.max_athletes;
-  const atCoachLimit = coachCount >= sub.max_coaches;
-
-  return (
-    <Card className="mx-5">
-      <View className="px-4 py-4">
-        <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-foreground font-semibold text-body">
-            {planLabel} Plan
-          </Text>
-          <View
-            className={`px-2.5 py-1 rounded-full ${sub.plan === "pro" ? "bg-accent" : "bg-surface2"}`}
-          >
-            <Text
-              className={`text-tiny font-bold ${sub.plan === "pro" ? "text-bg" : "text-muted"}`}
-            >
-              {planLabel.toUpperCase()}
-            </Text>
-          </View>
-        </View>
-
-        {isTrialActive && (
-          <Text className="text-muted text-caption mb-3">
-            Trial ends {format(new Date(sub.trial_ends_at!), "MMM d, yyyy")}
-          </Text>
-        )}
-
-        <View className="gap-2">
-          <View className="flex-row justify-between items-center">
-            <Text className="text-muted text-subtext">Athletes</Text>
-            <Text
-              className={`text-subtext font-semibold ${atAthleteLimit ? "text-error" : "text-foreground"}`}
-            >
-              {athleteCount} / {sub.max_athletes}
-            </Text>
-          </View>
-          <View className="flex-row justify-between items-center">
-            <Text className="text-muted text-subtext">Coaches</Text>
-            <Text
-              className={`text-subtext font-semibold ${atCoachLimit ? "text-error" : "text-foreground"}`}
-            >
-              {coachCount} / {sub.max_coaches}
-            </Text>
-          </View>
-        </View>
-
-        {(atAthleteLimit || atCoachLimit) && sub.plan !== "pro" && (
-          <View className="mt-3 bg-surface2 rounded-xl px-3 py-2.5">
-            <Text className="text-accent text-caption font-semibold">
-              Upgrade to Pro for unlimited members
-            </Text>
-            <Text className="text-muted text-caption mt-0.5">
-              Billing coming in a future update
-            </Text>
-          </View>
-        )}
-      </View>
-    </Card>
   );
 }

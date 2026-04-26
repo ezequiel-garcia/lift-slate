@@ -64,7 +64,7 @@ describe("getExercises", () => {
   it("returns exercises ordered by category then name", async () => {
     const rows = [
       { id: "1", name: "Bench Press", category: "press" },
-      { id: "2", name: "Squat", category: "squat" },
+      { id: "2", name: "Squat", category: "barbell" },
     ];
     mockFrom.mockReturnValue(makeChain({ data: rows, error: null }));
 
@@ -128,7 +128,7 @@ describe("createExercise", () => {
   const newExercise = {
     id: "ex-1",
     name: "Romanian Deadlift",
-    category: "pull",
+    category: "barbell",
     created_by: user.id,
     is_default: false,
   };
@@ -137,16 +137,19 @@ describe("createExercise", () => {
     mockGetUser.mockResolvedValue({ data: { user }, error: null });
     mockFrom.mockReturnValue(makeChain({ data: newExercise, error: null }));
 
-    await expect(createExercise("Romanian Deadlift", "pull")).resolves.toEqual(
-      newExercise,
-    );
+    await expect(
+      createExercise("Romanian Deadlift", "barbell"),
+    ).resolves.toEqual(newExercise);
     expect(mockFrom).toHaveBeenCalledWith("exercises");
   });
 
-  it("creates exercise without a category (optional param)", async () => {
+  it("creates exercise without an equipment_type (optional param)", async () => {
     mockGetUser.mockResolvedValue({ data: { user }, error: null });
     mockFrom.mockReturnValue(
-      makeChain({ data: { ...newExercise, category: undefined }, error: null }),
+      makeChain({
+        data: { ...newExercise, equipment_type: undefined },
+        error: null,
+      }),
     );
 
     await expect(createExercise("Romanian Deadlift")).resolves.toBeDefined();
@@ -174,7 +177,7 @@ describe("createExercise", () => {
     const dbError = { message: "duplicate key" };
     mockFrom.mockReturnValue(makeChain({ data: null, error: dbError }));
 
-    await expect(createExercise("Squat", "squat")).rejects.toEqual(dbError);
+    await expect(createExercise("Squat", "barbell")).rejects.toEqual(dbError);
   });
 });
 
@@ -186,7 +189,7 @@ describe("updateExercise", () => {
   const updated = {
     id: "ex-1",
     name: "High Bar Squat",
-    category: "squat",
+    category: "barbell",
   };
 
   it("returns the updated exercise row", async () => {
@@ -198,19 +201,22 @@ describe("updateExercise", () => {
     expect(mockFrom).toHaveBeenCalledWith("exercises");
   });
 
-  it("accepts category-only updates", async () => {
+  it("accepts equipmentType-only updates", async () => {
     mockFrom.mockReturnValue(makeChain({ data: updated, error: null }));
 
     await expect(
-      updateExercise("ex-1", { category: "squat" }),
+      updateExercise("ex-1", { equipmentType: "barbell" }),
     ).resolves.toEqual(updated);
   });
 
-  it("accepts both name and category updates", async () => {
+  it("accepts both name and equipmentType updates", async () => {
     mockFrom.mockReturnValue(makeChain({ data: updated, error: null }));
 
     await expect(
-      updateExercise("ex-1", { name: "High Bar Squat", category: "squat" }),
+      updateExercise("ex-1", {
+        name: "High Bar Squat",
+        equipmentType: "barbell",
+      }),
     ).resolves.toEqual(updated);
   });
 

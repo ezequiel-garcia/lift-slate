@@ -13,8 +13,12 @@ import { Ionicons } from "@expo/vector-icons";
 
 import { colors } from "@/lib/theme";
 import { WeightUnit } from "@/lib/units";
-import { CATEGORY_ORDER, CATEGORY_LABELS, isValidUUID } from "@/lib/constants";
-import { useAthleteMaxes } from "@/hooks/useMaxes";
+import {
+  EQUIPMENT_ORDER,
+  EQUIPMENT_LABELS,
+  isValidUUID,
+} from "@/lib/constants";
+import { useAthleteReferences } from "@/hooks/useExerciseReferences";
 import { useGymMembers, useMyGym, useRemoveMember } from "@/hooks/useGym";
 import { useUpdateMemberRole } from "@/hooks/useRoles";
 import { ExerciseSummary } from "@/types/exercise";
@@ -39,7 +43,7 @@ export default function AthleteProfileScreen() {
     isLoading,
     isError,
     refetch,
-  } = useAthleteMaxes(userId ?? "");
+  } = useAthleteReferences(userId ?? "");
   const { mutate: updateRole, isPending: updatingRole } = useUpdateMemberRole();
   const { mutate: removeMember, isPending: removing } = useRemoveMember();
 
@@ -61,43 +65,45 @@ export default function AthleteProfileScreen() {
   const exerciseSummaries: ExerciseSummary[] = (() => {
     if (!maxes) return [];
     type Entry = {
-      current: number;
+      currentWeightKg: number | null;
+      currentReps: number | null;
       name: string;
-      category: ExerciseSummary["category"];
+      equipmentType: ExerciseSummary["equipmentType"];
+      referenceType: ExerciseSummary["referenceType"];
     };
     const map = new Map<string, Entry>();
     for (const max of maxes) {
       if (!max.exercises) continue;
       if (!map.has(max.exercise_id)) {
         map.set(max.exercise_id, {
-          current: max.weight_kg,
+          currentWeightKg: max.weight_kg,
+          currentReps: max.reps,
           name: max.exercises.name,
-          category: max.exercises.category,
+          equipmentType: max.exercises.equipment_type,
+          referenceType: max.reference_type,
         });
       }
     }
     return Array.from(map.entries()).map(([exerciseId, d]) => ({
       exerciseId,
       name: d.name,
-      category: d.category,
-      currentWeightKg: d.current,
+      equipmentType: d.equipmentType,
+      referenceType: d.referenceType,
+      currentWeightKg: d.currentWeightKg,
+      currentReps: d.currentReps,
       trend: "same" as const,
     }));
   })();
 
   const sections: Section[] = (() => {
     const result: Section[] = [];
-    for (const cat of CATEGORY_ORDER) {
+    for (const eq of EQUIPMENT_ORDER) {
       const items = exerciseSummaries
-        .filter((e) => e.category === cat)
+        .filter((e) => e.equipmentType === eq)
         .sort((a, b) => a.name.localeCompare(b.name));
       if (items.length)
-        result.push({ title: CATEGORY_LABELS[cat], data: items });
+        result.push({ title: EQUIPMENT_LABELS[eq], data: items });
     }
-    const others = exerciseSummaries
-      .filter((e) => !e.category)
-      .sort((a, b) => a.name.localeCompare(b.name));
-    if (others.length) result.push({ title: "Other", data: others });
     return result;
   })();
 
@@ -180,7 +186,7 @@ export default function AthleteProfileScreen() {
           renderItem={({ item }) => (
             <AthleteMaxRow
               name={item.name}
-              category={item.category}
+              equipmentType={item.equipmentType}
               currentWeightKg={item.currentWeightKg}
               unit={athleteUnit}
               onPress={() =>

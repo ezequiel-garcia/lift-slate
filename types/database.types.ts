@@ -53,29 +53,86 @@ export type Database = {
           },
         ];
       };
+      exercise_references: {
+        Row: {
+          created_at: string;
+          exercise_id: string;
+          id: string;
+          notes: string | null;
+          recorded_at: string;
+          reference_type: Database["public"]["Enums"]["reference_type"];
+          reps: number | null;
+          source: Database["public"]["Enums"]["max_source"];
+          updated_at: string;
+          user_id: string;
+          weight_kg: number | null;
+        };
+        Insert: {
+          created_at?: string;
+          exercise_id: string;
+          id?: string;
+          notes?: string | null;
+          recorded_at?: string;
+          reference_type?: Database["public"]["Enums"]["reference_type"];
+          reps?: number | null;
+          source?: Database["public"]["Enums"]["max_source"];
+          updated_at?: string;
+          user_id: string;
+          weight_kg?: number | null;
+        };
+        Update: {
+          created_at?: string;
+          exercise_id?: string;
+          id?: string;
+          notes?: string | null;
+          recorded_at?: string;
+          reference_type?: Database["public"]["Enums"]["reference_type"];
+          reps?: number | null;
+          source?: Database["public"]["Enums"]["max_source"];
+          updated_at?: string;
+          user_id?: string;
+          weight_kg?: number | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "maxes_exercise_id_fkey";
+            columns: ["exercise_id"];
+            isOneToOne: false;
+            referencedRelation: "exercises";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "maxes_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       exercises: {
         Row: {
-          category: Database["public"]["Enums"]["exercise_category"] | null;
           created_at: string;
           created_by: string | null;
+          equipment_type: Database["public"]["Enums"]["equipment_type"];
           id: string;
           is_default: boolean;
           name: string;
           updated_at: string;
         };
         Insert: {
-          category?: Database["public"]["Enums"]["exercise_category"] | null;
           created_at?: string;
           created_by?: string | null;
+          equipment_type?: Database["public"]["Enums"]["equipment_type"];
           id?: string;
           is_default?: boolean;
           name: string;
           updated_at?: string;
         };
         Update: {
-          category?: Database["public"]["Enums"]["exercise_category"] | null;
           created_at?: string;
           created_by?: string | null;
+          equipment_type?: Database["public"]["Enums"]["equipment_type"];
           id?: string;
           is_default?: boolean;
           name?: string;
@@ -227,57 +284,6 @@ export type Database = {
           },
         ];
       };
-      maxes: {
-        Row: {
-          created_at: string;
-          exercise_id: string;
-          id: string;
-          notes: string | null;
-          recorded_at: string;
-          source: Database["public"]["Enums"]["max_source"];
-          updated_at: string;
-          user_id: string;
-          weight_kg: number;
-        };
-        Insert: {
-          created_at?: string;
-          exercise_id: string;
-          id?: string;
-          notes?: string | null;
-          recorded_at?: string;
-          source?: Database["public"]["Enums"]["max_source"];
-          updated_at?: string;
-          user_id: string;
-          weight_kg: number;
-        };
-        Update: {
-          created_at?: string;
-          exercise_id?: string;
-          id?: string;
-          notes?: string | null;
-          recorded_at?: string;
-          source?: Database["public"]["Enums"]["max_source"];
-          updated_at?: string;
-          user_id?: string;
-          weight_kg?: number;
-        };
-        Relationships: [
-          {
-            foreignKeyName: "maxes_exercise_id_fkey";
-            columns: ["exercise_id"];
-            isOneToOne: false;
-            referencedRelation: "exercises";
-            referencedColumns: ["id"];
-          },
-          {
-            foreignKeyName: "maxes_user_id_fkey";
-            columns: ["user_id"];
-            isOneToOne: false;
-            referencedRelation: "users";
-            referencedColumns: ["id"];
-          },
-        ];
-      };
       users: {
         Row: {
           allow_coach_edit: boolean;
@@ -320,10 +326,12 @@ export type Database = {
           exercise_id: string | null;
           id: string;
           item_type: Database["public"]["Enums"]["workout_item_type"];
-          max_type_reference: string | null;
           notes: string | null;
           order_index: number;
           percentage: number | null;
+          prescription_mode:
+            | Database["public"]["Enums"]["prescription_mode"]
+            | null;
           reps: number | null;
           section_id: string;
           sets: number | null;
@@ -334,10 +342,12 @@ export type Database = {
           exercise_id?: string | null;
           id?: string;
           item_type: Database["public"]["Enums"]["workout_item_type"];
-          max_type_reference?: string | null;
           notes?: string | null;
           order_index: number;
           percentage?: number | null;
+          prescription_mode?:
+            | Database["public"]["Enums"]["prescription_mode"]
+            | null;
           reps?: number | null;
           section_id: string;
           sets?: number | null;
@@ -348,10 +358,12 @@ export type Database = {
           exercise_id?: string | null;
           id?: string;
           item_type?: Database["public"]["Enums"]["workout_item_type"];
-          max_type_reference?: string | null;
           notes?: string | null;
           order_index?: number;
           percentage?: number | null;
+          prescription_mode?:
+            | Database["public"]["Enums"]["prescription_mode"]
+            | null;
           reps?: number | null;
           section_id?: string;
           sets?: number | null;
@@ -513,16 +525,24 @@ export type Database = {
       };
     };
     Enums: {
-      exercise_category:
-        | "squat"
-        | "press"
-        | "pull"
-        | "olympic"
-        | "accessory"
-        | "core"
-        | "conditioning";
+      equipment_type:
+        | "barbell"
+        | "dumbbell"
+        | "kettlebell"
+        | "bodyweight"
+        | "machine"
+        | "other";
       gym_membership_role: "athlete" | "coach" | "admin";
       max_source: "manual" | "workout_log" | "coach";
+      prescription_mode:
+        | "percentage"
+        | "working_weight"
+        | "heavy"
+        | "easy"
+        | "absolute"
+        | "reps_only"
+        | "bodyweight";
+      reference_type: "one_rep_max" | "working_weight" | "max_reps";
       subscription_plan: "free" | "trial" | "pro";
       subscription_status: "active" | "trial" | "trial_expired" | "cancelled";
       unit_preference: "kg" | "lbs";
@@ -657,17 +677,26 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      exercise_category: [
-        "squat",
-        "press",
-        "pull",
-        "olympic",
-        "accessory",
-        "core",
-        "conditioning",
+      equipment_type: [
+        "barbell",
+        "dumbbell",
+        "kettlebell",
+        "bodyweight",
+        "machine",
+        "other",
       ],
       gym_membership_role: ["athlete", "coach", "admin"],
       max_source: ["manual", "workout_log", "coach"],
+      prescription_mode: [
+        "percentage",
+        "working_weight",
+        "heavy",
+        "easy",
+        "absolute",
+        "reps_only",
+        "bodyweight",
+      ],
+      reference_type: ["one_rep_max", "working_weight", "max_reps"],
       subscription_plan: ["free", "trial", "pro"],
       subscription_status: ["active", "trial", "trial_expired", "cancelled"],
       unit_preference: ["kg", "lbs"],

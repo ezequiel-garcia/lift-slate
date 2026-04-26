@@ -12,13 +12,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useCreateAthleteMax } from "@/hooks/useMaxes";
+import { useCreateAthleteReference } from "@/hooks/useExerciseReferences";
 import { useExercises } from "@/hooks/useExercises";
 import { WeightUnit, formatWeight } from "@/lib/units";
 import { estimate1RM, MAX_RELIABLE_REPS } from "@/lib/estimate";
 import { useAppStore } from "@/stores/appStore";
 import { colors } from "@/lib/theme";
-import { CATEGORY_LABELS } from "@/lib/constants";
+import { EQUIPMENT_LABELS } from "@/lib/constants";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 
 type EntryMode = "direct" | "estimate";
@@ -63,7 +63,11 @@ export function AddAthleteMaxModal({
   const [notes, setNotes] = useState("");
 
   const { data: exercises = [], isLoading: exercisesLoading } = useExercises();
-  const { mutate: createMax, isPending, isError } = useCreateAthleteMax(userId);
+  const {
+    mutate: createMax,
+    isPending,
+    isError,
+  } = useCreateAthleteReference(userId);
   const showToast = useAppStore((s) => s.showToast);
 
   const filtered = search
@@ -204,11 +208,9 @@ export function AddAthleteMaxModal({
                     <Text className="text-[16px] text-foreground flex-1">
                       {item.name}
                     </Text>
-                    {item.category && (
-                      <Text className="text-sm text-muted ml-3">
-                        {CATEGORY_LABELS[item.category]}
-                      </Text>
-                    )}
+                    <Text className="text-sm text-muted ml-3">
+                      {EQUIPMENT_LABELS[item.equipment_type]}
+                    </Text>
                   </Pressable>
                 )}
                 ItemSeparatorComponent={() => (

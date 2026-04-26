@@ -3,8 +3,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { EquipmentType } from "@/types/exercise";
 import { ExercisePickerModal } from "./ExercisePickerModal";
-import { ItemFormData, SectionFormData } from "./types";
+import {
+  DEFAULT_PRESCRIPTION_BY_EQUIPMENT,
+  ItemFormData,
+  SectionFormData,
+} from "./types";
 import { WorkoutItemRow } from "./WorkoutItemRow";
 
 type Props = {
@@ -16,12 +21,12 @@ type Props = {
   onOpenBlockChange?: (id: string | null) => void;
 };
 
-function newExerciseItem(): ItemFormData {
+function newExerciseItem(equipmentType: EquipmentType): ItemFormData {
   return {
     localId: Math.random().toString(36).slice(2),
     itemType: "exercise",
-    weightMode: "percentage",
-    maxTypeReference: "1RM",
+    exerciseEquipment: equipmentType,
+    prescriptionMode: DEFAULT_PRESCRIPTION_BY_EQUIPMENT[equipmentType],
   };
 }
 
@@ -29,7 +34,6 @@ function newCustomItem(): ItemFormData {
   return {
     localId: Math.random().toString(36).slice(2),
     itemType: "custom_exercise",
-    weightMode: "none",
   };
 }
 
@@ -92,8 +96,12 @@ export function WorkoutSectionCard({
     });
   }
 
-  function addExercise(exerciseId: string, exerciseName: string) {
-    const item = newExerciseItem();
+  function addExercise(
+    exerciseId: string,
+    exerciseName: string,
+    equipmentType: EquipmentType,
+  ) {
+    const item = newExerciseItem(equipmentType);
     item.exerciseId = exerciseId;
     item.exerciseName = exerciseName;
     expandThisBlock();
