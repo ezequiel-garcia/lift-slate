@@ -9,23 +9,62 @@ import Animated, {
 } from "react-native-reanimated";
 import type { SharedValue } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { fromKg, formatWeight, WeightUnit } from "@/lib/units";
 import type { EquipmentType } from "@/types/exercise";
 
 const EQUIPMENT_ICON: Record<
   EquipmentType,
   {
-    name: React.ComponentProps<typeof Ionicons>["name"];
+    library: "ionicons" | "materialCommunity";
+    name: string;
+    size: number;
     bg: string;
     color: string;
   }
 > = {
-  barbell: { name: "barbell", bg: "#122210", color: "#B4FF4A" },
-  dumbbell: { name: "barbell-outline", bg: "#131C2E", color: "#5B9BFF" },
-  kettlebell: { name: "fitness", bg: "#1E1028", color: "#C88AFF" },
-  bodyweight: { name: "body", bg: "#0E1F1F", color: "#4AFFD4" },
-  machine: { name: "settings", bg: "#231810", color: "#FF9A5C" },
-  other: { name: "ellipsis-horizontal", bg: "#1A1A1E", color: "#888" },
+  barbell: {
+    library: "ionicons",
+    name: "barbell",
+    size: 20,
+    bg: "#122210",
+    color: "#B4FF4A",
+  },
+  dumbbell: {
+    library: "materialCommunity",
+    name: "dumbbell",
+    size: 20,
+    bg: "#131C2E",
+    color: "#5B9BFF",
+  },
+  kettlebell: {
+    library: "materialCommunity",
+    name: "kettlebell",
+    size: 24,
+    bg: "#1E1028",
+    color: "#C88AFF",
+  },
+  bodyweight: {
+    library: "ionicons",
+    name: "body",
+    size: 20,
+    bg: "#0E1F1F",
+    color: "#4AFFD4",
+  },
+  machine: {
+    library: "ionicons",
+    name: "settings",
+    size: 20,
+    bg: "#231810",
+    color: "#FF9A5C",
+  },
+  other: {
+    library: "ionicons",
+    name: "ellipsis-horizontal",
+    size: 20,
+    bg: "#1A1A1E",
+    color: "#888",
+  },
 };
 
 function EquipmentIcon({ equipmentType }: { equipmentType: EquipmentType }) {
@@ -41,7 +80,23 @@ function EquipmentIcon({ equipmentType }: { equipmentType: EquipmentType }) {
         alignItems: "center",
       }}
     >
-      <Ionicons name={cfg.name} size={20} color={cfg.color} />
+      {cfg.library === "materialCommunity" ? (
+        <MaterialCommunityIcons
+          name={
+            cfg.name as React.ComponentProps<
+              typeof MaterialCommunityIcons
+            >["name"]
+          }
+          size={cfg.size}
+          color={cfg.color}
+        />
+      ) : (
+        <Ionicons
+          name={cfg.name as React.ComponentProps<typeof Ionicons>["name"]}
+          size={cfg.size}
+          color={cfg.color}
+        />
+      )}
     </View>
   );
 }
