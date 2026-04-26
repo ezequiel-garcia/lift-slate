@@ -86,11 +86,11 @@ export default function NewWorkoutScreen() {
                 itemType: item.item_type,
                 exerciseId: item.exercise_id ?? undefined,
                 exerciseName: item.exercises?.name ?? undefined,
+                exerciseEquipment: item.exercises?.equipment_type ?? undefined,
                 sets: item.sets?.toString() ?? undefined,
                 reps: item.reps?.toString() ?? undefined,
-                weightMode: item.percentage ? "percentage" : "none",
+                prescriptionMode: item.prescription_mode ?? undefined,
                 percentage: item.percentage?.toString() ?? undefined,
-                maxTypeReference: undefined,
                 weightKg: item.weight_kg?.toString() ?? undefined,
                 content: item.content ?? undefined,
                 notes: item.notes ?? undefined,
@@ -143,6 +143,7 @@ export default function NewWorkoutScreen() {
               content: item.content,
               sets: item.sets ? parseInt(item.sets, 10) : undefined,
               reps: item.reps ? parseInt(item.reps, 10) : undefined,
+              weightKg: item.weightKg ? parseFloat(item.weightKg) : undefined,
             };
           }
           return {
@@ -150,12 +151,15 @@ export default function NewWorkoutScreen() {
             exerciseId: item.exerciseId,
             sets: item.sets ? parseInt(item.sets, 10) : undefined,
             reps: item.reps ? parseInt(item.reps, 10) : undefined,
+            prescriptionMode: item.prescriptionMode,
             percentage:
-              item.weightMode === "percentage" && item.percentage
+              item.prescriptionMode === "percentage" && item.percentage
                 ? parseFloat(item.percentage)
                 : undefined,
-            maxTypeReference:
-              item.weightMode === "percentage" ? "1RM" : undefined,
+            weightKg:
+              item.prescriptionMode === "absolute" && item.weightKg
+                ? parseFloat(item.weightKg)
+                : undefined,
           };
         }),
       })),

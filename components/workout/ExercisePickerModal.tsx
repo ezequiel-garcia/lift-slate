@@ -1,6 +1,7 @@
 import { useExercises } from "@/hooks/useExercises";
 import { EQUIPMENT_LABELS } from "@/lib/constants";
 import { colors } from "@/lib/theme";
+import { EquipmentType } from "@/types/exercise";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import {
@@ -15,7 +16,11 @@ import {
 type Props = {
   visible: boolean;
   onClose: () => void;
-  onSelect: (exerciseId: string, exerciseName: string) => void;
+  onSelect: (
+    exerciseId: string,
+    exerciseName: string,
+    equipmentType: EquipmentType,
+  ) => void;
   onAddCustom?: (prefillText: string) => void;
 };
 
@@ -32,8 +37,12 @@ export function ExercisePickerModal({
     e.name.toLowerCase().includes(search.toLowerCase()),
   );
 
-  function handleSelect(exerciseId: string, exerciseName: string) {
-    onSelect(exerciseId, exerciseName);
+  function handleSelect(
+    exerciseId: string,
+    exerciseName: string,
+    equipmentType: EquipmentType,
+  ) {
+    onSelect(exerciseId, exerciseName, equipmentType);
     setSearch("");
     onClose();
   }
@@ -91,7 +100,9 @@ export function ExercisePickerModal({
           renderItem={({ item }) => (
             <Pressable
               className="px-4 py-3.5 border-b border-border flex-row items-center justify-between active:bg-surface"
-              onPress={() => handleSelect(item.id, item.name)}
+              onPress={() =>
+                handleSelect(item.id, item.name, item.equipment_type)
+              }
             >
               <Text className="text-foreground text-base">{item.name}</Text>
               <Text className="text-muted text-sm">

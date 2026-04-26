@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { Tables } from "@/types/database.types";
+import { PrescriptionMode } from "@/types/exerciseReference";
 import { addDays, format } from "date-fns";
 
 export type WorkoutItem = Tables<"workout_items"> & {
@@ -19,7 +20,7 @@ export type WorkoutItemInput = {
   sets?: number;
   reps?: number;
   percentage?: number;
-  maxTypeReference?: string;
+  prescriptionMode?: PrescriptionMode;
   weightKg?: number;
   content?: string;
   notes?: string;
@@ -62,7 +63,7 @@ function buildSectionsJson(sectionInputs: WorkoutSectionInput[]) {
       sets: item.sets ?? null,
       reps: item.reps ?? null,
       percentage: item.percentage ?? null,
-      max_type_reference: item.maxTypeReference ?? null,
+      prescription_mode: item.prescriptionMode ?? null,
       weight_kg: item.weightKg ?? null,
       content: item.content ?? null,
       notes: item.notes ?? null,
@@ -107,7 +108,7 @@ export async function createWorkout(
 
 const WORKOUT_WITH_SECTIONS_QUERY = `
   *,
-  sections:workout_sections(*, items:workout_items(*, exercises(name, category)))
+  sections:workout_sections(*, items:workout_items(*, exercises(name, equipment_type)))
 ` as const;
 
 function sortWorkout(workout: WorkoutWithSections): WorkoutWithSections {

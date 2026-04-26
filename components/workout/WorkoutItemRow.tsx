@@ -2,8 +2,13 @@ import { useState } from "react";
 import { View, Text, TextInput, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/lib/theme";
-import { ItemFormData } from "./types";
+import {
+  ItemFormData,
+  DEFAULT_PRESCRIPTION_BY_EQUIPMENT,
+  PRESCRIPTION_LABELS,
+} from "./types";
 import { ExercisePickerModal } from "./ExercisePickerModal";
+import { PrescriptionPicker } from "./PrescriptionPicker";
 
 type Props = {
   item: ItemFormData;
@@ -19,8 +24,17 @@ function formatSummary(item: ItemFormData): string {
   else if (item.sets) parts.push(`${item.sets} sets`);
   else if (item.reps) parts.push(`${item.reps} reps`);
 
-  if (item.weightMode === "percentage" && item.percentage) {
+  if (item.prescriptionMode === "percentage" && item.percentage) {
     parts.push(`@ ${item.percentage}%`);
+  } else if (item.prescriptionMode === "absolute" && item.weightKg) {
+    parts.push(`@ ${item.weightKg}kg`);
+  } else if (
+    item.prescriptionMode &&
+    item.prescriptionMode !== "reps_only" &&
+    item.prescriptionMode !== "percentage" &&
+    item.prescriptionMode !== "absolute"
+  ) {
+    parts.push(`(${PRESCRIPTION_LABELS[item.prescriptionMode]})`);
   }
   return parts.join(" ");
 }
@@ -130,7 +144,7 @@ export function WorkoutItemRow({
         />
       )}
 
-      {/* Sets / Reps / % — single row */}
+      {/* Sets / Reps — single row */}
       <View className="flex-row gap-2">
         <View className="flex-1">
           <Text className="text-muted text-[10px] uppercase tracking-wider mb-1 ml-1">
@@ -158,40 +172,44 @@ export function WorkoutItemRow({
             keyboardType="numeric"
           />
         </View>
-        {item.itemType === "exercise" && (
-          <View className="flex-1">
-            <Text className="text-muted text-[10px] uppercase tracking-wider mb-1 ml-1">
-              % 1RM
-            </Text>
-            <View className="flex-row items-center bg-surface rounded-lg border border-border">
-              <TextInput
-                className="flex-1 text-foreground px-3 py-2 text-sm text-center"
-                placeholder="—"
-                placeholderTextColor={colors.muted}
-                value={
-                  item.weightMode === "percentage"
-                    ? (item.percentage ?? "")
-                    : ""
-                }
-                onChangeText={(v) => {
-                  if (v) {
-                    update({ weightMode: "percentage", percentage: v });
-                  } else {
-                    update({
-                      weightMode: "none",
-                      percentage: undefined,
-                    });
-                  }
-                }}
-                keyboardType="numeric"
-              />
-              {item.weightMode === "percentage" && item.percentage && (
-                <Text className="text-muted text-xs pr-2">%</Text>
-              )}
-            </View>
-          </View>
-        )}
       </View>
+
+      {/* Prescription picker — only for catalog exercises with known equipment */}
+      {item.itemType === "exercise" && item.exerciseEquipment && (
+        <PrescriptionPicker
+          equipmentType={item.exerciseEquipment}
+          mode={item.prescriptionMode}
+          percentage={item.percentage}
+          weightKg={item.weightKg}
+          onChangeMode={(mode) =>
+            update({
+              prescriptionMode: mode,
+              // Clear value fields when switching modes to avoid stale data
+              percentage: mode === "percentage" ? item.percentage : undefined,
+              weightKg: mode === "absolute" ? item.weightKg : undefined,
+            })
+          }
+          onChangePercentage={(v) => update({ percentage: v || undefined })}
+          onChangeWeightKg={(v) => update({ weightKg: v || undefined })}
+        />
+      )}
+
+      {/* Custom item gets a free-form weight input */}
+      {item.itemType === "custom_exercise" && (
+        <View>
+          <Text className="text-muted text-[10px] uppercase tracking-wider mb-1 ml-1">
+            Weight (kg, optional)
+          </Text>
+          <TextInput
+            className="bg-surface text-foreground rounded-lg px-3 py-2 border border-border text-sm text-center"
+            placeholder="—"
+            placeholderTextColor={colors.muted}
+            value={item.weightKg ?? ""}
+            onChangeText={(v) => update({ weightKg: v || undefined })}
+            keyboardType="decimal-pad"
+          />
+        </View>
+      )}
 
       {/* Notes */}
       <TextInput
@@ -206,8 +224,22 @@ export function WorkoutItemRow({
       <ExercisePickerModal
         visible={showExercisePicker}
         onClose={() => setShowExercisePicker(false)}
-        onSelect={(id, name) => {
-          update({ exerciseId: id, exerciseName: name });
+        onSelect={(id, name, equipmentType) => {
+          // If equipment changed, reset prescription mode to that equipment's default
+          const equipmentChanged = item.exerciseEquipment !== equipmentType;
+          update({
+            exerciseId: id,
+            exerciseName: name,
+            exerciseEquipment: equipmentType,
+            ...(equipmentChanged
+              ? {
+                  prescriptionMode:
+                    DEFAULT_PRESCRIPTION_BY_EQUIPMENT[equipmentType],
+                  percentage: undefined,
+                  weightKg: undefined,
+                }
+              : {}),
+          });
           setShowExercisePicker(false);
         }}
       />

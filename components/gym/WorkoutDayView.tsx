@@ -10,6 +10,7 @@ import {
   fromKg,
   WeightUnit,
 } from "@/lib/units";
+import { heavyRange, easyRange } from "@/lib/kettlebells";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ActionSheet } from "@/components/ui/ActionSheet";
 import { colors } from "@/lib/theme";
@@ -33,6 +34,168 @@ interface Props {
   onDeleteWorkout?: (workoutId: string) => void;
 }
 
+function formatRangeKg(values: number[], unit: WeightUnit): string {
+  if (values.length === 0) return "";
+  const display = values.map((v) => Math.round(fromKg(v, unit)));
+  if (display.length === 1) return formatWeight(display[0], unit);
+  return `${display[0]}–${formatWeight(display[display.length - 1], unit)}`;
+}
+
+type ResolvedPrescription = {
+  text: React.ReactNode;
+  /** True when the athlete needs to add a reference for this prescription to resolve. */
+  needsReference: boolean;
+  /** Kind of reference to suggest adding ("1RM" or "working weight"). */
+  referenceLabel?: string;
+};
+
+function resolvePrescription(
+  item: WorkoutItem,
+  maxMap: MaxMap,
+  unit: WeightUnit,
+): ResolvedPrescription | null {
+  const mode = item.prescription_mode;
+  const refKg = item.exercise_id ? maxMap[item.exercise_id] : undefined;
+
+  // Legacy / unset: fall back to old behavior (percentage of 1RM, or absolute kg)
+  if (!mode) {
+    if (item.percentage && item.exercise_id) {
+      if (refKg) {
+        const w = calculatePercentage(refKg, item.percentage, unit);
+        return {
+          text: (
+            <Text className="text-accent font-semibold text-sm">
+              {item.percentage}% → {formatWeight(w, unit)}
+            </Text>
+          ),
+          needsReference: false,
+        };
+      }
+      return {
+        text: (
+          <Text className="text-muted text-sm">
+            {item.percentage}% (no max recorded)
+          </Text>
+        ),
+        needsReference: true,
+        referenceLabel: "1RM",
+      };
+    }
+    if (item.weight_kg) {
+      const w = fromKg(item.weight_kg, unit);
+      return {
+        text: (
+          <Text className="text-accent font-semibold text-sm">
+            {formatWeight(Math.round(w), unit)}
+          </Text>
+        ),
+        needsReference: false,
+      };
+    }
+    return null;
+  }
+
+  switch (mode) {
+    case "percentage": {
+      if (!item.percentage || !item.exercise_id) return null;
+      if (!refKg)
+        return {
+          text: (
+            <Text className="text-muted text-sm">
+              {item.percentage}% (no 1RM recorded)
+            </Text>
+          ),
+          needsReference: true,
+          referenceLabel: "1RM",
+        };
+      const w = calculatePercentage(refKg, item.percentage, unit);
+      return {
+        text: (
+          <Text className="text-accent font-semibold text-sm">
+            {item.percentage}% → {formatWeight(w, unit)}
+          </Text>
+        ),
+        needsReference: false,
+      };
+    }
+
+    case "working_weight": {
+      if (!refKg)
+        return {
+          text: (
+            <Text className="text-muted text-sm">Working weight (not set)</Text>
+          ),
+          needsReference: true,
+          referenceLabel: "working weight",
+        };
+      const w = fromKg(refKg, unit);
+      return {
+        text: (
+          <Text className="text-accent font-semibold text-sm">
+            Working: {formatWeight(Math.round(w), unit)}
+          </Text>
+        ),
+        needsReference: false,
+      };
+    }
+
+    case "heavy":
+    case "easy": {
+      if (!refKg)
+        return {
+          text: (
+            <Text className="text-muted text-sm">
+              {mode === "heavy" ? "Heavy" : "Easy"} (no working weight)
+            </Text>
+          ),
+          needsReference: true,
+          referenceLabel: "working weight",
+        };
+      const range = mode === "heavy" ? heavyRange(refKg) : easyRange(refKg);
+      const label = mode === "heavy" ? "Heavy" : "Easy";
+      return {
+        text: (
+          <Text className="text-accent font-semibold text-sm">
+            {label}: ~{formatRangeKg(range, unit)}
+          </Text>
+        ),
+        needsReference: false,
+      };
+    }
+
+    case "absolute": {
+      if (!item.weight_kg) return null;
+      const w = fromKg(item.weight_kg, unit);
+      return {
+        text: (
+          <Text className="text-accent font-semibold text-sm">
+            {formatWeight(Math.round(w), unit)}
+          </Text>
+        ),
+        needsReference: false,
+      };
+    }
+
+    case "bodyweight": {
+      const extra = item.weight_kg
+        ? ` + ${Math.round(fromKg(item.weight_kg, unit))} ${unit}`
+        : "";
+      return {
+        text: (
+          <Text className="text-accent font-semibold text-sm">BW{extra}</Text>
+        ),
+        needsReference: false,
+      };
+    }
+
+    case "reps_only":
+      return null;
+
+    default:
+      return null;
+  }
+}
+
 function StructuredItem({
   item,
   maxMap,
@@ -52,34 +215,7 @@ function StructuredItem({
           ? `${item.reps} reps`
           : null;
 
-  let weightLine: React.ReactNode = null;
-  let noMax = false;
-
-  if (item.percentage && item.exercise_id) {
-    const maxKg = maxMap[item.exercise_id];
-    if (maxKg) {
-      const weight = calculatePercentage(maxKg, item.percentage, unit);
-      weightLine = (
-        <Text className="text-accent font-semibold text-sm">
-          {item.percentage}% → {formatWeight(weight, unit)}
-        </Text>
-      );
-    } else {
-      noMax = true;
-      weightLine = (
-        <Text className="text-muted text-sm">
-          {item.percentage}% (no max recorded)
-        </Text>
-      );
-    }
-  } else if (item.weight_kg) {
-    const displayWeight = fromKg(item.weight_kg, unit);
-    weightLine = (
-      <Text className="text-accent font-semibold text-sm">
-        {formatWeight(Math.round(displayWeight), unit)}
-      </Text>
-    );
-  }
+  const resolved = resolvePrescription(item, maxMap, unit);
 
   return (
     <View className="py-3">
@@ -93,10 +229,10 @@ function StructuredItem({
             {setsReps}
           </Text>
         )}
-        {weightLine && <Text className="text-muted text-sm">{" · "}</Text>}
-        {weightLine}
+        {resolved && <Text className="text-muted text-sm">{" · "}</Text>}
+        {resolved?.text}
       </View>
-      {noMax && item.exercise_id && (
+      {resolved?.needsReference && item.exercise_id && (
         <Pressable
           onPress={() =>
             router.push(`/exercise/${item.exercise_id}?addMax=true`)
@@ -104,7 +240,7 @@ function StructuredItem({
           style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
         >
           <Text className="text-accent text-xs mt-1">
-            + Add 1RM to calculate weight
+            + Add {resolved.referenceLabel} to calculate weight
           </Text>
         </Pressable>
       )}
