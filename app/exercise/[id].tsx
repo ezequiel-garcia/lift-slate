@@ -155,6 +155,7 @@ export default function ExerciseDetailScreen() {
       <AddMaxModal
         visible={addModalVisible}
         exerciseId={id}
+        equipmentType={exercise?.equipment_type}
         unit={unit}
         currentMaxKg={currentMax?.weight_kg ?? undefined}
         onClose={() => setAddModalVisible(false)}

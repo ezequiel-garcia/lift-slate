@@ -165,6 +165,7 @@ export default function HomeScreen() {
                   name={item.name}
                   equipmentType={item.equipmentType}
                   currentWeightKg={item.currentWeightKg}
+                  currentReps={item.currentReps}
                   unit={unit}
                   onDelete={handleDeleteExercise}
                 />

@@ -81,6 +81,7 @@ type Props = {
   name: string;
   equipmentType: EquipmentType;
   currentWeightKg: number | null;
+  currentReps?: number | null;
   unit: WeightUnit;
   onDelete?: (exerciseId: string, name: string) => void;
   index?: number;
@@ -91,11 +92,15 @@ export function ExerciseRow({
   name,
   equipmentType,
   currentWeightKg,
+  currentReps,
   unit,
   onDelete,
   index = 0,
 }: Props) {
-  const hasMax = currentWeightKg != null && currentWeightKg > 0;
+  const isRepsOnly = equipmentType === "bodyweight";
+  const hasValue = isRepsOnly
+    ? currentReps != null && currentReps > 0
+    : currentWeightKg != null && currentWeightKg > 0;
   const displayWeight =
     currentWeightKg != null ? fromKg(currentWeightKg, unit) : 0;
   const reduceMotion = useReducedMotion();
@@ -135,9 +140,15 @@ export function ExerciseRow({
             </Text>
           </View>
           <Text
-            className={`text-[17px] font-bold tabular-nums ${hasMax ? "text-foreground" : "text-muted"}`}
+            className={`text-[17px] font-bold tabular-nums ${hasValue ? "text-foreground" : "text-muted"}`}
           >
-            {hasMax ? formatWeight(displayWeight, unit) : "—"}
+            {isRepsOnly
+              ? hasValue
+                ? `${currentReps} reps`
+                : "—"
+              : hasValue
+                ? formatWeight(displayWeight, unit)
+                : "—"}
           </Text>
           <Ionicons
             name="chevron-forward"
