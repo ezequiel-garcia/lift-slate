@@ -18,7 +18,7 @@ import Animated, {
   useReducedMotion,
 } from "react-native-reanimated";
 import * as profileService from "@/services/profile.service";
-import * as maxesService from "@/services/maxes.service";
+import * as exerciseReferencesService from "@/services/exerciseReferences.service";
 import { getExercisesByNames } from "@/services/exercises.service";
 import { colors, animation } from "@/lib/theme";
 import { Button } from "@/components/ui/Button";
@@ -99,7 +99,7 @@ export default function OnboardingScreen() {
         if (exercises) {
           await Promise.all(
             exercises.map((ex) =>
-              maxesService.createMax({
+              exerciseReferencesService.createExerciseReference({
                 exerciseId: ex.id,
                 weight: parseFloat(weights[ex.name]),
                 unit,

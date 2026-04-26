@@ -17,7 +17,7 @@ import Animated, {
   useReducedMotion,
 } from "react-native-reanimated";
 import { useMyLifts } from "@/hooks/useMyLifts";
-import { useDeleteExerciseMaxes } from "@/hooks/useMaxes";
+import { useDeleteAllReferencesForExercise } from "@/hooks/useExerciseReferences";
 import { ExerciseRow } from "@/components/exercises/ExerciseRow";
 import { AddExerciseModal } from "@/components/exercises/AddExerciseModal";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -53,7 +53,7 @@ export default function HomeScreen() {
     refetch,
   } = useMyLifts(search);
 
-  const { mutate: deleteExerciseMaxes } = useDeleteExerciseMaxes();
+  const { mutate: deleteExerciseMaxes } = useDeleteAllReferencesForExercise();
 
   // FAB scroll behavior
   const fabTranslateY = useSharedValue(0);
@@ -163,7 +163,7 @@ export default function HomeScreen() {
                 <ExerciseRow
                   exerciseId={item.exerciseId}
                   name={item.name}
-                  category={item.category}
+                  equipmentType={item.equipmentType}
                   currentWeightKg={item.currentWeightKg}
                   unit={unit}
                   onDelete={handleDeleteExercise}

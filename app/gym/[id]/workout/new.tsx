@@ -90,7 +90,7 @@ export default function NewWorkoutScreen() {
                 reps: item.reps?.toString() ?? undefined,
                 weightMode: item.percentage ? "percentage" : "none",
                 percentage: item.percentage?.toString() ?? undefined,
-                maxTypeReference: item.max_type_reference ?? undefined,
+                maxTypeReference: undefined,
                 weightKg: item.weight_kg?.toString() ?? undefined,
                 content: item.content ?? undefined,
                 notes: item.notes ?? undefined,

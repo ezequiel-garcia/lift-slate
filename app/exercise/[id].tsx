@@ -4,7 +4,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { useExerciseDetail } from "@/hooks/useExerciseDetail";
-import { useDeleteExerciseMaxes, useDeleteMax } from "@/hooks/useMaxes";
+import {
+  useDeleteAllReferencesForExercise,
+  useDeleteExerciseReference,
+} from "@/hooks/useExerciseReferences";
 import { CalculatorTab } from "@/components/calculator/CalculatorTab";
 import { HistoryTab } from "@/components/history/HistoryTab";
 import { AddMaxModal } from "@/components/exercises/AddMaxModal";
@@ -51,8 +54,8 @@ export default function ExerciseDetailScreen() {
     isError,
     refetch,
   } = useExerciseDetail(id ?? "");
-  const { mutate: deleteExerciseMaxes } = useDeleteExerciseMaxes();
-  const { mutate: deleteMax } = useDeleteMax(id ?? "");
+  const { mutate: deleteExerciseMaxes } = useDeleteAllReferencesForExercise();
+  const { mutate: deleteMax } = useDeleteExerciseReference(id ?? "");
 
   if (!isValidUUID(id)) {
     router.replace("/");
@@ -60,7 +63,11 @@ export default function ExerciseDetailScreen() {
   }
 
   const unit = profile?.unit_preference ?? "kg";
-  const currentMax = history[0] ?? null;
+  const weightHistory = history.filter(
+    (m): m is typeof m & { weight_kg: number } =>
+      m.weight_kg != null && m.weight_kg > 0,
+  );
+  const currentMax = weightHistory[0] ?? null;
 
   function handleDelete() {
     setDeleteModalVisible(true);
@@ -133,7 +140,7 @@ export default function ExerciseDetailScreen() {
             />
           ) : (
             <HistoryTab
-              history={history.filter((m) => m.weight_kg > 0)}
+              history={weightHistory}
               unit={unit}
               onAddMax={() => setAddModalVisible(true)}
               onDeleteMax={(maxId) => deleteMax(maxId)}

@@ -3,7 +3,7 @@ import { Tables } from "@/types/database.types";
 import { addDays, format } from "date-fns";
 
 export type WorkoutItem = Tables<"workout_items"> & {
-  exercises: Pick<Tables<"exercises">, "name" | "category"> | null;
+  exercises: Pick<Tables<"exercises">, "name" | "equipment_type"> | null;
 };
 export type WorkoutSection = Tables<"workout_sections"> & {
   items: WorkoutItem[];

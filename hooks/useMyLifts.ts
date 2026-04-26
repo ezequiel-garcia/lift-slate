@@ -1,9 +1,9 @@
 import { useMemo, useCallback } from "react";
 import { useFocusEffect } from "expo-router";
-import { useMaxes } from "./useMaxes";
+import { useExerciseReferences } from "./useExerciseReferences";
 import { useExercises } from "./useExercises";
 import { useProfile } from "./useProfile";
-import { CATEGORY_ORDER, CATEGORY_LABELS } from "@/lib/constants";
+import { EQUIPMENT_ORDER, EQUIPMENT_LABELS } from "@/lib/constants";
 import { ExerciseSummary } from "@/types/exercise";
 import { WeightUnit } from "@/lib/units";
 
@@ -15,7 +15,7 @@ export function useMyLifts(search: string) {
     isLoading: maxesLoading,
     isError: maxesError,
     refetch: refetchMaxes,
-  } = useMaxes();
+  } = useExerciseReferences();
 
   useFocusEffect(
     useCallback(() => {
@@ -29,10 +29,12 @@ export function useMyLifts(search: string) {
 
   const exerciseSummaries = useMemo((): ExerciseSummary[] => {
     type Entry = {
-      current: number;
-      previous?: number;
+      currentWeightKg: number | null;
+      currentReps: number | null;
+      previousWeightKg: number | null;
       name: string;
-      category: ExerciseSummary["category"];
+      equipmentType: ExerciseSummary["equipmentType"];
+      referenceType: ExerciseSummary["referenceType"];
     };
     const map = new Map<string, Entry>();
 
@@ -41,26 +43,31 @@ export function useMyLifts(search: string) {
       const existing = map.get(max.exercise_id);
       if (!existing) {
         map.set(max.exercise_id, {
-          current: max.weight_kg,
+          currentWeightKg: max.weight_kg,
+          currentReps: max.reps,
+          previousWeightKg: null,
           name: max.exercises.name,
-          category: max.exercises.category,
+          equipmentType: max.exercises.equipment_type,
+          referenceType: max.reference_type,
         });
-      } else if (existing.previous === undefined) {
-        existing.previous = max.weight_kg;
+      } else if (existing.previousWeightKg === null && max.weight_kg != null) {
+        existing.previousWeightKg = max.weight_kg;
       }
     }
 
     return Array.from(map.entries()).map(([exerciseId, d]) => ({
       exerciseId,
       name: d.name,
-      category: d.category,
-      currentWeightKg: d.current,
+      equipmentType: d.equipmentType,
+      referenceType: d.referenceType,
+      currentWeightKg: d.currentWeightKg,
+      currentReps: d.currentReps,
       trend:
-        d.previous === undefined
+        d.currentWeightKg == null || d.previousWeightKg == null
           ? "same"
-          : d.current > d.previous
+          : d.currentWeightKg > d.previousWeightKg
             ? "up"
-            : d.current < d.previous
+            : d.currentWeightKg < d.previousWeightKg
               ? "down"
               : "same",
     }));
@@ -75,18 +82,13 @@ export function useMyLifts(search: string) {
   const sections = useMemo((): MyLiftsSection[] => {
     const result: MyLiftsSection[] = [];
 
-    for (const cat of CATEGORY_ORDER) {
+    for (const eq of EQUIPMENT_ORDER) {
       const items = filtered
-        .filter((e) => e.category === cat)
+        .filter((e) => e.equipmentType === eq)
         .sort((a, b) => a.name.localeCompare(b.name));
       if (items.length)
-        result.push({ title: CATEGORY_LABELS[cat], data: items });
+        result.push({ title: EQUIPMENT_LABELS[eq], data: items });
     }
-
-    const others = filtered
-      .filter((e) => !e.category)
-      .sort((a, b) => a.name.localeCompare(b.name));
-    if (others.length) result.push({ title: "Other", data: others });
 
     return result;
   }, [filtered]);

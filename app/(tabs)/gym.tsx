@@ -5,11 +5,11 @@ import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { LeaveGymModal } from "@/components/ui/LeaveGymModal";
 import { useLeaveGym, useMyGym } from "@/hooks/useGym";
-import { useMaxes } from "@/hooks/useMaxes";
+import { useExerciseReferences } from "@/hooks/useExerciseReferences";
 import { useProfile } from "@/hooks/useProfile";
 import { useDeleteWorkout, useWorkoutsByDate } from "@/hooks/useWorkouts";
 import { colors } from "@/lib/theme";
-import { getCurrentMaxes } from "@/services/maxes.service";
+import { getCurrentExerciseReferences } from "@/services/exerciseReferences.service";
 import { useAppStore } from "@/stores/appStore";
 import { Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
@@ -28,7 +28,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function GymScreen() {
   const { data: gym, isLoading: gymLoading, isFetched } = useMyGym();
   const { data: profile } = useProfile();
-  const { data: maxesData } = useMaxes();
+  const { data: maxesData } = useExerciseReferences();
 
   const pendingGymDate = useAppStore((s) => s.pendingGymDate);
   const clearPendingGymDate = useAppStore((s) => s.clearPendingGymDate);
@@ -102,7 +102,7 @@ function NoGymView() {
   );
 }
 
-type MaxesData = Awaited<ReturnType<typeof getCurrentMaxes>>;
+type MaxesData = Awaited<ReturnType<typeof getCurrentExerciseReferences>>;
 
 function InGymView({
   gym,
@@ -142,6 +142,7 @@ function InGymView({
     if (!maxesData) return {};
     const map: Record<string, number> = {};
     for (const max of maxesData) {
+      if (max.weight_kg == null) continue;
       if (!map[max.exercise_id]) {
         map[max.exercise_id] = max.weight_kg;
       }

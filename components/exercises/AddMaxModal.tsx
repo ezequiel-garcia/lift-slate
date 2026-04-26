@@ -12,7 +12,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createMax } from "@/services/maxes.service";
+import { createExerciseReference } from "@/services/exerciseReferences.service";
 import { upsertExerciseNote } from "@/services/exercise_notes.service";
 import { WeightUnit, formatWeight, toKg } from "@/lib/units";
 import { estimate1RM, MAX_RELIABLE_REPS } from "@/lib/estimate";
@@ -79,7 +79,7 @@ export function AddMaxModal({
           ? [autoNote, userNote].filter(Boolean).join(" — ")
           : userNote || undefined;
 
-      await createMax({
+      await createExerciseReference({
         exerciseId,
         weight: submitWeight,
         unit,
@@ -264,7 +264,7 @@ export function AddMaxModal({
                 style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
                 disabled={mutation.isPending}
                 onPress={async () => {
-                  await createMax({
+                  await createExerciseReference({
                     exerciseId,
                     weight: 0,
                     unit: "kg",

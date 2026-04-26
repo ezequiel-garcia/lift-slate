@@ -1,5 +1,5 @@
 import { useExercises } from "@/hooks/useExercises";
-import { CATEGORY_LABELS } from "@/lib/constants";
+import { EQUIPMENT_LABELS } from "@/lib/constants";
 import { colors } from "@/lib/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
@@ -94,13 +94,9 @@ export function ExercisePickerModal({
               onPress={() => handleSelect(item.id, item.name)}
             >
               <Text className="text-foreground text-base">{item.name}</Text>
-              {item.category && (
-                <Text className="text-muted text-sm">
-                  {CATEGORY_LABELS[
-                    item.category as keyof typeof CATEGORY_LABELS
-                  ] ?? item.category}
-                </Text>
-              )}
+              <Text className="text-muted text-sm">
+                {EQUIPMENT_LABELS[item.equipment_type]}
+              </Text>
             </Pressable>
           )}
           ListEmptyComponent={

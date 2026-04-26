@@ -11,9 +11,9 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useExercises } from "@/hooks/useExercises";
-import { useCreateMax } from "@/hooks/useMaxes";
+import { useCreateExerciseReference } from "@/hooks/useExerciseReferences";
 import { useAppStore } from "@/stores/appStore";
-import { CATEGORY_LABELS } from "@/lib/constants";
+import { EQUIPMENT_LABELS } from "@/lib/constants";
 import { WeightUnit } from "@/lib/units";
 import { colors } from "@/lib/theme";
 
@@ -35,7 +35,7 @@ export function SaveMaxModal({
   sourceDescription,
 }: Props) {
   const { data: exercises = [], isLoading } = useExercises();
-  const { mutate: saveMax, isPending: isSaving } = useCreateMax();
+  const { mutate: saveMax, isPending: isSaving } = useCreateExerciseReference();
   const showToast = useAppStore((s) => s.showToast);
 
   const [search, setSearch] = useState("");
@@ -172,11 +172,11 @@ export function SaveMaxModal({
                         size={20}
                         color={colors.accent}
                       />
-                    ) : item.category ? (
+                    ) : (
                       <Text className="text-sm text-muted ml-3">
-                        {CATEGORY_LABELS[item.category]}
+                        {EQUIPMENT_LABELS[item.equipment_type]}
                       </Text>
-                    ) : null}
+                    )}
                   </Pressable>
                 );
               }}

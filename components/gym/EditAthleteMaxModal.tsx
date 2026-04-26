@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useUpdateAthleteMax } from "@/hooks/useMaxes";
+import { useUpdateAthleteReference } from "@/hooks/useExerciseReferences";
 import { fromKg, WeightUnit } from "@/lib/units";
 import { useAppStore } from "@/stores/appStore";
 import { colors } from "@/lib/theme";
@@ -43,7 +43,11 @@ export function EditAthleteMaxModal({
   );
   const [notes, setNotes] = useState(currentNotes ?? "");
 
-  const { mutate: updateMax, isPending, isError } = useUpdateAthleteMax(userId);
+  const {
+    mutate: updateMax,
+    isPending,
+    isError,
+  } = useUpdateAthleteReference(userId);
   const showToast = useAppStore((s) => s.showToast);
 
   useEffect(() => {

@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useExercises } from "./useExercises";
 import { useProfile } from "./useProfile";
-import { useMaxHistory } from "./useMaxHistory";
+import { useExerciseReferenceHistory } from "./useExerciseReferenceHistory";
 
 export function useExerciseDetail(exerciseId: string) {
   const { data: exercises = [], isLoading: exercisesLoading } = useExercises();
@@ -10,7 +10,7 @@ export function useExerciseDetail(exerciseId: string) {
     isLoading: historyLoading,
     isError,
     refetch,
-  } = useMaxHistory(exerciseId);
+  } = useExerciseReferenceHistory(exerciseId);
   const { data: profile, isLoading: profileLoading } = useProfile();
 
   const exercise = useMemo(
