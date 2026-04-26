@@ -30,7 +30,7 @@ export const DEFAULT_PRESCRIPTION_BY_EQUIPMENT: Record<
   PrescriptionMode
 > = {
   barbell: "percentage",
-  dumbbell: "percentage",
+  dumbbell: "working_weight",
   kettlebell: "working_weight",
   machine: "working_weight",
   bodyweight: "reps_only",
@@ -42,7 +42,7 @@ export const ALLOWED_PRESCRIPTIONS_BY_EQUIPMENT: Record<
   PrescriptionMode[]
 > = {
   barbell: ["percentage", "absolute", "reps_only"],
-  dumbbell: ["percentage", "absolute", "reps_only"],
+  dumbbell: ["working_weight", "heavy", "easy", "absolute", "reps_only"],
   kettlebell: ["working_weight", "heavy", "easy", "absolute", "reps_only"],
   machine: ["working_weight", "heavy", "easy", "absolute", "reps_only"],
   bodyweight: ["reps_only", "absolute", "bodyweight"],

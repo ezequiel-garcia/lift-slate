@@ -61,10 +61,7 @@ export default function ExerciseDetailScreen() {
   const equipmentType = exercise?.equipment_type;
 
   const isBodyweight = equipmentType === "bodyweight";
-  const isOneRM =
-    !equipmentType ||
-    equipmentType === "barbell" ||
-    equipmentType === "dumbbell";
+  const isOneRM = !equipmentType || equipmentType === "barbell";
 
   // Strip placeholder records (weight=0 or reps=0) from display
   const displayHistory = useMemo(

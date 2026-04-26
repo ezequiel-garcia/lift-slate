@@ -41,7 +41,11 @@ type Props = {
 
 function modalTitle(equipmentType?: EquipmentType): string {
   if (equipmentType === "bodyweight") return "Add Max Reps";
-  if (equipmentType === "kettlebell" || equipmentType === "machine")
+  if (
+    equipmentType === "dumbbell" ||
+    equipmentType === "kettlebell" ||
+    equipmentType === "machine"
+  )
     return "Add Working Weight";
   return "Add 1RM";
 }
@@ -73,10 +77,7 @@ export function AddMaxModal({
       equipmentType === "barbell" ||
       equipmentType === "dumbbell" ||
       equipmentType == null);
-  const isOneRM =
-    equipmentType == null ||
-    equipmentType === "barbell" ||
-    equipmentType === "dumbbell";
+  const isOneRM = equipmentType == null || equipmentType === "barbell";
 
   const weightNum = parseFloat(weight);
   const repsNum = parseInt(reps, 10);
@@ -90,8 +91,7 @@ export function AddMaxModal({
 
   function referenceType() {
     if (isBodyweight) return "max_reps" as const;
-    if (equipmentType === "kettlebell" || equipmentType === "machine")
-      return "working_weight" as const;
+    if (!isOneRM) return "working_weight" as const;
     return "one_rep_max" as const;
   }
 

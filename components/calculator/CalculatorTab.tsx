@@ -78,6 +78,7 @@ export function CalculatorTab({
   const [customPct, setCustomPct] = useState("");
 
   const isWorkingWeight =
+    equipmentType === "dumbbell" ||
     equipmentType === "kettlebell" ||
     equipmentType === "machine" ||
     equipmentType === "other";
