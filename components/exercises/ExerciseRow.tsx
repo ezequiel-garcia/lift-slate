@@ -144,6 +144,12 @@ export function ExerciseRow({
   index = 0,
 }: Props) {
   const isRepsOnly = referenceType === "max_reps";
+  const titleStyle =
+    name.length > 30
+      ? { fontSize: 19, lineHeight: 22 }
+      : name.length > 22
+        ? { fontSize: 21, lineHeight: 24 }
+        : { fontSize: 24, lineHeight: 28 };
   const hasValue = isRepsOnly
     ? currentReps != null && currentReps > 0
     : currentWeightKg != null && currentWeightKg > 0;
@@ -185,11 +191,13 @@ export function ExerciseRow({
             <Text
               style={{
                 fontFamily: "CormorantGaramond-Regular",
-                fontSize: 22,
+                fontSize: titleStyle.fontSize,
+                lineHeight: titleStyle.lineHeight,
                 color: colors.foreground,
-                letterSpacing: -0.2,
               }}
               numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.8}
             >
               {name}
             </Text>
