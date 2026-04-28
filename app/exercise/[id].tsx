@@ -128,7 +128,14 @@ export default function ExerciseDetailScreen() {
           <Ionicons name="chevron-back" size={20} color={colors.foreground} />
         </Pressable>
         <Text
-          className="flex-1 text-lg font-bold text-foreground text-center mx-3"
+          className="flex-1 text-center mx-3"
+          style={{
+            fontFamily: "CormorantGaramond-Regular",
+            fontSize: 36,
+            lineHeight: 40,
+            color: colors.foreground,
+            letterSpacing: -0.4,
+          }}
           numberOfLines={1}
         >
           {exercise?.name ?? "Exercise"}
@@ -155,6 +162,7 @@ export default function ExerciseDetailScreen() {
                 segments={tabSegments}
                 selected={activeTab}
                 onChange={setActiveTab}
+                variant="underline"
               />
             </View>
           )}

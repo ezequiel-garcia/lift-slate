@@ -5,6 +5,7 @@ import {
   SectionList,
   Pressable,
   RefreshControl,
+  TextInput,
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from "react-native";
@@ -20,11 +21,9 @@ import { useMyLifts } from "@/hooks/useMyLifts";
 import { useDeleteAllReferencesForExercise } from "@/hooks/useExerciseReferences";
 import { ExerciseRow } from "@/components/exercises/ExerciseRow";
 import { AddExerciseModal } from "@/components/exercises/AddExerciseModal";
-import { SectionHeader } from "@/components/ui/SectionHeader";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { ExerciseListSkeleton } from "@/components/ui/Skeleton";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { colors, animation } from "@/lib/theme";
@@ -97,8 +96,16 @@ export default function HomeScreen() {
     return (
       <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
         <View className="px-5 pt-5 pb-3">
-          <Text className="text-title text-foreground tracking-tight">
-            My Lifts
+          <Text
+            style={{
+              fontFamily: "CormorantGaramond-Regular",
+              fontSize: 56,
+              lineHeight: 58,
+              color: colors.foreground,
+              letterSpacing: -1,
+            }}
+          >
+            My <Text style={{ color: colors.accent }}>Lifts</Text>
           </Text>
         </View>
         <ExerciseListSkeleton count={6} />
@@ -136,17 +143,44 @@ export default function HomeScreen() {
       ) : (
         <>
           <View className="px-5 pt-5 pb-3">
-            <Text className="text-title text-foreground mb-4 tracking-tight">
-              My Lifts
+            <Text
+              style={{
+                fontFamily: "CormorantGaramond-Regular",
+                fontSize: 56,
+                lineHeight: 58,
+                color: colors.foreground,
+                letterSpacing: -1,
+                marginBottom: 20,
+              }}
+            >
+              My <Text style={{ color: colors.accent }}>Lifts</Text>
             </Text>
-            <Input
-              placeholder="Search exercises..."
-              value={search}
-              onChangeText={setSearch}
-              leftIcon={
-                <Ionicons name="search" size={18} color={colors.muted} />
-              }
-            />
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 10,
+                paddingBottom: 14,
+                borderBottomWidth: 1,
+                borderBottomColor: colors.border,
+              }}
+            >
+              <Ionicons name="search" size={24} color={colors.muted} />
+              <TextInput
+                style={{
+                  flex: 1,
+                  color: colors.foreground,
+                  fontSize: 20,
+                  lineHeight: 24,
+                  letterSpacing: 0,
+                }}
+                placeholderTextColor={colors.muted}
+                selectionColor={colors.accent}
+                placeholder="Search exercises"
+                value={search}
+                onChangeText={setSearch}
+              />
+            </View>
           </View>
 
           {filtered.length === 0 && search ? (
@@ -164,6 +198,7 @@ export default function HomeScreen() {
                   exerciseId={item.exerciseId}
                   name={item.name}
                   equipmentType={item.equipmentType}
+                  referenceType={item.referenceType}
                   currentWeightKg={item.currentWeightKg}
                   currentReps={item.currentReps}
                   unit={unit}
@@ -171,13 +206,29 @@ export default function HomeScreen() {
                 />
               )}
               renderSectionHeader={({ section }) => (
-                <SectionHeader title={section.title} />
+                <View className="px-5 pt-6 pb-2.5 bg-bg flex-row items-center">
+                  <Text
+                    style={{
+                      fontFamily: "CormorantGaramond-Regular",
+                      color: colors.accent,
+                      fontSize: 20,
+                      lineHeight: 24,
+                    }}
+                  >
+                    {section.title}
+                  </Text>
+                  <View
+                    style={{
+                      flex: 1,
+                      height: 1,
+                      backgroundColor: colors.hairline,
+                      marginLeft: 14,
+                    }}
+                  />
+                </View>
               )}
               stickySectionHeadersEnabled={false}
               contentContainerStyle={{ paddingBottom: 120 }}
-              ItemSeparatorComponent={() => (
-                <View className="h-px bg-border ml-[72px] mr-5" />
-              )}
               onScroll={handleScroll}
               scrollEventThrottle={16}
               refreshControl={

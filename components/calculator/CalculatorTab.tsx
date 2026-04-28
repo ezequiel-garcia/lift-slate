@@ -1,25 +1,25 @@
-import { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  Pressable,
-  ActivityIndicator,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import * as Haptics from "expo-haptics";
+import { ExerciseNotes } from "@/components/exercises/ExerciseNotes";
+import { COMMON_PERCENTAGES } from "@/lib/constants";
+import { easyRange, heavyRange } from "@/lib/kettlebells";
+import { colors } from "@/lib/theme";
 import {
   calculatePercentage,
   formatWeight,
   fromKg,
   WeightUnit,
 } from "@/lib/units";
-import { COMMON_PERCENTAGES } from "@/lib/constants";
-import { ExerciseNotes } from "@/components/exercises/ExerciseNotes";
-import { colors } from "@/lib/theme";
 import { EquipmentType } from "@/types/exercise";
-import { heavyRange, easyRange } from "@/lib/kettlebells";
+import { Ionicons } from "@expo/vector-icons";
+import * as Haptics from "expo-haptics";
+import { useState } from "react";
+import {
+  ActivityIndicator,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
 
 type Max = {
   id: string;
@@ -60,7 +60,17 @@ function RangeCard({
       <Text className="text-[11px] font-semibold text-muted uppercase tracking-widest mb-2">
         {label}
       </Text>
-      <Text className="text-[22px] font-bold text-foreground">{text}</Text>
+      <Text
+        style={{
+          fontFamily: "CormorantGaramond-Regular",
+          fontSize: 30,
+          lineHeight: 32,
+          color: colors.foreground,
+          letterSpacing: -0.4,
+        }}
+      >
+        {text}
+      </Text>
     </View>
   );
 }
@@ -97,6 +107,17 @@ export function CalculatorTab({
     isWorkingWeight && currentMax ? heavyRange(currentMax.weight_kg) : [];
   const easy =
     isWorkingWeight && currentMax ? easyRange(currentMax.weight_kg) : [];
+  const currentWeightFormatted =
+    currentMax && currentMax.weight_kg > 0
+      ? formatWeight(fromKg(currentMax.weight_kg, unit), unit)
+      : null;
+  const [currentValue, currentUnit] = currentWeightFormatted
+    ? currentWeightFormatted.split(" ")
+    : ["", unit];
+  const resultFormatted = result ? formatWeight(result, unit) : null;
+  const [resultValue, resultUnit] = resultFormatted
+    ? resultFormatted.split(" ")
+    : ["", unit];
 
   return (
     <ScrollView
@@ -106,19 +127,42 @@ export function CalculatorTab({
       automaticallyAdjustKeyboardInsets={true}
     >
       {/* Current reference value */}
-      <View className="items-center py-6 mb-2">
+      <View className="items-center py-7 mb-4">
         <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-3">
-          {isWorkingWeight ? "Working Weight" : "Current 1RM"}
+          {isWorkingWeight
+            ? "Current Working Weight"
+            : "Current One-Rep Maximum"}
         </Text>
         {isLoading ? (
           <ActivityIndicator color={colors.accent} />
         ) : currentMax && currentMax.weight_kg > 0 ? (
-          <Text
-            className="text-[56px] font-bold text-foreground"
-            style={{ letterSpacing: -2 }}
+          <View
+            style={{ flexDirection: "row", alignItems: "flex-start", gap: 6 }}
           >
-            {formatWeight(fromKg(currentMax.weight_kg, unit), unit)}
-          </Text>
+            <Text
+              style={{
+                fontFamily: "CormorantGaramond-Regular",
+                fontSize: 84,
+                lineHeight: 84,
+                color: colors.foreground,
+                letterSpacing: -1.6,
+                fontVariant: ["tabular-nums"],
+              }}
+            >
+              {currentValue}
+            </Text>
+            <Text
+              style={{
+                fontFamily: "CormorantGaramond-Regular",
+                fontSize: 38,
+                lineHeight: 40,
+                color: colors.accent,
+                marginTop: 14,
+              }}
+            >
+              {currentUnit}
+            </Text>
+          </View>
         ) : (
           <Text className="text-muted text-base">
             {currentMax ? "Not relevant" : "No weight recorded yet"}
@@ -138,22 +182,31 @@ export function CalculatorTab({
       {!isWorkingWeight && currentMax && currentMax.weight_kg > 0 && (
         <>
           <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-3">
-            Percentage
+            Selected Intensity
           </Text>
-          <View className="flex-row flex-wrap gap-2 mb-6">
+          <View
+            style={{
+              flexDirection: "row",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              marginBottom: 18,
+            }}
+          >
             {COMMON_PERCENTAGES.map((pct) => {
               const isActive = selectedPct === pct && !customPct;
               return (
                 <Pressable
                   key={pct}
-                  className={`px-4 py-3 rounded-xl ${
-                    isActive ? "bg-accent/15" : "bg-surface"
-                  }`}
-                  style={
-                    isActive
-                      ? { borderWidth: 1, borderColor: colors.accent }
-                      : undefined
-                  }
+                  className="items-center justify-center"
+                  style={{
+                    width: "31.5%",
+                    height: 52,
+                    borderRadius: 4,
+                    backgroundColor: isActive ? colors.accentMuted : colors.bg,
+                    borderWidth: 1,
+                    borderColor: isActive ? colors.accent : colors.border,
+                    marginBottom: 10,
+                  }}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     setSelectedPct(pct);
@@ -161,7 +214,14 @@ export function CalculatorTab({
                   }}
                 >
                   <Text
-                    className={`text-[15px] font-semibold ${isActive ? "text-accent" : "text-foreground"}`}
+                    style={{
+                      fontFamily: "CormorantGaramond-Regular",
+                      fontSize: 28,
+                      lineHeight: 30,
+                      color: isActive ? colors.accent : colors.foreground,
+                      letterSpacing: -0.4,
+                      fontVariant: ["tabular-nums"],
+                    }}
                   >
                     {pct}%
                   </Text>
@@ -189,16 +249,53 @@ export function CalculatorTab({
           </View>
 
           {result && (
-            <View className="bg-surface rounded-2xl p-6 mb-3 items-center">
-              <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
-                {activePct}% of 1RM
+            <View
+              style={{
+                backgroundColor: colors.surface,
+                borderRadius: 8,
+                borderWidth: 1,
+                borderColor: colors.border,
+                padding: 20,
+                marginBottom: 12,
+              }}
+            >
+              <Text className="text-[12px] font-semibold text-muted uppercase tracking-widest mb-3">
+                Prescribed Load • {activePct}%
               </Text>
-              <Text
-                className="text-[48px] font-bold text-accent"
-                style={{ letterSpacing: -2 }}
+              <View
+                style={{ flexDirection: "row", alignItems: "flex-end", gap: 6 }}
               >
-                {formatWeight(result, unit)}
-              </Text>
+                <Text
+                  style={{
+                    fontFamily: "CormorantGaramond-Regular",
+                    fontSize: 70,
+                    lineHeight: 72,
+                    color: colors.foreground,
+                    letterSpacing: -1.2,
+                    fontVariant: ["tabular-nums"],
+                  }}
+                >
+                  {resultValue}
+                </Text>
+                <Text
+                  style={{
+                    fontFamily: "CormorantGaramond-Regular",
+                    fontSize: 34,
+                    lineHeight: 36,
+                    color: colors.foreground,
+                    marginBottom: 8,
+                  }}
+                >
+                  {resultUnit}
+                </Text>
+              </View>
+              <View
+                style={{
+                  height: 1,
+                  backgroundColor: colors.hairline,
+                  marginTop: 12,
+                }}
+              />
             </View>
           )}
         </>

@@ -14,7 +14,14 @@ import {
 const KEY = "exercise_references";
 
 export function useExerciseReferences() {
-  return useQuery({ queryKey: [KEY], queryFn: getCurrentExerciseReferences });
+  return useQuery({
+    queryKey: [KEY],
+    queryFn: getCurrentExerciseReferences,
+    staleTime: 1000 * 60 * 30, // 30m
+    gcTime: 1000 * 60 * 60 * 24, // 24h
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+  });
 }
 
 export function useCreateExerciseReference() {
@@ -35,6 +42,29 @@ export function useDeleteExerciseReference(exerciseId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => deleteExerciseReference(id),
+    onMutate: async (id: string) => {
+      await queryClient.cancelQueries({
+        queryKey: [KEY, "history", exerciseId],
+      });
+      const previousHistory = queryClient.getQueryData<
+        { id: string; exercise_id?: string }[]
+      >([KEY, "history", exerciseId]);
+      queryClient.setQueriesData(
+        { queryKey: [KEY, "history", exerciseId], exact: true },
+        (old: { id: string }[] | undefined) =>
+          old ? old.filter((entry) => entry.id !== id) : [],
+      );
+      return { previousHistory };
+    },
+    onError: (_error, _id, context) => {
+      if (context?.previousHistory) {
+        queryClient.setQueriesData(
+          { queryKey: [KEY, "history", exerciseId], exact: true },
+          context.previousHistory,
+        );
+      }
+      queryClient.invalidateQueries({ queryKey: [KEY] });
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [KEY] });
       queryClient.invalidateQueries({

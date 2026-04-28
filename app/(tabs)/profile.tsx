@@ -107,7 +107,15 @@ export default function ProfileScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View className="px-5 pt-5 pb-1">
-            <Text className="text-title text-foreground tracking-tight">
+            <Text
+              style={{
+                fontFamily: "CormorantGaramond-Regular",
+                fontSize: 56,
+                lineHeight: 58,
+                color: colors.foreground,
+                letterSpacing: -1,
+              }}
+            >
               Profile
             </Text>
           </View>

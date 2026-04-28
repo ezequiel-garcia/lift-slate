@@ -100,13 +100,13 @@ export function AddMaxModal({
       if (isBodyweight) {
         if (!repsValid) return;
         const userNote = notes.trim() || undefined;
-        await createExerciseReference({
+        const created = await createExerciseReference({
           exerciseId,
           referenceType: "max_reps",
           reps: repsNum,
           notes: userNote,
         });
-        return;
+        return { created };
       }
 
       const submitWeight = isOneRM
@@ -126,7 +126,7 @@ export function AddMaxModal({
           ? [autoNote, userNote].filter(Boolean).join(" — ")
           : userNote || undefined;
 
-      await createExerciseReference({
+      const created = await createExerciseReference({
         exerciseId,
         referenceType: referenceType(),
         weight: submitWeight,
@@ -136,9 +136,21 @@ export function AddMaxModal({
       if (combinedNotes) {
         await upsertExerciseNote(exerciseId, combinedNotes);
       }
-      return { submittedKg: toKg(submitWeight, unit) };
+      return { submittedKg: toKg(submitWeight, unit), created };
     },
     onSuccess: (data) => {
+      const created = (
+        data as { created?: { id: string; recorded_at: string } }
+      )?.created;
+      if (created) {
+        queryClient.setQueriesData(
+          {
+            queryKey: ["exercise_references", "history", exerciseId],
+            exact: true,
+          },
+          (old: any[] | undefined) => [created, ...(old ?? [])],
+        );
+      }
       queryClient.invalidateQueries({ queryKey: ["exercise_references"] });
       queryClient.invalidateQueries({
         queryKey: ["exercise_references", "history", exerciseId],
@@ -182,19 +194,29 @@ export function AddMaxModal({
   };
 
   async function handleNotRelevant() {
+    let created: any = null;
     if (isBodyweight) {
-      await createExerciseReference({
+      created = await createExerciseReference({
         exerciseId,
         referenceType: "max_reps",
         reps: 0,
       });
     } else {
-      await createExerciseReference({
+      created = await createExerciseReference({
         exerciseId,
         referenceType: referenceType(),
         weight: 0,
         unit: "kg",
       });
+    }
+    if (created) {
+      queryClient.setQueriesData(
+        {
+          queryKey: ["exercise_references", "history", exerciseId],
+          exact: true,
+        },
+        (old: any[] | undefined) => [created, ...(old ?? [])],
+      );
     }
     queryClient.invalidateQueries({ queryKey: ["exercise_references"] });
     queryClient.invalidateQueries({

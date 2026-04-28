@@ -1,22 +1,22 @@
-import { useState } from "react";
-import { View, Text, Pressable, ActivityIndicator } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { colors } from "@/lib/theme";
-import { WeightUnit } from "@/lib/units";
-import { isValidUUID } from "@/lib/constants";
+import { CalculatorTab } from "@/components/calculator/CalculatorTab";
+import { AddAthleteMaxModal } from "@/components/gym/AddAthleteMaxModal";
+import { HistoryTab } from "@/components/history/HistoryTab";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import {
   useAthleteReferences,
   useDeleteAthleteReference,
 } from "@/hooks/useExerciseReferences";
 import { useGymMembers, useMyGym } from "@/hooks/useGym";
-import { CalculatorTab } from "@/components/calculator/CalculatorTab";
-import { HistoryTab } from "@/components/history/HistoryTab";
-import { AddAthleteMaxModal } from "@/components/gym/AddAthleteMaxModal";
-import { ErrorState } from "@/components/ui/ErrorState";
-import { SegmentedControl } from "@/components/ui/SegmentedControl";
+import { isValidUUID } from "@/lib/constants";
+import { colors } from "@/lib/theme";
+import { WeightUnit } from "@/lib/units";
 
 type Tab = "calculator" | "history";
 
