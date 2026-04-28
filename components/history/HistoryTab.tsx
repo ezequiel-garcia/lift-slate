@@ -73,6 +73,7 @@ type Props = {
   unit: WeightUnit;
   onAddMax?: () => void;
   onDeleteMax?: (id: string) => void;
+  addButtonLabel?: string;
   refreshing?: boolean;
   onRefresh?: () => void;
   isLoading?: boolean;
@@ -83,6 +84,7 @@ export function HistoryTab({
   unit,
   onAddMax,
   onDeleteMax,
+  addButtonLabel,
   refreshing,
   onRefresh,
   isLoading,
@@ -109,7 +111,9 @@ export function HistoryTab({
     ? sortedHistory.reduce((best, m) => Math.max(best, m.reps ?? 0), 0)
     : 0;
 
-  const addLabel = isRepsMode ? "Log Max Reps" : "Add New Max";
+  const addLabel = isRepsMode
+    ? "Log Max Reps"
+    : (addButtonLabel ?? "Add New Max");
   const recordEntry = hasHistory
     ? (sortedHistory.find((m) =>
         isRepsMode

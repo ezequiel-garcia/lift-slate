@@ -1,4 +1,3 @@
-import { ExerciseNotes } from "@/components/exercises/ExerciseNotes";
 import { COMMON_PERCENTAGES } from "@/lib/constants";
 import { easyRange, heavyRange } from "@/lib/kettlebells";
 import { colors } from "@/lib/theme";
@@ -29,7 +28,6 @@ type Max = {
 };
 
 type Props = {
-  exerciseId: string;
   equipmentType?: EquipmentType;
   currentMax: Max | null;
   unit: WeightUnit;
@@ -76,7 +74,6 @@ function RangeCard({
 }
 
 export function CalculatorTab({
-  exerciseId,
   equipmentType,
   currentMax,
   unit,
@@ -302,24 +299,16 @@ export function CalculatorTab({
       )}
 
       {!readonly && (
-        <>
-          <Pressable
-            className="mt-2 bg-surface rounded-2xl p-4 items-center flex-row justify-center gap-2"
-            style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-            onPress={onAddMax}
-          >
-            <Ionicons
-              name="add-circle-outline"
-              size={20}
-              color={colors.accent}
-            />
-            <Text className="text-accent font-semibold text-[15px]">
-              {isWorkingWeight ? "Update Working Weight" : "Add New Max"}
-            </Text>
-          </Pressable>
-
-          <ExerciseNotes exerciseId={exerciseId} />
-        </>
+        <Pressable
+          className="mt-2 bg-surface rounded-2xl p-4 items-center flex-row justify-center gap-2"
+          style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+          onPress={onAddMax}
+        >
+          <Ionicons name="add-circle-outline" size={20} color={colors.accent} />
+          <Text className="text-accent font-semibold text-[15px]">
+            {isWorkingWeight ? "Update Working Weight" : "Add New Max"}
+          </Text>
+        </Pressable>
       )}
     </ScrollView>
   );
