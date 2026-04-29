@@ -9,6 +9,7 @@ import {
   useDeleteExerciseReference,
 } from "@/hooks/useExerciseReferences";
 import { CalculatorTab } from "@/components/calculator/CalculatorTab";
+import { NotesTab } from "@/components/exercises/NotesTab";
 import { HistoryTab } from "@/components/history/HistoryTab";
 import { AddMaxModal } from "@/components/exercises/AddMaxModal";
 import { PRCelebrationModal } from "@/components/exercises/PRCelebrationModal";
@@ -18,7 +19,7 @@ import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { colors } from "@/lib/theme";
 import { isValidUUID } from "@/lib/constants";
 
-type Tab = "reference" | "history";
+type Tab = "calculator" | "history" | "notes";
 
 export default function ExerciseDetailScreen() {
   const { id, addMax } = useLocalSearchParams<{
@@ -28,7 +29,7 @@ export default function ExerciseDetailScreen() {
 
   const validId = isValidUUID(id) ? id : null;
 
-  const [activeTab, setActiveTab] = useState<Tab>("reference");
+  const [activeTab, setActiveTab] = useState<Tab>("history");
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [prVisible, setPrVisible] = useState(false);
   const [prWeightKg, setPrWeightKg] = useState(0);
@@ -56,9 +57,29 @@ export default function ExerciseDetailScreen() {
 
   const unit = profile?.unit_preference ?? "kg";
   const equipmentType = exercise?.equipment_type;
+  const exerciseName = exercise?.name ?? "Exercise";
+
+  const headerTitleStyle = useMemo(() => {
+    const nameLength = exerciseName.length;
+
+    if (nameLength > 24) {
+      return { fontSize: 26, lineHeight: 30 };
+    }
+
+    if (nameLength > 18) {
+      return { fontSize: 30, lineHeight: 34 };
+    }
+
+    return { fontSize: 36, lineHeight: 40 };
+  }, [exerciseName]);
 
   const isBodyweight = equipmentType === "bodyweight";
   const isOneRM = !equipmentType || equipmentType === "barbell";
+  const isWorkingWeight =
+    equipmentType === "dumbbell" ||
+    equipmentType === "kettlebell" ||
+    equipmentType === "machine" ||
+    equipmentType === "other";
 
   const displayHistory = useMemo(
     () =>
@@ -87,15 +108,19 @@ export default function ExerciseDetailScreen() {
     return null;
   }
 
-  // Tab config: bodyweight has no "reference" tab (just history)
+  // Tab config: bodyweight has no calculator tab
   const tabSegments = isBodyweight
-    ? [{ value: "history" as const, label: "History" }]
+    ? [
+        { value: "history" as const, label: "History" },
+        { value: "notes" as const, label: "Notes" },
+      ]
     : [
         {
-          value: "reference" as const,
+          value: "calculator" as const,
           label: isOneRM ? "Calculator" : "Working Weight",
         },
         { value: "history" as const, label: "History" },
+        { value: "notes" as const, label: "Notes" },
       ];
 
   function handleDelete() {
@@ -128,10 +153,19 @@ export default function ExerciseDetailScreen() {
           <Ionicons name="chevron-back" size={20} color={colors.foreground} />
         </Pressable>
         <Text
-          className="flex-1 text-lg font-bold text-foreground text-center mx-3"
+          className="flex-1 text-center mx-3"
+          style={{
+            fontFamily: "CormorantGaramond-Regular",
+            fontSize: headerTitleStyle.fontSize,
+            lineHeight: headerTitleStyle.lineHeight,
+            color: colors.foreground,
+            letterSpacing: -0.4,
+          }}
           numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.65}
         >
-          {exercise?.name ?? "Exercise"}
+          {exerciseName}
         </Text>
         <Pressable
           onPress={handleDelete}
@@ -155,25 +189,30 @@ export default function ExerciseDetailScreen() {
                 segments={tabSegments}
                 selected={activeTab}
                 onChange={setActiveTab}
+                variant="underline"
               />
             </View>
           )}
 
-          {activeTab === "reference" && !isBodyweight ? (
+          {activeTab === "calculator" && !isBodyweight ? (
             <CalculatorTab
-              exerciseId={validId}
               equipmentType={equipmentType}
               currentMax={currentMax}
               unit={unit}
               onAddMax={() => setAddModalVisible(true)}
               isLoading={historyLoading}
             />
+          ) : activeTab === "notes" ? (
+            <NotesTab exerciseId={validId} />
           ) : (
             <HistoryTab
               history={displayHistory}
               unit={unit}
               onAddMax={() => setAddModalVisible(true)}
               onDeleteMax={(maxId) => deleteMax(maxId)}
+              addButtonLabel={
+                isWorkingWeight ? "Update Working Weight" : undefined
+              }
               refreshing={refreshing}
               onRefresh={handleRefresh}
               isLoading={historyLoading}

@@ -1,17 +1,18 @@
-import { Pressable, Text, View } from "react-native";
+import { colors } from "@/lib/theme";
+import { formatWeight, fromKg, WeightUnit } from "@/lib/units";
+import type { Database } from "@/types/database.types";
+import type { EquipmentType } from "@/types/exercise";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { Pressable, Text, View } from "react-native";
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
+import type { SharedValue } from "react-native-reanimated";
 import Animated, {
-  useAnimatedStyle,
-  interpolate,
   FadeIn,
+  interpolate,
+  useAnimatedStyle,
   useReducedMotion,
 } from "react-native-reanimated";
-import type { SharedValue } from "react-native-reanimated";
-import { Ionicons } from "@expo/vector-icons";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { fromKg, formatWeight, WeightUnit } from "@/lib/units";
-import type { EquipmentType } from "@/types/exercise";
 
 const EQUIPMENT_ICON: Record<
   EquipmentType,
@@ -27,8 +28,8 @@ const EQUIPMENT_ICON: Record<
     library: "ionicons",
     name: "barbell",
     size: 20,
-    bg: "#122210",
-    color: "#B4FF4A",
+    bg: "#2A1316",
+    color: "#FF7A88",
   },
   dumbbell: {
     library: "materialCommunity",
@@ -60,7 +61,7 @@ const EQUIPMENT_ICON: Record<
   },
   other: {
     library: "ionicons",
-    name: "ellipsis-horizontal",
+    name: "fitness-outline",
     size: 20,
     bg: "#1A1A1E",
     color: "#888",
@@ -137,6 +138,7 @@ type Props = {
   equipmentType: EquipmentType;
   currentWeightKg: number | null;
   currentReps?: number | null;
+  referenceType: Database["public"]["Enums"]["reference_type"];
   unit: WeightUnit;
   onDelete?: (exerciseId: string, name: string) => void;
   index?: number;
@@ -148,11 +150,12 @@ export function ExerciseRow({
   equipmentType,
   currentWeightKg,
   currentReps,
+  referenceType,
   unit,
   onDelete,
   index = 0,
 }: Props) {
-  const isRepsOnly = equipmentType === "bodyweight";
+  const isRepsOnly = referenceType === "max_reps";
   const hasValue = isRepsOnly
     ? currentReps != null && currentReps > 0
     : currentWeightKg != null && currentWeightKg > 0;
@@ -181,36 +184,71 @@ export function ExerciseRow({
         friction={2}
       >
         <Pressable
-          className="flex-row items-center px-5 py-3.5 bg-bg"
-          style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
+          className="flex-row items-center px-5 py-3 bg-bg"
+          style={({ pressed }) => ({
+            opacity: pressed ? 0.7 : 1,
+            borderBottomWidth: 1,
+            borderBottomColor: colors.hairline,
+          })}
           onPress={() => router.push(`/exercise/${exerciseId}` as never)}
         >
           <EquipmentIcon equipmentType={equipmentType} />
-          <View className="flex-1 mx-3.5">
+          <View style={{ flex: 1, marginLeft: 14, marginRight: 10 }}>
             <Text
-              className="text-body font-medium text-foreground"
-              numberOfLines={1}
+              style={{
+                fontFamily: "CormorantGaramond-Regular",
+                fontSize: 23,
+                lineHeight: 26,
+                color: colors.foreground,
+              }}
+              numberOfLines={2}
+              ellipsizeMode="tail"
             >
               {name}
             </Text>
           </View>
-          <Text
-            className={`text-[17px] font-bold tabular-nums ${hasValue ? "text-foreground" : "text-muted"}`}
-          >
-            {isRepsOnly
-              ? hasValue
-                ? `${currentReps} reps`
-                : "—"
-              : hasValue
-                ? formatWeight(displayWeight, unit)
-                : "—"}
-          </Text>
-          <Ionicons
-            name="chevron-forward"
-            size={16}
-            color="#3F3F46"
-            style={{ marginLeft: 6 }}
-          />
+          {hasValue ? (
+            <View
+              style={{ flexDirection: "row", alignItems: "baseline", gap: 4 }}
+            >
+              <Text
+                style={{
+                  fontFamily: "CormorantGaramond-Regular",
+                  fontSize: 36,
+                  lineHeight: 42,
+                  color: colors.foreground,
+                  letterSpacing: -0.8,
+                  fontVariant: ["tabular-nums"],
+                }}
+              >
+                {isRepsOnly
+                  ? currentReps
+                  : formatWeight(displayWeight, unit).replace(` ${unit}`, "")}
+              </Text>
+              <Text
+                style={{
+                  fontFamily: "CormorantGaramond-Regular",
+                  fontSize: 16,
+                  color: colors.foreground,
+                  opacity: 0.7,
+                  textTransform: "uppercase",
+                  letterSpacing: 1,
+                }}
+              >
+                {isRepsOnly ? "reps" : unit}
+              </Text>
+            </View>
+          ) : (
+            <Text
+              style={{
+                fontFamily: "CormorantGaramond-Regular",
+                fontSize: 22,
+                color: colors.muted3,
+              }}
+            >
+              —
+            </Text>
+          )}
         </Pressable>
       </Swipeable>
     </Animated.View>

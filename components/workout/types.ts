@@ -51,7 +51,7 @@ export const ALLOWED_PRESCRIPTIONS_BY_EQUIPMENT: Record<
 
 export const PRESCRIPTION_LABELS: Record<PrescriptionMode, string> = {
   percentage: "% 1RM",
-  working_weight: "Working",
+  working_weight: "Working Weight",
   heavy: "Heavy",
   easy: "Easy",
   absolute: "Exact kg",

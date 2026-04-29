@@ -1,5 +1,4 @@
-import { useMemo, useCallback } from "react";
-import { useFocusEffect } from "expo-router";
+import { useMemo } from "react";
 import { useExerciseReferences } from "./useExerciseReferences";
 import { useExercises } from "./useExercises";
 import { useProfile } from "./useProfile";
@@ -16,12 +15,6 @@ export function useMyLifts(search: string) {
     isError: maxesError,
     refetch: refetchMaxes,
   } = useExerciseReferences();
-
-  useFocusEffect(
-    useCallback(() => {
-      refetchMaxes();
-    }, [refetchMaxes]),
-  );
   const { data: exercises = [], isLoading: exercisesLoading } = useExercises();
   const { data: profile } = useProfile();
 

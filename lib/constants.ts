@@ -1,4 +1,4 @@
-export const COMMON_PERCENTAGES = [50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100];
+export const COMMON_PERCENTAGES = [50, 55, 60, 65, 70, 75, 80, 85, 90];
 
 export const EQUIPMENT_TYPES = [
   { value: "barbell" as const, label: "Barbell" },

@@ -17,7 +17,7 @@ export function ExerciseNotes({ exerciseId }: Props) {
     useExerciseNote(exerciseId);
 
   return (
-    <View className="mt-6">
+    <View className="flex-1 pt-2">
       <View className="flex-row items-center justify-between mb-2">
         <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest">
           Notes
@@ -25,15 +25,15 @@ export function ExerciseNotes({ exerciseId }: Props) {
         {isSaving && <ActivityIndicator size="small" color={colors.muted} />}
       </View>
       <TextInput
-        className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-[16px]"
+        className="flex-1 bg-surface rounded-xl px-4 py-4 text-foreground text-[16px]"
         placeholder="Form cues, coach feedback, goals…"
         placeholderTextColor={colors.muted}
         value={draft}
         onChangeText={setDraft}
         multiline
-        numberOfLines={4}
+        numberOfLines={16}
         textAlignVertical="top"
-        style={{ minHeight: 96 }}
+        style={{ minHeight: 280 }}
       />
       {isDirty && (
         <Pressable

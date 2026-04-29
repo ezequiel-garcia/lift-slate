@@ -41,6 +41,15 @@ const config: ExpoConfig = {
     "expo-router",
     "expo-apple-authentication",
     [
+      "expo-font",
+      {
+        fonts: [
+          "./assets/fonts/CormorantGaramond-Regular.ttf",
+          "./assets/fonts/CormorantGaramond-Italic.ttf",
+        ],
+      },
+    ],
+    [
       "expo-splash-screen",
       {
         image: "./assets/images/splash-icon.png",

@@ -71,7 +71,15 @@ export default function QuickCalculatorScreen() {
           automaticallyAdjustKeyboardInsets
         >
           <View className="px-5 pt-5 pb-4">
-            <Text className="text-title text-foreground tracking-tight">
+            <Text
+              style={{
+                fontFamily: "CormorantGaramond-Regular",
+                fontSize: 56,
+                lineHeight: 58,
+                color: colors.foreground,
+                letterSpacing: -1,
+              }}
+            >
               Calculator
             </Text>
           </View>

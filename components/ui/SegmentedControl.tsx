@@ -1,4 +1,4 @@
-import { animation } from "@/lib/theme";
+import { animation, colors } from "@/lib/theme";
 import { useState } from "react";
 import { LayoutChangeEvent, Pressable, Text, View } from "react-native";
 import Animated, {
@@ -17,12 +17,14 @@ type Props<T extends string> = {
   segments: Segment<T>[];
   selected: T;
   onChange: (value: T) => void;
+  variant?: "pill" | "underline";
 };
 
 export function SegmentedControl<T extends string>({
   segments,
   selected,
   onChange,
+  variant = "pill",
 }: Props<T>) {
   const reduceMotion = useReducedMotion();
   const [segmentWidth, setSegmentWidth] = useState(0);
@@ -48,12 +50,47 @@ export function SegmentedControl<T extends string>({
     width: segmentWidth,
   }));
 
+  if (variant === "underline") {
+    return (
+      <View className="flex-row border-b border-hairline items-center justify-center gap-8">
+        {segments.map((segment) => {
+          const isActive = selected === segment.value;
+          return (
+            <Pressable
+              key={segment.value}
+              className="py-3 items-center"
+              onPress={() => onChange(segment.value)}
+            >
+              <Text
+                style={{
+                  fontFamily: "CormorantGaramond-Regular",
+                  fontSize: 22,
+                  lineHeight: 24,
+                  color: isActive ? colors.accent : colors.muted,
+                }}
+              >
+                {segment.label}
+              </Text>
+              <View
+                style={{
+                  marginTop: 8,
+                  height: 1.5,
+                  width: 56,
+                  backgroundColor: isActive ? colors.accent : "transparent",
+                }}
+              />
+            </Pressable>
+          );
+        })}
+      </View>
+    );
+  }
+
   return (
     <View
       className="flex-row bg-surface rounded-xl p-1 relative"
       onLayout={handleLayout}
     >
-      {/* Sliding indicator */}
       {segmentWidth > 0 && (
         <Animated.View
           className="absolute top-1 bottom-1 left-1 bg-accent-muted rounded-lg"

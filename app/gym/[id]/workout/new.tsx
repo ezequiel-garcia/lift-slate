@@ -101,7 +101,7 @@ export default function NewWorkoutScreen() {
       })
       .catch(() => showToast("Failed to load workout.", "error"))
       .finally(() => setLoading(false));
-  }, [workoutId, isEditMode]);
+  }, [workoutId, isEditMode, showToast]);
 
   useEffect(() => {
     if (openBlockId === null) return;

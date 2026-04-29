@@ -160,8 +160,16 @@ function InGymView({
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
       {/* Header */}
       <View className="flex-row items-center justify-between px-5 pt-5 pb-3">
-        <Text className="text-title text-foreground tracking-tight">
-          My Gym
+        <Text
+          style={{
+            fontFamily: "CormorantGaramond-Regular",
+            fontSize: 56,
+            lineHeight: 58,
+            color: colors.foreground,
+            letterSpacing: -1,
+          }}
+        >
+          My <Text style={{ color: colors.accent }}>Gym</Text>
         </Text>
         <View className="flex-row items-center">
           {canCreateWorkout && (

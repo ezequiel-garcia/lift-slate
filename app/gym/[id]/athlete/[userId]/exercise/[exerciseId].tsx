@@ -1,28 +1,31 @@
-import { useState } from "react";
-import { View, Text, Pressable, ActivityIndicator } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import { useState } from "react";
+import { ActivityIndicator, Pressable, Text, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
-import { colors } from "@/lib/theme";
-import { WeightUnit } from "@/lib/units";
-import { isValidUUID } from "@/lib/constants";
+import { CalculatorTab } from "@/components/calculator/CalculatorTab";
+import { NotesTab } from "@/components/exercises/NotesTab";
+import { AddAthleteMaxModal } from "@/components/gym/AddAthleteMaxModal";
+import { HistoryTab } from "@/components/history/HistoryTab";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import {
   useAthleteReferences,
   useDeleteAthleteReference,
 } from "@/hooks/useExerciseReferences";
 import { useGymMembers, useMyGym } from "@/hooks/useGym";
-import { CalculatorTab } from "@/components/calculator/CalculatorTab";
-import { HistoryTab } from "@/components/history/HistoryTab";
-import { AddAthleteMaxModal } from "@/components/gym/AddAthleteMaxModal";
-import { ErrorState } from "@/components/ui/ErrorState";
-import { SegmentedControl } from "@/components/ui/SegmentedControl";
+import { isValidUUID } from "@/lib/constants";
+import { colors } from "@/lib/theme";
+import { WeightUnit } from "@/lib/units";
+import { EquipmentType } from "@/types/exercise";
 
-type Tab = "calculator" | "history";
+type Tab = "calculator" | "history" | "notes";
 
 const TAB_SEGMENTS = [
   { value: "calculator" as const, label: "Calculator" },
   { value: "history" as const, label: "History" },
+  { value: "notes" as const, label: "Notes" },
 ];
 
 export default function AthleteExerciseDetailScreen() {
@@ -46,7 +49,7 @@ export default function AthleteExerciseDetailScreen() {
   } = useAthleteReferences(userId ?? "");
   const { mutate: deleteMax } = useDeleteAthleteReference(userId ?? "");
 
-  const [activeTab, setActiveTab] = useState<Tab>("calculator");
+  const [activeTab, setActiveTab] = useState<Tab>("history");
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -63,6 +66,20 @@ export default function AthleteExerciseDetailScreen() {
 
   const history = allMaxes?.filter((m) => m.exercise_id === exerciseId) ?? [];
   const exerciseName = history[0]?.exercises?.name ?? "Exercise";
+  const equipmentType = history[0]?.exercises?.equipment_type as
+    | EquipmentType
+    | undefined;
+  const isWorkingWeight =
+    equipmentType === "dumbbell" ||
+    equipmentType === "kettlebell" ||
+    equipmentType === "machine" ||
+    equipmentType === "other";
+  const titleClassName =
+    exerciseName.length > 24
+      ? "text-base"
+      : exerciseName.length > 18
+        ? "text-lg"
+        : "text-xl";
 
   async function handleRefresh() {
     setRefreshing(true);
@@ -90,8 +107,10 @@ export default function AthleteExerciseDetailScreen() {
           <Ionicons name="chevron-back" size={20} color={colors.foreground} />
         </Pressable>
         <Text
-          className="flex-1 text-lg font-bold text-foreground text-center mx-3"
+          className={`flex-1 ${titleClassName} font-bold text-foreground text-center mx-3`}
           numberOfLines={1}
+          adjustsFontSizeToFit
+          minimumFontScale={0.75}
         >
           {exerciseName}
         </Text>
@@ -123,18 +142,22 @@ export default function AthleteExerciseDetailScreen() {
             const filteredCurrentMax = weightHistory[0] ?? null;
             return activeTab === "calculator" ? (
               <CalculatorTab
-                exerciseId={exerciseId}
                 currentMax={filteredCurrentMax}
                 unit={athleteUnit}
                 onAddMax={() => setAddModalVisible(true)}
                 readonly={!canEdit}
               />
+            ) : activeTab === "notes" ? (
+              <NotesTab exerciseId={exerciseId} readonly={!canEdit} />
             ) : (
               <HistoryTab
                 history={weightHistory}
                 unit={athleteUnit}
                 onAddMax={canEdit ? () => setAddModalVisible(true) : undefined}
                 onDeleteMax={canEdit ? (id) => deleteMax(id) : undefined}
+                addButtonLabel={
+                  isWorkingWeight ? "Update Working Weight" : undefined
+                }
                 refreshing={refreshing}
                 onRefresh={handleRefresh}
               />

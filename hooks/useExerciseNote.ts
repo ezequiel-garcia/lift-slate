@@ -13,6 +13,10 @@ export function useExerciseNote(exerciseId: string) {
     queryKey,
     queryFn: () => getExerciseNote(exerciseId),
     enabled: !!exerciseId,
+    staleTime: 1000 * 60 * 30, // 30m
+    gcTime: 1000 * 60 * 60 * 24, // 24h
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
 
   const [draft, setDraft] = useState(savedContent);
