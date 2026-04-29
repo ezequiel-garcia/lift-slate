@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -74,13 +74,12 @@ export default function AthleteExerciseDetailScreen() {
     equipmentType === "kettlebell" ||
     equipmentType === "machine" ||
     equipmentType === "other";
-  const titleClassName = useMemo(() => {
-    const nameLength = exerciseName.length;
-
-    if (nameLength > 24) return "text-base";
-    if (nameLength > 18) return "text-lg";
-    return "text-xl";
-  }, [exerciseName]);
+  const titleClassName =
+    exerciseName.length > 24
+      ? "text-base"
+      : exerciseName.length > 18
+        ? "text-lg"
+        : "text-xl";
 
   async function handleRefresh() {
     setRefreshing(true);

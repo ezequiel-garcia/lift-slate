@@ -26,7 +26,6 @@ import {
   useMyGym,
   useUpdateGym,
   useDeleteGym,
-  useGymMembers,
   useGymInviteDetails,
   useRegenerateInviteToken,
 } from "@/hooks/useGym";
