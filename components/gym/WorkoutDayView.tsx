@@ -132,7 +132,7 @@ function resolvePrescription(
       return {
         text: (
           <Text className="text-accent font-semibold text-sm">
-            Working: {formatWeight(Math.round(w), unit)}
+            Working Weight: {formatWeight(Math.round(w), unit)}
           </Text>
         ),
         needsReference: false,

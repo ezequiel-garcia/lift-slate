@@ -20,37 +20,51 @@ const EQUIPMENT_ICON: Record<
     library: "ionicons" | "materialCommunity";
     name: string;
     size: number;
+    bg: string;
+    color: string;
   }
 > = {
   barbell: {
     library: "ionicons",
     name: "barbell",
     size: 20,
+    bg: "#2A1316",
+    color: "#FF7A88",
   },
   dumbbell: {
     library: "materialCommunity",
     name: "dumbbell",
     size: 20,
+    bg: "#131C2E",
+    color: "#5B9BFF",
   },
   kettlebell: {
     library: "materialCommunity",
     name: "kettlebell",
     size: 24,
+    bg: "#1E1028",
+    color: "#C88AFF",
   },
   bodyweight: {
     library: "ionicons",
     name: "body",
     size: 20,
+    bg: "#0E1F1F",
+    color: "#4AFFD4",
   },
   machine: {
     library: "ionicons",
     name: "settings",
     size: 20,
+    bg: "#231810",
+    color: "#FF9A5C",
   },
   other: {
     library: "ionicons",
-    name: "ellipsis-horizontal",
+    name: "fitness-outline",
     size: 20,
+    bg: "#1A1A1E",
+    color: "#888",
   },
 };
 
@@ -59,12 +73,10 @@ function EquipmentIcon({ equipmentType }: { equipmentType: EquipmentType }) {
   return (
     <View
       style={{
-        width: 40,
-        height: 40,
-        borderRadius: 4,
-        backgroundColor: colors.surface,
-        borderWidth: 1,
-        borderColor: colors.border,
+        width: 42,
+        height: 42,
+        borderRadius: 11,
+        backgroundColor: cfg.bg,
         justifyContent: "center",
         alignItems: "center",
       }}
@@ -77,13 +89,13 @@ function EquipmentIcon({ equipmentType }: { equipmentType: EquipmentType }) {
             >["name"]
           }
           size={cfg.size}
-          color={colors.muted}
+          color={cfg.color}
         />
       ) : (
         <Ionicons
           name={cfg.name as React.ComponentProps<typeof Ionicons>["name"]}
           size={cfg.size}
-          color={colors.muted}
+          color={cfg.color}
         />
       )}
     </View>
@@ -144,12 +156,6 @@ export function ExerciseRow({
   index = 0,
 }: Props) {
   const isRepsOnly = referenceType === "max_reps";
-  const titleStyle =
-    name.length > 30
-      ? { fontSize: 19, lineHeight: 22 }
-      : name.length > 22
-        ? { fontSize: 21, lineHeight: 24 }
-        : { fontSize: 24, lineHeight: 28 };
   const hasValue = isRepsOnly
     ? currentReps != null && currentReps > 0
     : currentWeightKg != null && currentWeightKg > 0;
@@ -178,7 +184,7 @@ export function ExerciseRow({
         friction={2}
       >
         <Pressable
-          className="flex-row items-center px-5 py-4 bg-bg"
+          className="flex-row items-center px-5 py-3 bg-bg"
           style={({ pressed }) => ({
             opacity: pressed ? 0.7 : 1,
             borderBottomWidth: 1,
@@ -187,17 +193,16 @@ export function ExerciseRow({
           onPress={() => router.push(`/exercise/${exerciseId}` as never)}
         >
           <EquipmentIcon equipmentType={equipmentType} />
-          <View style={{ flex: 1, marginLeft: 14 }}>
+          <View style={{ flex: 1, marginLeft: 14, marginRight: 10 }}>
             <Text
               style={{
                 fontFamily: "CormorantGaramond-Regular",
-                fontSize: titleStyle.fontSize,
-                lineHeight: titleStyle.lineHeight,
+                fontSize: 23,
+                lineHeight: 26,
                 color: colors.foreground,
               }}
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.8}
+              numberOfLines={2}
+              ellipsizeMode="tail"
             >
               {name}
             </Text>
@@ -210,7 +215,7 @@ export function ExerciseRow({
                 style={{
                   fontFamily: "CormorantGaramond-Regular",
                   fontSize: 36,
-                  lineHeight: 56,
+                  lineHeight: 42,
                   color: colors.foreground,
                   letterSpacing: -0.8,
                   fontVariant: ["tabular-nums"],
