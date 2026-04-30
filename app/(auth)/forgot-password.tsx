@@ -41,7 +41,7 @@ export default function ForgotPasswordScreen() {
       await authService.resetPassword(trimmed);
       setSent(true);
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      setError("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

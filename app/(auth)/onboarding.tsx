@@ -111,7 +111,7 @@ export default function OnboardingScreen() {
 
       router.replace("/(tabs)");
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      setError("Something went wrong. Please try again.");
       setLoading(false);
     }
   };
@@ -125,7 +125,7 @@ export default function OnboardingScreen() {
       });
       router.replace("/(tabs)");
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Something went wrong.");
+      setError("Something went wrong. Please try again.");
       setLoading(false);
     }
   };

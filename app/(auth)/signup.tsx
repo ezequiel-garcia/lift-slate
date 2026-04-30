@@ -37,7 +37,7 @@ export default function SignupScreen() {
       router.replace(profile.display_name ? "/(tabs)" : "/(auth)/onboarding");
     } catch (e: unknown) {
       if ((e as { code?: string })?.code === "ERR_CANCELED") return;
-      setError(e instanceof Error ? e.message : "Apple sign in failed.");
+      setError("Apple sign in failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -52,7 +52,7 @@ export default function SignupScreen() {
       const profile = await profileService.getProfile();
       router.replace(profile.display_name ? "/(tabs)" : "/(auth)/onboarding");
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Google sign in failed.");
+      setError("Google sign in failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -83,7 +83,7 @@ export default function SignupScreen() {
       }
       router.replace("/(auth)/onboarding");
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Sign up failed.");
+      setError("Sign up failed. Please try again.");
     } finally {
       setLoading(false);
     }

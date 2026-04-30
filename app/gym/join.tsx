@@ -87,7 +87,7 @@ export default function JoinGymScreen() {
     } else if (msg.includes("limit") || msg.includes("full")) {
       showToast("This gym has reached its member limit.", "error");
     } else {
-      showToast(e.message, "error");
+      showToast("Something went wrong. Please try again.", "error");
     }
   }
 

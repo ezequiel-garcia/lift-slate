@@ -49,7 +49,7 @@ export default function LoginScreen() {
     } catch (e: unknown) {
       // ERR_CANCELED means the user dismissed the sheet — not an error
       if ((e as { code?: string })?.code === "ERR_CANCELED") return;
-      setError(e instanceof Error ? e.message : "Apple sign in failed.");
+      setError("Apple sign in failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -64,7 +64,7 @@ export default function LoginScreen() {
       const profile = await profileService.getProfile();
       router.replace(getPostLoginRoute(!!profile.display_name));
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Google sign in failed.");
+      setError("Google sign in failed. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -82,7 +82,7 @@ export default function LoginScreen() {
       const profile = await profileService.getProfile();
       router.replace(getPostLoginRoute(!!profile.display_name));
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Sign in failed.");
+      setError("Sign in failed. Please check your credentials and try again.");
     } finally {
       setLoading(false);
     }

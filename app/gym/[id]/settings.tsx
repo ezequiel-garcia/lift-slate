@@ -146,7 +146,7 @@ export default function GymSettingsScreen() {
       );
       updateGym({ gymId: gym.id, updates: { logo_url: url } });
     } catch (e: any) {
-      showToast(e.message ?? "Failed to upload logo", "error");
+      showToast("Failed to upload logo. Please try again.", "error");
     } finally {
       setUploadingLogo(false);
     }
@@ -491,9 +491,9 @@ export default function GymSettingsScreen() {
           if (gym)
             deleteGym(gym.id, {
               onSuccess: () => router.replace("/(tabs)/gym"),
-              onError: (e: any) => {
+              onError: () => {
                 setDeleteGymVisible(false);
-                showToast(e.message, "error");
+                showToast("Something went wrong. Please try again.", "error");
               },
             });
         }}

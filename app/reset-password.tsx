@@ -89,7 +89,7 @@ export default function ResetPasswordScreen() {
       await authService.updatePassword(password);
       setScreenState("success");
     } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : "Failed to update password.");
+      setError("Failed to update password. Please try again.");
     } finally {
       setLoading(false);
     }
