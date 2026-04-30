@@ -10,7 +10,6 @@ import {
   Pressable,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import * as Linking from "expo-linking";
@@ -82,7 +81,6 @@ export default function ProfileScreen() {
 
   async function handleSignOut() {
     await signOut();
-    router.replace("/(auth)/login");
   }
 
   if (isLoading) {
@@ -362,7 +360,6 @@ export default function ProfileScreen() {
             onCancel={() => setShowDeleteModal(false)}
             onConfirmDelete={async () => {
               await deleteAccount();
-              router.replace("/(auth)/login");
             }}
             isGymOwner={gym?.myRole === "admin"}
           />

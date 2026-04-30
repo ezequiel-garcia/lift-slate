@@ -3,6 +3,7 @@ import { View } from "react-native";
 import { Stack, useNavigationContainerRef } from "expo-router";
 import { isRunningInExpoGo } from "expo";
 import Constants from "expo-constants";
+import { useFonts } from "expo-font";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { QueryCache, QueryClient, MutationCache } from "@tanstack/react-query";
 import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
@@ -81,10 +82,18 @@ const persister = createAsyncStoragePersister({
 
 function RootLayout() {
   const ref = useNavigationContainerRef();
+  const [fontsLoaded] = useFonts({
+    "CormorantGaramond-Regular": require("../assets/fonts/CormorantGaramond-Regular.ttf"),
+    "CormorantGaramond-Italic": require("../assets/fonts/CormorantGaramond-Italic.ttf"),
+  });
 
   useEffect(() => {
     if (ref) navigationIntegration.registerNavigationContainer(ref);
   }, [ref]);
+
+  if (!fontsLoaded) {
+    return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
+  }
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
