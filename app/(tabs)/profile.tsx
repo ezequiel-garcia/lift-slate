@@ -14,6 +14,7 @@ import { Ionicons } from "@expo/vector-icons";
 import Constants from "expo-constants";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
+import { router } from "expo-router";
 
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useMyGym, useLeaveGym } from "@/hooks/useGym";
@@ -269,6 +270,25 @@ export default function ProfileScreen() {
                 disabled={isPending}
               />
             </View>
+          </Card>
+
+          <SectionHeader title="Help" icon="help-circle-outline" />
+
+          <Card className="mx-5">
+            <Pressable
+              onPress={() => router.push("/faq")}
+              className="px-4 py-4 flex-row items-center active:opacity-60"
+            >
+              <Ionicons
+                name="chatbubble-ellipses-outline"
+                size={18}
+                color={colors.muted}
+              />
+              <Text className="text-foreground text-[15px] flex-1 ml-3">
+                FAQ
+              </Text>
+              <Ionicons name="chevron-forward" size={16} color={colors.muted} />
+            </Pressable>
           </Card>
 
           <SectionHeader title="Legal" icon="document-text-outline" />

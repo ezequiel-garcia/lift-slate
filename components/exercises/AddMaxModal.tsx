@@ -8,6 +8,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -256,7 +257,15 @@ export function AddMaxModal({
           behavior={Platform.OS === "ios" ? "padding" : undefined}
           className="flex-1"
         >
-          <View className="flex-1 p-5">
+          <ScrollView
+            className="flex-1"
+            contentContainerStyle={{ padding: 20, paddingBottom: 220 }}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={
+              Platform.OS === "ios" ? "interactive" : "on-drag"
+            }
+            automaticallyAdjustKeyboardInsets
+          >
             {/* Bodyweight: just reps */}
             {isBodyweight && (
               <>
@@ -431,7 +440,7 @@ export function AddMaxModal({
                 Failed to save. Try again.
               </Text>
             )}
-          </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </Modal>
