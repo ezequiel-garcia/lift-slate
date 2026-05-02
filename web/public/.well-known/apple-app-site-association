@@ -1,0 +1,15 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["98D96TBS9Y.com.iekekel.LiftSlate"],
+        "components": [
+          {
+            "/": "/gym/join",
+            "comment": "Gym invite links"
+          }
+        ]
+      }
+    ]
+  }
+}

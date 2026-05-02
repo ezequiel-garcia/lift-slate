@@ -31,10 +31,10 @@ import {
 } from "@/hooks/useGym";
 import { useGenerateTempCode } from "@/hooks/useInvite";
 import { uploadGymLogo } from "@/services/storage.service";
-import * as Linking from "expo-linking";
+import { INVITE_BASE_URL } from "@/lib/constants";
 
 function getDeepLink(token: string) {
-  return Linking.createURL("gym/join", { queryParams: { token } });
+  return `${INVITE_BASE_URL}/gym/join?token=${token}`;
 }
 
 function formatCountdown(expiresAt: string): string {

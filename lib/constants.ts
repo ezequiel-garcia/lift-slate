@@ -1,3 +1,5 @@
+export const INVITE_BASE_URL = "https://liftslate-invite.vercel.app";
+
 export const COMMON_PERCENTAGES = [50, 55, 60, 65, 70, 75, 80, 85, 90];
 
 export const EQUIPMENT_TYPES = [

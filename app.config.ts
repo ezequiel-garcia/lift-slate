@@ -24,9 +24,24 @@ const config: ExpoConfig = {
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
     },
+    associatedDomains: ["applinks:liftslate-invite.vercel.app"],
   },
   android: {
     package: bundleId,
+    intentFilters: [
+      {
+        action: "VIEW",
+        autoVerify: true,
+        data: [
+          {
+            scheme: "https",
+            host: "liftslate-invite.vercel.app",
+            pathPrefix: "/gym/join",
+          },
+        ],
+        category: ["BROWSABLE", "DEFAULT"],
+      },
+    ],
     adaptiveIcon: {
       foregroundImage: "./assets/images/android-icon-foreground.png",
       backgroundColor: "#000000",
