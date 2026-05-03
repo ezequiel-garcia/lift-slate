@@ -10,6 +10,7 @@ export function useMyGymRole(gymId: string | undefined) {
     queryKey: ["gym", gymId, "role"],
     queryFn: () => getMemberRole(gymId!),
     enabled: !!gymId,
+    staleTime: 0,
   });
 }
 
