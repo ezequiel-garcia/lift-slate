@@ -151,12 +151,12 @@ export function WorkoutItemRow({
             Sets
           </Text>
           <TextInput
-            className="bg-surface text-foreground rounded-lg px-3 py-2 border border-border text-sm text-center"
+            className="bg-surface text-foreground rounded-lg px-3 border border-border text-sm text-center h-10"
             placeholder="—"
             placeholderTextColor={colors.muted}
             value={item.sets ?? ""}
             onChangeText={(v) => update({ sets: v })}
-            keyboardType="numeric"
+            multiline={false}
           />
         </View>
         <View className="flex-1">
@@ -164,12 +164,12 @@ export function WorkoutItemRow({
             Reps
           </Text>
           <TextInput
-            className="bg-surface text-foreground rounded-lg px-3 py-2 border border-border text-sm text-center"
+            className="bg-surface text-foreground rounded-lg px-3 border border-border text-sm text-center h-10"
             placeholder="—"
             placeholderTextColor={colors.muted}
             value={item.reps ?? ""}
             onChangeText={(v) => update({ reps: v })}
-            keyboardType="numeric"
+            multiline={false}
           />
         </View>
       </View>

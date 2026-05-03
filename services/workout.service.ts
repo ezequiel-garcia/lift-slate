@@ -17,8 +17,8 @@ export type WorkoutItemInput = {
   orderIndex: number;
   itemType: "exercise" | "custom_exercise";
   exerciseId?: string;
-  sets?: number;
-  reps?: number;
+  sets?: string;
+  reps?: string;
   percentage?: number;
   prescriptionMode?: PrescriptionMode;
   weightKg?: number;

@@ -1,0 +1,3 @@
+ALTER TABLE workout_items
+  ALTER COLUMN sets TYPE TEXT USING sets::TEXT,
+  ALTER COLUMN reps TYPE TEXT USING reps::TEXT;

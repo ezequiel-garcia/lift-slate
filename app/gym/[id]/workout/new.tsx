@@ -16,6 +16,8 @@ import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -87,8 +89,8 @@ export default function NewWorkoutScreen() {
                 exerciseId: item.exercise_id ?? undefined,
                 exerciseName: item.exercises?.name ?? undefined,
                 exerciseEquipment: item.exercises?.equipment_type ?? undefined,
-                sets: item.sets?.toString() ?? undefined,
-                reps: item.reps?.toString() ?? undefined,
+                sets: item.sets ?? undefined,
+                reps: item.reps ?? undefined,
                 prescriptionMode: item.prescription_mode ?? undefined,
                 percentage: item.percentage?.toString() ?? undefined,
                 weightKg: item.weight_kg?.toString() ?? undefined,
@@ -141,16 +143,16 @@ export default function NewWorkoutScreen() {
             return {
               ...base,
               content: item.content,
-              sets: item.sets ? parseInt(item.sets, 10) : undefined,
-              reps: item.reps ? parseInt(item.reps, 10) : undefined,
+              sets: item.sets || undefined,
+              reps: item.reps || undefined,
               weightKg: item.weightKg ? parseFloat(item.weightKg) : undefined,
             };
           }
           return {
             ...base,
             exerciseId: item.exerciseId,
-            sets: item.sets ? parseInt(item.sets, 10) : undefined,
-            reps: item.reps ? parseInt(item.reps, 10) : undefined,
+            sets: item.sets || undefined,
+            reps: item.reps || undefined,
             prescriptionMode: item.prescriptionMode,
             percentage:
               item.prescriptionMode === "percentage" && item.percentage
@@ -204,216 +206,229 @@ export default function NewWorkoutScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
-      {/* Header */}
-      <View className="flex-row items-center justify-between px-4 py-3 border-b border-border">
-        <Pressable
-          onPress={() => router.back()}
-          className="w-10 h-10 items-center justify-center"
-        >
-          <Ionicons name="close" size={24} color={colors.foreground} />
-        </Pressable>
-        <Text className="text-foreground text-base font-semibold">
-          {isEditMode ? "Edit Workout" : "New Workout"}
-        </Text>
-        <Pressable
-          onPress={() => setShowPreview(true)}
-          className="w-10 h-10 items-center justify-center"
-        >
-          <Ionicons name="eye-outline" size={22} color={colors.accent} />
-        </Pressable>
-      </View>
-
-      <ScrollView
-        className="flex-1"
-        contentContainerStyle={{
-          paddingHorizontal: 16,
-          paddingTop: 16,
-          paddingBottom: 120,
-        }}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Date + notes */}
-        <View className="bg-surface rounded-2xl border border-border mb-4 overflow-hidden">
-          {/* Date row */}
-          <View className="flex-row items-center justify-between px-4 py-3 border-b border-border">
-            <Pressable
-              className="w-9 h-9 bg-surface2 rounded-lg items-center justify-center"
-              onPress={() => setScheduledDate((d) => addDays(d, -1))}
-            >
-              <Ionicons
-                name="chevron-back"
-                size={18}
-                color={colors.foreground}
-              />
-            </Pressable>
-            <Pressable
-              className="flex-row items-center gap-2"
-              onPress={() => setShowDatePicker(true)}
-            >
-              <Ionicons
-                name="calendar-outline"
-                size={16}
-                color={colors.accent}
-              />
-              <Text className="text-foreground text-base font-semibold">
-                {formattedDate}
-              </Text>
-            </Pressable>
-            <Pressable
-              className="w-9 h-9 bg-surface2 rounded-lg items-center justify-center"
-              onPress={() => setScheduledDate((d) => addDays(d, 1))}
-            >
-              <Ionicons
-                name="chevron-forward"
-                size={18}
-                color={colors.foreground}
-              />
-            </Pressable>
-          </View>
-
-          <View className="px-4 py-3 gap-2">
-            <TextInput
-              className="text-muted text-sm"
-              placeholder="General notes (optional)"
-              placeholderTextColor={colors.muted}
-              value={notes}
-              onChangeText={setNotes}
-              multiline
-              numberOfLines={2}
-            />
-          </View>
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      className="flex-1"
+    >
+      <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
+        {/* Header */}
+        <View className="flex-row items-center justify-between px-4 py-3 border-b border-border">
+          <Pressable
+            onPress={() => router.back()}
+            className="w-10 h-10 items-center justify-center"
+          >
+            <Ionicons name="close" size={24} color={colors.foreground} />
+          </Pressable>
+          <Text className="text-foreground text-base font-semibold">
+            {isEditMode ? "Edit Workout" : "New Workout"}
+          </Text>
+          <Pressable
+            onPress={() => setShowPreview(true)}
+            className="w-10 h-10 items-center justify-center"
+          >
+            <Ionicons name="eye-outline" size={22} color={colors.accent} />
+          </Pressable>
         </View>
 
-        {/* Blocks */}
-        <View className="gap-3">
-          {sections.map((section, i) => (
-            <WorkoutSectionCard
-              key={section.localId}
-              section={section}
-              onUpdate={(updated) => updateSection(i, updated)}
-              onDelete={() => deleteSection(i)}
-              openBlockId={openBlockId}
-              onOpenBlockChange={setOpenBlockId}
-            />
-          ))}
-
-          {sections.length === 0 ? (
-            /* Empty state with quick-start templates */
-            <View className="items-center pt-4 pb-2 gap-6">
-              <View className="items-center gap-1">
-                <Ionicons
-                  name="layers-outline"
-                  size={36}
-                  color={colors.muted}
-                />
-                <Text className="text-foreground text-base font-semibold mt-2">
-                  Start building your workout
-                </Text>
-                <Text className="text-muted text-sm text-center">
-                  Pick a block type to get going
-                </Text>
-              </View>
-
-              <View className="w-full gap-3">
-                <View className="flex-row gap-3">
-                  {QUICK_START_TEMPLATES.slice(0, 2).map((t) => (
-                    <Pressable
-                      key={t.key}
-                      className="flex-1 bg-surface border border-border rounded-2xl py-4 items-center gap-2"
-                      onPress={() => {
-                        const nb = newBlock(t.label);
-                        setSections((prev) => [...prev, nb]);
-                        setOpenBlockId(nb.localId);
-                      }}
-                    >
-                      <Ionicons name={t.icon} size={24} color={colors.accent} />
-                      <Text className="text-foreground text-sm font-semibold">
-                        {t.label}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-                <View className="flex-row gap-3">
-                  {QUICK_START_TEMPLATES.slice(2).map((t) => (
-                    <Pressable
-                      key={t.key}
-                      className="flex-1 bg-surface border border-border rounded-2xl py-4 items-center gap-2"
-                      onPress={() => {
-                        const nb = newBlock(t.label);
-                        setSections((prev) => [...prev, nb]);
-                        setOpenBlockId(nb.localId);
-                      }}
-                    >
-                      <Ionicons name={t.icon} size={24} color={colors.accent} />
-                      <Text className="text-foreground text-sm font-semibold">
-                        {t.label}
-                      </Text>
-                    </Pressable>
-                  ))}
-                </View>
-              </View>
-
+        <ScrollView
+          className="flex-1"
+          contentContainerStyle={{
+            paddingHorizontal: 16,
+            paddingTop: 16,
+            paddingBottom: 120,
+          }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Date + notes */}
+          <View className="bg-surface rounded-2xl border border-border mb-4 overflow-hidden">
+            {/* Date row */}
+            <View className="flex-row items-center justify-between px-4 py-3 border-b border-border">
               <Pressable
-                className="flex-row items-center gap-1.5"
+                className="w-9 h-9 bg-surface2 rounded-lg items-center justify-center"
+                onPress={() => setScheduledDate((d) => addDays(d, -1))}
+              >
+                <Ionicons
+                  name="chevron-back"
+                  size={18}
+                  color={colors.foreground}
+                />
+              </Pressable>
+              <Pressable
+                className="flex-row items-center gap-2"
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Ionicons
+                  name="calendar-outline"
+                  size={16}
+                  color={colors.accent}
+                />
+                <Text className="text-foreground text-base font-semibold">
+                  {formattedDate}
+                </Text>
+              </Pressable>
+              <Pressable
+                className="w-9 h-9 bg-surface2 rounded-lg items-center justify-center"
+                onPress={() => setScheduledDate((d) => addDays(d, 1))}
+              >
+                <Ionicons
+                  name="chevron-forward"
+                  size={18}
+                  color={colors.foreground}
+                />
+              </Pressable>
+            </View>
+
+            <View className="px-4 py-3 gap-2">
+              <TextInput
+                className="text-muted text-sm"
+                placeholder="General notes (optional)"
+                placeholderTextColor={colors.muted}
+                value={notes}
+                onChangeText={setNotes}
+                multiline
+                numberOfLines={2}
+              />
+            </View>
+          </View>
+
+          {/* Blocks */}
+          <View className="gap-3">
+            {sections.map((section, i) => (
+              <WorkoutSectionCard
+                key={section.localId}
+                section={section}
+                onUpdate={(updated) => updateSection(i, updated)}
+                onDelete={() => deleteSection(i)}
+                openBlockId={openBlockId}
+                onOpenBlockChange={setOpenBlockId}
+              />
+            ))}
+
+            {sections.length === 0 ? (
+              /* Empty state with quick-start templates */
+              <View className="items-center pt-4 pb-2 gap-6">
+                <View className="items-center gap-1">
+                  <Ionicons
+                    name="layers-outline"
+                    size={36}
+                    color={colors.muted}
+                  />
+                  <Text className="text-foreground text-base font-semibold mt-2">
+                    Start building your workout
+                  </Text>
+                  <Text className="text-muted text-sm text-center">
+                    Pick a block type to get going
+                  </Text>
+                </View>
+
+                <View className="w-full gap-3">
+                  <View className="flex-row gap-3">
+                    {QUICK_START_TEMPLATES.slice(0, 2).map((t) => (
+                      <Pressable
+                        key={t.key}
+                        className="flex-1 bg-surface border border-border rounded-2xl py-4 items-center gap-2"
+                        onPress={() => {
+                          const nb = newBlock(t.label);
+                          setSections((prev) => [...prev, nb]);
+                          setOpenBlockId(nb.localId);
+                        }}
+                      >
+                        <Ionicons
+                          name={t.icon}
+                          size={24}
+                          color={colors.accent}
+                        />
+                        <Text className="text-foreground text-sm font-semibold">
+                          {t.label}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                  <View className="flex-row gap-3">
+                    {QUICK_START_TEMPLATES.slice(2).map((t) => (
+                      <Pressable
+                        key={t.key}
+                        className="flex-1 bg-surface border border-border rounded-2xl py-4 items-center gap-2"
+                        onPress={() => {
+                          const nb = newBlock(t.label);
+                          setSections((prev) => [...prev, nb]);
+                          setOpenBlockId(nb.localId);
+                        }}
+                      >
+                        <Ionicons
+                          name={t.icon}
+                          size={24}
+                          color={colors.accent}
+                        />
+                        <Text className="text-foreground text-sm font-semibold">
+                          {t.label}
+                        </Text>
+                      </Pressable>
+                    ))}
+                  </View>
+                </View>
+
+                <Pressable
+                  className="flex-row items-center gap-1.5"
+                  onPress={() => {
+                    const nb = newBlock();
+                    setSections((prev) => [...prev, nb]);
+                    setOpenBlockId(nb.localId);
+                  }}
+                >
+                  <Ionicons name="add" size={16} color={colors.muted} />
+                  <Text className="text-muted text-sm">Add empty block</Text>
+                </Pressable>
+              </View>
+            ) : (
+              /* Add Block button (shown once blocks exist) */
+              <Pressable
+                className="border border-dashed border-border rounded-2xl py-4 items-center flex-row justify-center gap-2"
                 onPress={() => {
                   const nb = newBlock();
                   setSections((prev) => [...prev, nb]);
                   setOpenBlockId(nb.localId);
                 }}
               >
-                <Ionicons name="add" size={16} color={colors.muted} />
-                <Text className="text-muted text-sm">Add empty block</Text>
+                <Ionicons name="add" size={18} color={colors.accent} />
+                <Text className="text-accent text-sm font-semibold">
+                  Add Block
+                </Text>
               </Pressable>
-            </View>
-          ) : (
-            /* Add Block button (shown once blocks exist) */
-            <Pressable
-              className="border border-dashed border-border rounded-2xl py-4 items-center flex-row justify-center gap-2"
-              onPress={() => {
-                const nb = newBlock();
-                setSections((prev) => [...prev, nb]);
-                setOpenBlockId(nb.localId);
-              }}
-            >
-              <Ionicons name="add" size={18} color={colors.accent} />
-              <Text className="text-accent text-sm font-semibold">
-                Add Block
-              </Text>
-            </Pressable>
-          )}
+            )}
+          </View>
+        </ScrollView>
+
+        {/* Bottom actions */}
+        <View className="absolute bottom-0 left-0 right-0 px-4 pb-10 pt-4 bg-bg border-t border-border">
+          <Button
+            label={
+              isSaving
+                ? "Saving..."
+                : isEditMode
+                  ? "Update Workout"
+                  : "Publish Workout"
+            }
+            onPress={handleSave}
+            disabled={isSaving}
+          />
         </View>
-      </ScrollView>
 
-      {/* Bottom actions */}
-      <View className="absolute bottom-0 left-0 right-0 px-4 pb-10 pt-4 bg-bg border-t border-border">
-        <Button
-          label={
-            isSaving
-              ? "Saving..."
-              : isEditMode
-                ? "Update Workout"
-                : "Save Workout"
-          }
-          onPress={handleSave}
-          disabled={isSaving}
+        <CalendarPickerModal
+          visible={showDatePicker}
+          value={scheduledDate}
+          onClose={() => setShowDatePicker(false)}
+          onChange={setScheduledDate}
         />
-      </View>
 
-      <CalendarPickerModal
-        visible={showDatePicker}
-        value={scheduledDate}
-        onClose={() => setShowDatePicker(false)}
-        onChange={setScheduledDate}
-      />
-
-      <WorkoutPreviewModal
-        visible={showPreview}
-        onClose={() => setShowPreview(false)}
-        notes={notes}
-        scheduledDate={formattedDate}
-        sections={sections}
-      />
-    </SafeAreaView>
+        <WorkoutPreviewModal
+          visible={showPreview}
+          onClose={() => setShowPreview(false)}
+          notes={notes}
+          scheduledDate={formattedDate}
+          sections={sections}
+        />
+      </SafeAreaView>
+    </KeyboardAvoidingView>
   );
 }

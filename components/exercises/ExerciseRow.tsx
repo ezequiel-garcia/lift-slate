@@ -196,9 +196,8 @@ export function ExerciseRow({
           <View style={{ flex: 1, marginLeft: 14, marginRight: 10 }}>
             <Text
               style={{
-                fontFamily: "CormorantGaramond-Regular",
-                fontSize: 23,
-                lineHeight: 26,
+                fontSize: 17,
+                lineHeight: 22,
                 color: colors.foreground,
               }}
               numberOfLines={2}

@@ -332,9 +332,9 @@ export type Database = {
           prescription_mode:
             | Database["public"]["Enums"]["prescription_mode"]
             | null;
-          reps: number | null;
+          reps: string | null;
           section_id: string;
-          sets: number | null;
+          sets: string | null;
           weight_kg: number | null;
         };
         Insert: {
@@ -348,9 +348,9 @@ export type Database = {
           prescription_mode?:
             | Database["public"]["Enums"]["prescription_mode"]
             | null;
-          reps?: number | null;
+          reps?: string | null;
           section_id: string;
-          sets?: number | null;
+          sets?: string | null;
           weight_kg?: number | null;
         };
         Update: {
@@ -364,9 +364,9 @@ export type Database = {
           prescription_mode?:
             | Database["public"]["Enums"]["prescription_mode"]
             | null;
-          reps?: number | null;
+          reps?: string | null;
           section_id?: string;
-          sets?: number | null;
+          sets?: string | null;
           weight_kg?: number | null;
         };
         Relationships: [
