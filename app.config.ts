@@ -96,6 +96,12 @@ const config: ExpoConfig = {
       },
     ],
   ],
+  updates: {
+    url: "https://u.expo.dev/01067df9-46df-43f2-83a1-694e44f71793",
+  },
+  runtimeVersion: {
+    policy: "appVersion",
+  },
   experiments: {
     typedRoutes: true,
     reactCompiler: true,
