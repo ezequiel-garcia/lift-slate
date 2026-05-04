@@ -79,21 +79,35 @@ function buildUpdatePatch(input: UpdateExerciseReferenceInput) {
 }
 
 export async function getCurrentExerciseReferences() {
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error("Not authenticated");
+
   const { data, error } = await supabase
     .from("exercise_references")
     .select("*, exercises(name, equipment_type)")
+    .eq("user_id", user.id)
     .order("recorded_at", { ascending: false });
   if (error) throw error;
   return data;
 }
 
 export async function getExerciseReferenceHistory(exerciseId: string) {
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) throw new Error("Not authenticated");
+
   const { data, error } = await supabase
     .from("exercise_references")
     .select(
       "id, user_id, exercise_id, reference_type, weight_kg, reps, recorded_at, notes, source",
     )
     .eq("exercise_id", exerciseId)
+    .eq("user_id", user.id)
     .order("recorded_at", { ascending: false });
   if (error) throw error;
   return data;
