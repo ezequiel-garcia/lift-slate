@@ -51,9 +51,11 @@ export default function ResetPasswordScreen() {
       return;
     }
 
-    if (params.code) {
+    const code = Array.isArray(params.code) ? params.code[0] : params.code;
+
+    if (code) {
       supabase.auth
-        .exchangeCodeForSession(params.code)
+        .exchangeCodeForSession(code)
         .then(({ error: exchangeError }) => {
           if (exchangeError) {
             setSessionError(exchangeError.message);

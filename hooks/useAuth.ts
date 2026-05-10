@@ -7,22 +7,32 @@ export function useAuth() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // getSession() returns the cached session immediately for fast initial render,
-    // then getUser() validates it server-side to catch revoked tokens.
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      if (session) {
-        supabase.auth.getUser().then(({ error }) => {
-          // Clear on 4xx (invalid/revoked token, bad session).
-          // Keep on network errors (no status) or 5xx (Supabase down).
+    let mounted = true;
+
+    const initAuth = async () => {
+      try {
+        // getSession() returns cached session immediately for fast initial render,
+        // then getUser() validates it server-side to catch revoked tokens.
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!mounted) return;
+        setSession(session);
+        if (session) {
+          const { error } = await supabase.auth.getUser();
+          if (!mounted) return;
+          // Clear on 4xx (invalid/revoked token). Keep on network/5xx errors.
           if (error?.status && error.status >= 400 && error.status < 500)
             setSession(null);
-          setIsLoading(false);
-        });
-      } else {
-        setIsLoading(false);
+        }
+      } catch {
+        // network/storage failure — don't hang on loading
+      } finally {
+        if (mounted) setIsLoading(false);
       }
-    });
+    };
+
+    initAuth();
 
     const {
       data: { subscription },
@@ -30,7 +40,10 @@ export function useAuth() {
       setSession(session);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   return { session, isLoading };

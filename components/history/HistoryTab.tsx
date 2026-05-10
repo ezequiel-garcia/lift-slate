@@ -15,7 +15,7 @@ import Animated, {
 } from "react-native-reanimated";
 import type { SharedValue } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
-import { format } from "date-fns";
+import { format, isValid } from "date-fns";
 import { useMemo, useState } from "react";
 import Svg, {
   Circle,
@@ -179,9 +179,10 @@ export function HistoryTab({
         : null;
 
     const date = new Date(item.recorded_at);
-    const monthLabel = format(date, "MMM").toUpperCase();
-    const dayLabel = format(date, "dd");
-    const yearLabel = format(date, "yyyy");
+    const validDate = isValid(date);
+    const monthLabel = validDate ? format(date, "MMM").toUpperCase() : "---";
+    const dayLabel = validDate ? format(date, "dd") : "--";
+    const yearLabel = validDate ? format(date, "yyyy") : "----";
     const primaryDisplay = isRepsMode
       ? item.reps != null && item.reps > 0
         ? `${item.reps}`
@@ -401,18 +402,18 @@ export function HistoryTab({
                   </Svg>
                   <View className="flex-row justify-between mt-0.5">
                     <Text className="text-muted text-[11px] tracking-[1.5px]">
-                      {format(
-                        new Date(
+                      {(() => {
+                        const d = new Date(
                           sortedHistory[sortedHistory.length - 1].recorded_at,
-                        ),
-                        "MMM",
-                      ).toUpperCase()}
+                        );
+                        return isValid(d) ? format(d, "MMM").toUpperCase() : "";
+                      })()}
                     </Text>
                     <Text className="text-muted text-[11px] tracking-[1.5px]">
-                      {format(
-                        new Date(sortedHistory[0].recorded_at),
-                        "MMM",
-                      ).toUpperCase()}
+                      {(() => {
+                        const d = new Date(sortedHistory[0].recorded_at);
+                        return isValid(d) ? format(d, "MMM").toUpperCase() : "";
+                      })()}
                     </Text>
                   </View>
                   <View

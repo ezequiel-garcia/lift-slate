@@ -14,14 +14,17 @@ import { heavyRange, easyRange } from "@/lib/kettlebells";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ActionSheet } from "@/components/ui/ActionSheet";
 import { colors } from "@/lib/theme";
-import { format, parseISO } from "date-fns";
+import { format, isValid, parseISO } from "date-fns";
 
 type MaxMap = Record<string, number>;
 
 function workoutHeadingLabel(workout: WorkoutWithSections): string {
   const custom = workout.title?.trim();
   if (custom) return custom;
-  return format(parseISO(workout.scheduled_date), "EEE, MMM d");
+  const parsed = parseISO(workout.scheduled_date);
+  return isValid(parsed)
+    ? format(parsed, "EEE, MMM d")
+    : workout.scheduled_date;
 }
 
 interface Props {

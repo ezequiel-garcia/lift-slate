@@ -11,7 +11,7 @@ import { getWorkoutById } from "@/services/workout.service";
 import { useAppStore } from "@/stores/appStore";
 import { Ionicons } from "@expo/vector-icons";
 import { CalendarPickerModal } from "@/components/workout/CalendarPickerModal";
-import { addDays, format, parseISO } from "date-fns";
+import { addDays, format, isValid, parseISO } from "date-fns";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -60,9 +60,13 @@ export default function NewWorkoutScreen() {
   const showToast = useAppStore((s) => s.showToast);
 
   const [loading, setLoading] = useState(isEditMode);
-  const [scheduledDate, setScheduledDate] = useState(() =>
-    date ? parseISO(date) : addDays(new Date(), 1),
-  );
+  const [scheduledDate, setScheduledDate] = useState(() => {
+    if (date) {
+      const parsed = parseISO(date);
+      if (isValid(parsed)) return parsed;
+    }
+    return addDays(new Date(), 1);
+  });
   const [notes, setNotes] = useState("");
   const [sections, setSections] = useState<SectionFormData[]>([]);
   /** When set, only this block stays expanded; others collapse. null = each block manages its own collapse. */
@@ -76,7 +80,8 @@ export default function NewWorkoutScreen() {
     getWorkoutById(workoutId)
       .then((workout) => {
         setNotes(workout.notes ?? "");
-        setScheduledDate(parseISO(workout.scheduled_date));
+        const parsed = parseISO(workout.scheduled_date);
+        setScheduledDate(isValid(parsed) ? parsed : addDays(new Date(), 1));
 
         setSections(
           workout.sections.map((section) => ({
