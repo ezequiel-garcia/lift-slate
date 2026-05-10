@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.4";
+    PostgrestVersion: "14.5";
   };
   public: {
     Tables: {
@@ -477,9 +477,28 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      generate_temp_invite_code: {
+      leave_gym: {
+        Args: { p_membership_id: string };
+        Returns: undefined;
+      };
+      regenerate_invite_token: {
         Args: { p_gym_id: string };
         Returns: string;
+      };
+      generate_temp_invite_code: {
+        Args: { p_gym_id: string };
+        Returns: {
+          code: string;
+          expires: string;
+        }[];
+      };
+      get_gym_invite_details: {
+        Args: { p_gym_id: string };
+        Returns: {
+          invite_token: string;
+          temp_code_expires: string;
+          temp_invite_code: string;
+        }[];
       };
       get_my_gym_id: { Args: never; Returns: string };
       get_my_gym_role: {
@@ -492,7 +511,6 @@ export type Database = {
       };
       join_gym_by_temp_code: { Args: { p_code: string }; Returns: string };
       join_gym_by_token: { Args: { p_token: string }; Returns: string };
-      leave_gym: { Args: { p_membership_id: string }; Returns: undefined };
       preview_gym_by_temp_code: {
         Args: { p_code: string };
         Returns: {
@@ -511,7 +529,6 @@ export type Database = {
           name: string;
         }[];
       };
-      regenerate_invite_token: { Args: { p_gym_id: string }; Returns: string };
       update_member_role: {
         Args: {
           p_membership_id: string;

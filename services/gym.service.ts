@@ -61,9 +61,7 @@ export async function getMyGym() {
 
 export async function getGymInviteDetails(gymId: string) {
   const { data, error } = await supabase
-    .from("gyms")
-    .select("invite_token, temp_invite_code, temp_code_expires")
-    .eq("id", gymId)
+    .rpc("get_gym_invite_details", { p_gym_id: gymId })
     .single();
   if (error) throw error;
   return data;
@@ -72,9 +70,7 @@ export async function getGymInviteDetails(gymId: string) {
 export async function getGymById(gymId: string) {
   const { data, error } = await supabase
     .from("gyms")
-    .select(
-      "id, name, description, address, logo_url, owner_id, invite_token, temp_invite_code, temp_code_expires",
-    )
+    .select("id, name, description, address, logo_url, owner_id")
     .eq("id", gymId)
     .single();
   if (error) throw error;
@@ -140,20 +136,9 @@ export async function regenerateInviteToken(gymId: string): Promise<string> {
 export async function generateTempCode(
   gymId: string,
 ): Promise<{ code: string; expires: string }> {
-  const { data: code, error } = await supabase.rpc(
-    "generate_temp_invite_code",
-    {
-      p_gym_id: gymId,
-    },
-  );
-  if (error) throw error;
-
-  const { data: gym, error: gymError } = await supabase
-    .from("gyms")
-    .select("temp_code_expires")
-    .eq("id", gymId)
+  const { data, error } = await supabase
+    .rpc("generate_temp_invite_code", { p_gym_id: gymId })
     .single();
-  if (gymError) throw gymError;
-
-  return { code, expires: gym.temp_code_expires! };
+  if (error) throw error;
+  return { code: data.code, expires: data.expires };
 }
