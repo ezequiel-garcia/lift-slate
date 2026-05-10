@@ -5,6 +5,7 @@ import {
   ScrollView,
   KeyboardAvoidingView,
   Platform,
+  TextInput,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,11 +15,77 @@ import { ReverseForm } from "@/components/calculator/ReverseForm";
 import { PercentageTable } from "@/components/calculator/PercentageTable";
 import { SaveMaxModal } from "@/components/calculator/SaveMaxModal";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
-import { toKg } from "@/lib/units";
+import { toKg, calculatePercentage, formatWeight } from "@/lib/units";
 import { estimate1RM } from "@/lib/estimate";
 import { colors } from "@/lib/theme";
 
 type Mode = "from1rm" | "reverse";
+
+function CustomPercentageSection({
+  oneRMKg,
+  unit,
+  customPct,
+  onChangePct,
+}: {
+  oneRMKg: number;
+  unit: "kg" | "lbs";
+  customPct: string;
+  onChangePct: (v: string) => void;
+}) {
+  const parsed = parseFloat(customPct);
+  const valid = !isNaN(parsed) && parsed > 0;
+  const result = valid ? calculatePercentage(oneRMKg, parsed, unit) : null;
+  const formatted = result != null ? formatWeight(result, unit) : null;
+  const [resultValue, resultUnit] = formatted
+    ? formatted.split(" ")
+    : ["", unit];
+
+  return (
+    <View className="bg-surface rounded-2xl overflow-hidden mb-2">
+      <Text className="text-label uppercase tracking-wider text-muted px-4 pt-4 pb-3">
+        Custom Percentage
+      </Text>
+      <View className="flex-row items-center px-4 pb-4 gap-3">
+        <TextInput
+          className="flex-1 bg-surface2 rounded-xl px-4 py-3 text-foreground text-[16px]"
+          placeholder="e.g. 67.5"
+          placeholderTextColor={colors.muted}
+          keyboardType="decimal-pad"
+          value={customPct}
+          onChangeText={onChangePct}
+        />
+        <Text className="text-muted text-lg font-semibold">%</Text>
+      </View>
+      {valid && formatted && (
+        <View className="flex-row items-center px-4 pb-4 gap-2">
+          <Text
+            style={{
+              fontFamily: "CormorantGaramond-Regular",
+              fontSize: 48,
+              lineHeight: 50,
+              color: colors.foreground,
+              letterSpacing: -0.8,
+              fontVariant: ["tabular-nums"],
+            }}
+          >
+            {resultValue}
+          </Text>
+          <Text
+            style={{
+              fontFamily: "CormorantGaramond-Regular",
+              fontSize: 24,
+              lineHeight: 26,
+              color: colors.accent,
+              marginTop: 8,
+            }}
+          >
+            {resultUnit}
+          </Text>
+        </View>
+      )}
+    </View>
+  );
+}
 
 const MODE_SEGMENTS = [
   { value: "from1rm" as const, label: "From 1RM" },
@@ -32,6 +99,7 @@ export default function QuickCalculatorScreen() {
 
   const [mode, setMode] = useState<Mode>("from1rm");
   const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [customPct, setCustomPct] = useState("");
 
   // Mode A — From 1RM
   const [oneRMInput, setOneRMInput] = useState("");
@@ -103,7 +171,15 @@ export default function QuickCalculatorScreen() {
                   showError={oneRMInput.length > 0 && !oneRMValid}
                 />
                 {oneRMValid ? (
-                  <PercentageTable oneRMKg={oneRMKg!} unit={unit} />
+                  <>
+                    <PercentageTable oneRMKg={oneRMKg!} unit={unit} />
+                    <CustomPercentageSection
+                      oneRMKg={oneRMKg!}
+                      unit={unit}
+                      customPct={customPct}
+                      onChangePct={setCustomPct}
+                    />
+                  </>
                 ) : (
                   <View className="bg-surface rounded-2xl p-8 items-center">
                     <Ionicons
@@ -139,7 +215,15 @@ export default function QuickCalculatorScreen() {
             )}
 
             {mode === "reverse" && tableOneRMKg != null && (
-              <PercentageTable oneRMKg={tableOneRMKg} unit={unit} />
+              <>
+                <PercentageTable oneRMKg={tableOneRMKg} unit={unit} />
+                <CustomPercentageSection
+                  oneRMKg={tableOneRMKg}
+                  unit={unit}
+                  customPct={customPct}
+                  onChangePct={setCustomPct}
+                />
+              </>
             )}
           </View>
         </ScrollView>
