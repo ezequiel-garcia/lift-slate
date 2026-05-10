@@ -57,6 +57,25 @@ export async function signInWithApple() {
     token: credential.identityToken,
   });
   if (error) throw error;
+
+  // Best-effort: store Apple refresh token for revocation on account deletion.
+  // Fire-and-forget — don't block sign-in if this fails.
+  if (credential.authorizationCode && data.session) {
+    fetch(
+      `${process.env.EXPO_PUBLIC_SUPABASE_URL}/functions/v1/store-apple-token`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${data.session.access_token}`,
+        },
+        body: JSON.stringify({
+          authorization_code: credential.authorizationCode,
+        }),
+      },
+    ).catch(() => {});
+  }
+
   return data;
 }
 

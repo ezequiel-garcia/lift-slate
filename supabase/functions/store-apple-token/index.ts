@@ -1,6 +1,6 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const APPLE_REVOKE_URL = "https://appleid.apple.com/auth/revoke";
+const APPLE_TOKEN_URL = "https://appleid.apple.com/auth/token";
 const BUNDLE_ID = "com.iekekel.LiftSlate";
 
 function base64url(str: string): string {
@@ -20,7 +20,7 @@ async function generateAppleClientSecret(): Promise<string> {
   const privateKeyPem = Deno.env.get("APPLE_PRIVATE_KEY");
 
   if (!teamId || !keyId || !privateKeyPem) {
-    throw new Error("Missing Apple credentials");
+    throw new Error("Missing Apple credentials in environment");
   }
 
   const pem = privateKeyPem.replace(/\\n/g, "\n");
@@ -44,7 +44,7 @@ async function generateAppleClientSecret(): Promise<string> {
     JSON.stringify({
       iss: teamId,
       iat: now,
-      exp: now + 15552000,
+      exp: now + 15552000, // 180 days (Apple max)
       aud: "https://appleid.apple.com",
       sub: BUNDLE_ID,
     }),
@@ -58,39 +58,6 @@ async function generateAppleClientSecret(): Promise<string> {
   );
 
   return `${sigInput}.${base64urlBytes(new Uint8Array(signature))}`;
-}
-
-async function revokeAppleToken(
-  adminClient: ReturnType<typeof createClient>,
-  userId: string,
-): Promise<void> {
-  const { data } = await adminClient
-    .from("apple_auth_tokens")
-    .select("refresh_token")
-    .eq("user_id", userId)
-    .single();
-
-  if (!data?.refresh_token) return; // not an Apple user
-
-  try {
-    const clientSecret = await generateAppleClientSecret();
-    const params = new URLSearchParams({
-      client_id: BUNDLE_ID,
-      client_secret: clientSecret,
-      token: data.refresh_token,
-      token_type_hint: "refresh_token",
-    });
-
-    await fetch(APPLE_REVOKE_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString(),
-    });
-    // Apple returns 200 even if token was already invalid — fire and forget
-  } catch (err) {
-    console.error("Apple token revocation failed:", err);
-    // Don't block account deletion if revocation fails
-  }
 }
 
 Deno.serve(async (req) => {
@@ -113,7 +80,6 @@ Deno.serve(async (req) => {
   const userClient = createClient(supabaseUrl, supabaseAnonKey, {
     global: { headers: { Authorization: authHeader } },
   });
-
   const {
     data: { user },
     error: userError,
@@ -125,39 +91,66 @@ Deno.serve(async (req) => {
     });
   }
 
-  const adminClient = createClient(supabaseUrl, supabaseServiceKey);
-
-  // Block deletion if user owns a gym
-  const { data: ownedGyms } = await adminClient
-    .from("gyms")
-    .select("id, name")
-    .eq("owner_id", user.id)
-    .limit(1);
-
-  if (ownedGyms && ownedGyms.length > 0) {
+  const body = await req.json().catch(() => ({}));
+  const authorizationCode = body.authorization_code;
+  if (!authorizationCode) {
     return new Response(
-      JSON.stringify({
-        error:
-          "You must delete or transfer your gym before deleting your account.",
-        code: "GYM_OWNER",
-      }),
-      { status: 409, headers: { "Content-Type": "application/json" } },
+      JSON.stringify({ error: "authorization_code required" }),
+      { status: 400, headers: { "Content-Type": "application/json" } },
     );
   }
 
-  // Revoke Apple token if this is an Apple Sign In user
-  await revokeAppleToken(adminClient, user.id);
+  try {
+    const clientSecret = await generateAppleClientSecret();
 
-  const { error } = await adminClient.auth.admin.deleteUser(user.id);
-  if (error) {
-    return new Response(JSON.stringify({ error: error.message }), {
+    const params = new URLSearchParams({
+      grant_type: "authorization_code",
+      code: authorizationCode,
+      client_id: BUNDLE_ID,
+      client_secret: clientSecret,
+    });
+
+    const tokenRes = await fetch(APPLE_TOKEN_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      body: params.toString(),
+    });
+
+    const tokenData = await tokenRes.json();
+    if (!tokenRes.ok || !tokenData.refresh_token) {
+      console.error("Apple token exchange failed:", tokenData);
+      return new Response(JSON.stringify({ error: "Token exchange failed" }), {
+        status: 502,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+    const { error: upsertError } = await adminClient
+      .from("apple_auth_tokens")
+      .upsert({
+        user_id: user.id,
+        refresh_token: tokenData.refresh_token,
+        updated_at: new Date().toISOString(),
+      });
+
+    if (upsertError) {
+      console.error("Failed to store Apple token:", upsertError);
+      return new Response(JSON.stringify({ error: "Storage failed" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    console.error("store-apple-token error:", err);
+    return new Response(JSON.stringify({ error: "Internal error" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
     });
   }
-
-  return new Response(JSON.stringify({ success: true }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
 });
