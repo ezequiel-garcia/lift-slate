@@ -1,98 +1,5 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-const APPLE_REVOKE_URL = "https://appleid.apple.com/auth/revoke";
-const BUNDLE_ID = "com.iekekel.LiftSlate";
-
-function base64url(str: string): string {
-  return btoa(str).replace(/=/g, "").replace(/\+/g, "-").replace(/\//g, "_");
-}
-
-function base64urlBytes(bytes: Uint8Array): string {
-  return btoa(String.fromCharCode(...bytes))
-    .replace(/=/g, "")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_");
-}
-
-async function generateAppleClientSecret(): Promise<string> {
-  const teamId = Deno.env.get("APPLE_TEAM_ID");
-  const keyId = Deno.env.get("APPLE_KEY_ID");
-  const privateKeyPem = Deno.env.get("APPLE_PRIVATE_KEY");
-
-  if (!teamId || !keyId || !privateKeyPem) {
-    throw new Error("Missing Apple credentials");
-  }
-
-  const pem = privateKeyPem.replace(/\\n/g, "\n");
-  const pemContent = pem
-    .replace("-----BEGIN PRIVATE KEY-----", "")
-    .replace("-----END PRIVATE KEY-----", "")
-    .replace(/\s/g, "");
-  const keyDer = Uint8Array.from(atob(pemContent), (c) => c.charCodeAt(0));
-
-  const key = await crypto.subtle.importKey(
-    "pkcs8",
-    keyDer,
-    { name: "ECDSA", namedCurve: "P-256" },
-    false,
-    ["sign"],
-  );
-
-  const now = Math.floor(Date.now() / 1000);
-  const header = base64url(JSON.stringify({ alg: "ES256", kid: keyId }));
-  const payload = base64url(
-    JSON.stringify({
-      iss: teamId,
-      iat: now,
-      exp: now + 15552000,
-      aud: "https://appleid.apple.com",
-      sub: BUNDLE_ID,
-    }),
-  );
-
-  const sigInput = `${header}.${payload}`;
-  const signature = await crypto.subtle.sign(
-    { name: "ECDSA", hash: "SHA-256" },
-    key,
-    new TextEncoder().encode(sigInput),
-  );
-
-  return `${sigInput}.${base64urlBytes(new Uint8Array(signature))}`;
-}
-
-async function revokeAppleToken(
-  adminClient: ReturnType<typeof createClient>,
-  userId: string,
-): Promise<void> {
-  const { data } = await adminClient
-    .from("apple_auth_tokens")
-    .select("refresh_token")
-    .eq("user_id", userId)
-    .single();
-
-  if (!data?.refresh_token) return; // not an Apple user
-
-  try {
-    const clientSecret = await generateAppleClientSecret();
-    const params = new URLSearchParams({
-      client_id: BUNDLE_ID,
-      client_secret: clientSecret,
-      token: data.refresh_token,
-      token_type_hint: "refresh_token",
-    });
-
-    await fetch(APPLE_REVOKE_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: params.toString(),
-    });
-    // Apple returns 200 even if token was already invalid — fire and forget
-  } catch (err) {
-    console.error("Apple token revocation failed:", err);
-    // Don't block account deletion if revocation fails
-  }
-}
-
 Deno.serve(async (req) => {
   if (req.method !== "POST") {
     return new Response("Method not allowed", { status: 405 });
@@ -106,6 +13,7 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Use anon client to verify the JWT and get the user
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -125,9 +33,10 @@ Deno.serve(async (req) => {
     });
   }
 
+  // Use admin client for privileged operations
   const adminClient = createClient(supabaseUrl, supabaseServiceKey);
 
-  // Block deletion if user owns a gym
+  // Block deletion if user owns a gym (gyms.owner_id ON DELETE RESTRICT would fail anyway)
   const { data: ownedGyms } = await adminClient
     .from("gyms")
     .select("id, name")
@@ -145,10 +54,8 @@ Deno.serve(async (req) => {
     );
   }
 
-  // Revoke Apple token if this is an Apple Sign In user
-  await revokeAppleToken(adminClient, user.id);
-
   const { error } = await adminClient.auth.admin.deleteUser(user.id);
+
   if (error) {
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
