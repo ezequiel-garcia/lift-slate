@@ -16,6 +16,8 @@ import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 import { router } from "expo-router";
 
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useQueryClient } from "@tanstack/react-query";
 import { useProfile, useUpdateProfile } from "@/hooks/useProfile";
 import { useMyGym, useLeaveGym } from "@/hooks/useGym";
 import { signOut, deleteAccount } from "@/services/auth.service";
@@ -30,6 +32,7 @@ import { colors } from "@/lib/theme";
 
 export default function ProfileScreen() {
   const { data: profile, isLoading } = useProfile();
+  const queryClient = useQueryClient();
   const { mutate: update, isPending } = useUpdateProfile();
   const { data: gym, isLoading: gymLoading } = useMyGym();
   const { mutate: leaveGym, isPending: isLeaving } = useLeaveGym();
@@ -80,8 +83,14 @@ export default function ProfileScreen() {
     });
   }
 
+  async function clearCache() {
+    queryClient.clear();
+    await AsyncStorage.removeItem("LIFTSLATE_QUERY_CACHE");
+  }
+
   async function handleSignOut() {
     await signOut();
+    await clearCache();
   }
 
   if (isLoading) {
@@ -380,6 +389,7 @@ export default function ProfileScreen() {
             onCancel={() => setShowDeleteModal(false)}
             onConfirmDelete={async () => {
               await deleteAccount();
+              await clearCache();
             }}
             isGymOwner={gym?.myRole === "admin"}
           />
