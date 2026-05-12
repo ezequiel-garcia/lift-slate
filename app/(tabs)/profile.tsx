@@ -306,7 +306,7 @@ export default function ProfileScreen() {
             <Pressable
               onPress={() =>
                 WebBrowser.openBrowserAsync(
-                  "https://ezequiel-garcia.github.io/lift-slate/privacy-policy.html",
+                  "https://liftslate-invite.vercel.app/privacy",
                 )
               }
               className="px-4 py-4 flex-row items-center active:opacity-60"
@@ -325,7 +325,7 @@ export default function ProfileScreen() {
             <Pressable
               onPress={() =>
                 WebBrowser.openBrowserAsync(
-                  "https://ezequiel-garcia.github.io/lift-slate/terms-of-service.html",
+                  "https://liftslate-invite.vercel.app/terms",
                 )
               }
               className="px-4 py-4 flex-row items-center active:opacity-60"
