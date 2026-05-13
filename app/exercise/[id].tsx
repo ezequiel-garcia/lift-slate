@@ -18,6 +18,8 @@ import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { colors } from "@/lib/theme";
 import { isValidUUID } from "@/lib/constants";
+import { useTranslation } from "react-i18next";
+import { useExerciseName } from "@/hooks/useExerciseName";
 
 type Tab = "calculator" | "history" | "notes";
 
@@ -55,9 +57,12 @@ export default function ExerciseDetailScreen() {
   const { mutate: deleteExerciseMaxes } = useDeleteAllReferencesForExercise();
   const { mutate: deleteMax } = useDeleteExerciseReference(validId ?? "");
 
+  const { t } = useTranslation();
+  const getExerciseName = useExerciseName();
   const unit = profile?.unit_preference ?? "kg";
   const equipmentType = exercise?.equipment_type;
-  const exerciseName = exercise?.name ?? "Exercise";
+  const rawName = exercise?.name ?? "Exercise";
+  const exerciseName = getExerciseName(rawName);
 
   const headerTitleStyle = useMemo(() => {
     const nameLength = exerciseName.length;
@@ -111,16 +116,18 @@ export default function ExerciseDetailScreen() {
   // Tab config: bodyweight has no calculator tab
   const tabSegments = isBodyweight
     ? [
-        { value: "history" as const, label: "History" },
-        { value: "notes" as const, label: "Notes" },
+        { value: "history" as const, label: t("exercise.tab_history") },
+        { value: "notes" as const, label: t("exercise.tab_notes") },
       ]
     : [
         {
           value: "calculator" as const,
-          label: isOneRM ? "Calculator" : "Working Weight",
+          label: isOneRM
+            ? t("exercise.tab_calculator")
+            : t("exercise.tab_working_weight"),
         },
-        { value: "history" as const, label: "History" },
-        { value: "notes" as const, label: "Notes" },
+        { value: "history" as const, label: t("exercise.tab_history") },
+        { value: "notes" as const, label: t("exercise.tab_notes") },
       ];
 
   function handleDelete() {
@@ -178,7 +185,7 @@ export default function ExerciseDetailScreen() {
 
       {isError ? (
         <ErrorState
-          message="Failed to load history"
+          message={t("exercise.error_load")}
           onRetry={() => refetch()}
         />
       ) : (
@@ -211,7 +218,9 @@ export default function ExerciseDetailScreen() {
               onAddMax={() => setAddModalVisible(true)}
               onDeleteMax={(maxId) => deleteMax(maxId)}
               addButtonLabel={
-                isWorkingWeight ? "Update Working Weight" : undefined
+                isWorkingWeight
+                  ? t("exercise.update_working_weight")
+                  : undefined
               }
               refreshing={refreshing}
               onRefresh={handleRefresh}
@@ -237,7 +246,7 @@ export default function ExerciseDetailScreen() {
       />
       <PRCelebrationModal
         visible={prVisible}
-        exerciseName={exercise?.name ?? ""}
+        exerciseName={exerciseName}
         newWeightKg={prWeightKg}
         previousWeightKg={prPreviousWeightKg}
         unit={unit}
@@ -246,9 +255,9 @@ export default function ExerciseDetailScreen() {
       />
       <ConfirmModal
         visible={deleteModalVisible}
-        title="Remove Exercise"
-        message={`Remove ${exercise?.name ?? "this exercise"} from your lifts? All recorded history will be deleted.`}
-        confirmLabel="Remove"
+        title={t("exercise.remove_title")}
+        message={t("exercise.remove_message", { name: exerciseName })}
+        confirmLabel={t("common.remove")}
         variant="destructive"
         onCancel={() => setDeleteModalVisible(false)}
         onConfirm={() => {

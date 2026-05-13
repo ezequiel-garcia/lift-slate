@@ -13,8 +13,8 @@ import {
 } from "date-fns";
 import { useState } from "react";
 import { Modal, Pressable, Text, View } from "react-native";
-
-const WEEKDAYS = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
+import { useTranslation } from "react-i18next";
+import { DATE_FNS_LOCALES, formatDate } from "@/lib/i18n";
 
 type Props = {
   visible: boolean;
@@ -29,17 +29,28 @@ export function CalendarPickerModal({
   onClose,
   onChange,
 }: Props) {
+  const { t, i18n } = useTranslation();
+  const locale =
+    DATE_FNS_LOCALES[i18n.language as keyof typeof DATE_FNS_LOCALES];
   const [viewMonth, setViewMonth] = useState(() => startOfMonth(value));
+
+  const weekdays = [
+    t("calendar.weekday_su"),
+    t("calendar.weekday_mo"),
+    t("calendar.weekday_tu"),
+    t("calendar.weekday_we"),
+    t("calendar.weekday_th"),
+    t("calendar.weekday_fr"),
+    t("calendar.weekday_sa"),
+  ];
 
   const days = eachDayOfInterval({
     start: startOfMonth(viewMonth),
     end: endOfMonth(viewMonth),
   });
 
-  // Pad the start with empty slots for the first week
   const startPadding = getDay(startOfMonth(viewMonth));
   const cells: (Date | null)[] = [...Array(startPadding).fill(null), ...days];
-  // Pad end to complete last row
   while (cells.length % 7 !== 0) cells.push(null);
 
   function handleSelect(day: Date) {
@@ -57,15 +68,17 @@ export function CalendarPickerModal({
       <View className="flex-1 justify-end">
         <Pressable className="absolute inset-0 bg-black/50" onPress={onClose} />
         <View className="bg-surface rounded-t-3xl pb-10">
-          {/* Header */}
           <View className="flex-row justify-between items-center px-4 py-3 border-b border-border">
-            <Text className="text-foreground font-semibold">Select Date</Text>
+            <Text className="text-foreground font-semibold">
+              {t("calendar.title")}
+            </Text>
             <Pressable onPress={onClose}>
-              <Text className="text-accent font-semibold">Done</Text>
+              <Text className="text-accent font-semibold">
+                {t("calendar.done")}
+              </Text>
             </Pressable>
           </View>
 
-          {/* Month navigation */}
           <View className="flex-row items-center justify-between px-4 py-3">
             <Pressable
               className="w-9 h-9 bg-surface2 rounded-lg items-center justify-center"
@@ -78,7 +91,7 @@ export function CalendarPickerModal({
               />
             </Pressable>
             <Text className="text-foreground font-semibold text-base">
-              {format(viewMonth, "MMMM yyyy")}
+              {formatDate(viewMonth, "MMMM yyyy", locale)}
             </Text>
             <Pressable
               className="w-9 h-9 bg-surface2 rounded-lg items-center justify-center"
@@ -92,16 +105,14 @@ export function CalendarPickerModal({
             </Pressable>
           </View>
 
-          {/* Weekday labels */}
           <View className="flex-row px-4 mb-1">
-            {WEEKDAYS.map((d) => (
+            {weekdays.map((d) => (
               <View key={d} className="flex-1 items-center">
                 <Text className="text-muted text-xs font-medium">{d}</Text>
               </View>
             ))}
           </View>
 
-          {/* Day grid */}
           <View className="px-4 pb-2">
             {Array.from({ length: cells.length / 7 }).map((_, row) => (
               <View key={row} className="flex-row">

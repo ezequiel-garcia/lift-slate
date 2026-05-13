@@ -1,13 +1,18 @@
 import { Modal, View, Text, Pressable, ScrollView } from "react-native";
-import { ItemFormData, PRESCRIPTION_LABELS, SectionFormData } from "./types";
+import { useTranslation } from "react-i18next";
+import { usePrescriptionLabel } from "@/hooks/usePrescriptionLabel";
+import { ItemFormData, SectionFormData } from "./types";
 
-function prescriptionText(item: ItemFormData): string {
+function prescriptionText(
+  item: ItemFormData,
+  getPrescriptionLabel: ReturnType<typeof usePrescriptionLabel>,
+): string {
   const mode = item.prescriptionMode;
   if (!mode) return "";
   if (mode === "percentage" && item.percentage) return ` @ ${item.percentage}%`;
   if (mode === "absolute" && item.weightKg) return ` @ ${item.weightKg}kg`;
   if (mode === "reps_only") return "";
-  return ` (${PRESCRIPTION_LABELS[mode]})`;
+  return ` (${getPrescriptionLabel(mode)})`;
 }
 
 type Props = {
@@ -25,6 +30,9 @@ export function WorkoutPreviewModal({
   scheduledDate,
   sections,
 }: Props) {
+  const { t } = useTranslation();
+  const getPrescriptionLabel = usePrescriptionLabel();
+
   return (
     <Modal
       visible={visible}
@@ -36,14 +44,16 @@ export function WorkoutPreviewModal({
         <View className="flex-row items-center justify-between px-4 pt-6 pb-4 border-b border-border">
           <View>
             <Text className="text-muted text-xs uppercase tracking-wider">
-              Athlete Preview
+              {t("workout_preview.title")}
             </Text>
             <Text className="text-foreground text-lg font-semibold mt-0.5">
               {scheduledDate}
             </Text>
           </View>
           <Pressable onPress={onClose}>
-            <Text className="text-accent font-medium">Done</Text>
+            <Text className="text-accent font-medium">
+              {t("workout_preview.done")}
+            </Text>
           </Pressable>
         </View>
 
@@ -55,38 +65,44 @@ export function WorkoutPreviewModal({
 
           {sections.length === 0 ? (
             <View className="py-16 items-center">
-              <Text className="text-muted text-sm">No blocks yet.</Text>
+              <Text className="text-muted text-sm">
+                {t("workout_preview.no_blocks")}
+              </Text>
             </View>
           ) : (
             sections.map((section) => (
               <View key={section.localId} className="mb-5">
-                {/* Block header */}
                 <Text className="text-accent text-xs font-bold uppercase tracking-wider mb-2">
-                  {section.title?.trim() || "Block"}
+                  {section.title?.trim() || t("workout_preview.block_fallback")}
                 </Text>
 
                 <View className="bg-surface rounded-xl px-4 divide-y divide-border">
                   {section.items.length === 0 ? (
                     <View className="py-3">
                       <Text className="text-muted text-sm italic">
-                        No exercises
+                        {t("workout_preview.no_exercises")}
                       </Text>
                     </View>
                   ) : (
                     section.items.map((item) => {
                       const name =
                         item.itemType === "exercise"
-                          ? item.exerciseName || "Exercise"
-                          : item.content || "Custom Exercise";
+                          ? item.exerciseName ||
+                            t("workout_preview.exercise_fallback")
+                          : item.content ||
+                            t("workout_preview.custom_exercise_fallback");
 
                       const setsReps =
                         item.sets && item.reps
                           ? `${item.sets}x${item.reps}`
                           : item.sets
-                            ? `${item.sets} sets`
+                            ? `${item.sets} ${t("workout_preview.sets_suffix")}`
                             : null;
 
-                      const weightText = prescriptionText(item);
+                      const weightText = prescriptionText(
+                        item,
+                        getPrescriptionLabel,
+                      );
 
                       return (
                         <View key={item.localId} className="py-3">

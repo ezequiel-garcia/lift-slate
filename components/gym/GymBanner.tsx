@@ -3,6 +3,7 @@ import { Image } from "expo-image";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/lib/theme";
 import { getMyGym } from "@/services/gym.service";
+import { useTranslation } from "react-i18next";
 
 export type MyGym = NonNullable<Awaited<ReturnType<typeof getMyGym>>>;
 
@@ -12,13 +13,14 @@ type Props = {
 };
 
 export function GymBanner({ gym, onLeave }: Props) {
+  const { t } = useTranslation();
   const isAdmin = gym.myRole === "admin";
   const roleLabel =
     gym.myRole === "admin"
-      ? "Admin"
+      ? t("gym_banner.admin")
       : gym.myRole === "coach"
-        ? "Coach"
-        : "Athlete";
+        ? t("gym_banner.coach")
+        : t("gym_banner.athlete");
 
   return (
     <View className="bg-surface rounded-2xl p-4 gap-3">
@@ -62,7 +64,9 @@ export function GymBanner({ gym, onLeave }: Props) {
           className="pt-2 border-t border-border"
           style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}
         >
-          <Text className="text-error text-sm text-center">Leave Gym</Text>
+          <Text className="text-error text-sm text-center">
+            {t("gym_banner.leave_gym")}
+          </Text>
         </Pressable>
       )}
     </View>

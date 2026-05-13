@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Modal,
   View,
@@ -24,11 +25,6 @@ import { EquipmentType } from "@/types/exercise";
 
 type EntryMode = "direct" | "estimate";
 
-const MODE_SEGMENTS = [
-  { value: "direct" as const, label: "Known 1RM" },
-  { value: "estimate" as const, label: "Estimate" },
-];
-
 type Props = {
   visible: boolean;
   exerciseId: string;
@@ -40,15 +36,18 @@ type Props = {
   showNotRelevant?: boolean;
 };
 
-function modalTitle(equipmentType?: EquipmentType): string {
-  if (equipmentType === "bodyweight") return "Add Max Reps";
+function modalTitle(
+  equipmentType: EquipmentType | undefined,
+  t: (key: string) => string,
+): string {
+  if (equipmentType === "bodyweight") return t("add_max.title_reps");
   if (
     equipmentType === "dumbbell" ||
     equipmentType === "kettlebell" ||
     equipmentType === "machine"
   )
-    return "Add Working Weight";
-  return "Add 1RM";
+    return t("add_max.title_working_weight");
+  return t("add_max.title_1rm");
 }
 
 export function AddMaxModal({
@@ -61,6 +60,11 @@ export function AddMaxModal({
   onPR,
   showNotRelevant,
 }: Props) {
+  const { t } = useTranslation();
+  const MODE_SEGMENTS = [
+    { value: "direct" as const, label: t("add_max.mode_known") },
+    { value: "estimate" as const, label: t("add_max.mode_estimate") },
+  ];
   const [mode, setMode] = useState<EntryMode>("direct");
   const [weight, setWeight] = useState("");
   const [reps, setReps] = useState("");
@@ -119,7 +123,11 @@ export function AddMaxModal({
 
       const autoNote =
         isOneRM && mode === "estimate" && weightValid && repsValid
-          ? `Estimated from ${formatWeight(weightNum, unit)} x ${repsNum} reps (Epley)`
+          ? t("add_max.estimated_from_note", {
+              weight: formatWeight(weightNum, unit),
+              unit,
+              reps: repsNum,
+            })
           : "";
       const userNote = notes.trim();
       const combinedNotes =
@@ -161,7 +169,7 @@ export function AddMaxModal({
       });
 
       if (isBodyweight) {
-        showToast("Max reps saved!");
+        showToast(t("add_max.toast_reps"));
         handleClose();
         return;
       }
@@ -173,7 +181,9 @@ export function AddMaxModal({
         handleClose();
         onPR(submittedKg);
       } else {
-        showToast(isOneRM ? "Max saved!" : "Working weight saved!");
+        showToast(
+          isOneRM ? t("add_max.toast_max") : t("add_max.toast_working_weight"),
+        );
         handleClose();
       }
     },
@@ -223,7 +233,7 @@ export function AddMaxModal({
     queryClient.invalidateQueries({
       queryKey: ["exercise_references", "history", exerciseId],
     });
-    showToast("Exercise added!");
+    showToast(t("add_max.toast_added"));
     handleClose();
   }
 
@@ -242,7 +252,7 @@ export function AddMaxModal({
 
         <View className="flex-row justify-between items-center px-5 pt-2 pb-4">
           <Text className="text-xl font-bold text-foreground">
-            {modalTitle(equipmentType)}
+            {modalTitle(equipmentType, t)}
           </Text>
           <Pressable
             onPress={handleClose}
@@ -270,11 +280,11 @@ export function AddMaxModal({
             {isBodyweight && (
               <>
                 <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
-                  Max Reps
+                  {t("add_max.max_reps_label")}
                 </Text>
                 <TextInput
                   className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-[18px] mb-5"
-                  placeholder="e.g. 15"
+                  placeholder={t("calculator.reps_placeholder")}
                   placeholderTextColor={colors.muted}
                   keyboardType="number-pad"
                   value={reps}
@@ -288,7 +298,7 @@ export function AddMaxModal({
             {isWeightBased && !isOneRM && (
               <>
                 <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
-                  Working Weight ({unit})
+                  {t("add_max.working_weight_label", { unit })}
                 </Text>
                 <TextInput
                   className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-[18px] mb-5"
@@ -316,7 +326,7 @@ export function AddMaxModal({
                 {mode === "direct" ? (
                   <>
                     <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
-                      1RM Weight ({unit})
+                      {t("add_max.1rm_label", { unit })}
                     </Text>
                     <TextInput
                       className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-[18px] mb-5"
@@ -331,7 +341,7 @@ export function AddMaxModal({
                 ) : (
                   <>
                     <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
-                      Weight Lifted ({unit})
+                      {t("add_max.weight_lifted_label", { unit })}
                     </Text>
                     <TextInput
                       className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-[18px] mb-5"
@@ -344,11 +354,11 @@ export function AddMaxModal({
                     />
 
                     <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
-                      Reps Performed
+                      {t("add_max.reps_performed")}
                     </Text>
                     <TextInput
                       className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-[18px] mb-5"
-                      placeholder="e.g. 5"
+                      placeholder={t("calculator.reps_placeholder")}
                       placeholderTextColor={colors.muted}
                       keyboardType="number-pad"
                       value={reps}
@@ -363,8 +373,9 @@ export function AddMaxModal({
                           color={colors.error}
                         />
                         <Text className="text-error text-sm flex-1">
-                          Estimates above {MAX_RELIABLE_REPS} reps are less
-                          accurate.
+                          {t("add_max.unreliable_warning", {
+                            max: MAX_RELIABLE_REPS,
+                          })}
                         </Text>
                       </View>
                     )}
@@ -372,7 +383,7 @@ export function AddMaxModal({
                     {estimated1RM != null && (
                       <View className="bg-surface rounded-2xl p-4 mb-5">
                         <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-1">
-                          Estimated 1RM
+                          {t("add_max.estimated_1rm")}
                         </Text>
                         <Text className="text-[28px] font-bold text-accent">
                           {formatWeight(
@@ -381,8 +392,11 @@ export function AddMaxModal({
                           )}
                         </Text>
                         <Text className="text-xs text-muted mt-1">
-                          Based on {weight} {unit} x {repsNum} reps (Epley
-                          formula)
+                          {t("add_max.based_on", {
+                            weight,
+                            unit,
+                            reps: repsNum,
+                          })}
                         </Text>
                       </View>
                     )}
@@ -392,11 +406,11 @@ export function AddMaxModal({
             )}
 
             <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
-              Notes (optional)
+              {t("add_max.notes_label")}
             </Text>
             <TextInput
               className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-base mb-6"
-              placeholder="e.g. Competition PR, felt great"
+              placeholder={t("add_max.notes_placeholder")}
               placeholderTextColor={colors.muted}
               value={notes}
               onChangeText={setNotes}
@@ -414,10 +428,10 @@ export function AddMaxModal({
               ) : (
                 <Text className="text-bg font-bold text-[16px]">
                   {isBodyweight
-                    ? "Save Max Reps"
+                    ? t("add_max.save_reps")
                     : isOneRM
-                      ? "Save Max"
-                      : "Save Working Weight"}
+                      ? t("add_max.save_max")
+                      : t("add_max.save_working_weight")}
                 </Text>
               )}
             </Pressable>
@@ -430,14 +444,14 @@ export function AddMaxModal({
                 onPress={handleNotRelevant}
               >
                 <Text className="text-muted font-semibold text-[15px]">
-                  Not relevant
+                  {t("add_max.not_relevant")}
                 </Text>
               </Pressable>
             )}
 
             {mutation.isError && (
               <Text className="text-error text-base text-center mt-3">
-                Failed to save. Try again.
+                {t("add_max.error_save")}
               </Text>
             )}
           </ScrollView>

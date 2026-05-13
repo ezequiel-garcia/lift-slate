@@ -6,6 +6,7 @@ import { Redirect, Tabs } from "expo-router";
 import { Platform } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
 import { getMyGym } from "@/services/gym.service";
+import { useTranslation } from "react-i18next";
 
 type IoniconName = React.ComponentProps<typeof Ionicons>["name"];
 
@@ -22,6 +23,7 @@ function tabIcon(name: IoniconName, focused: boolean) {
 export default function TabsLayout() {
   const { session, isLoading } = useAuth();
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!session) return;
@@ -56,28 +58,28 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: "My Lifts",
+          title: t("tabs.my_lifts"),
           tabBarIcon: ({ focused }) => tabIcon("barbell", focused),
         }}
       />
       <Tabs.Screen
         name="calculator"
         options={{
-          title: "Calculator",
+          title: t("tabs.calculator"),
           tabBarIcon: ({ focused }) => tabIcon("calculator", focused),
         }}
       />
       <Tabs.Screen
         name="gym"
         options={{
-          title: "Gym",
+          title: t("tabs.gym"),
           tabBarIcon: ({ focused }) => tabIcon("fitness", focused),
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
-          title: "Profile",
+          title: t("tabs.profile"),
           tabBarIcon: ({ focused }) => tabIcon("person", focused),
         }}
       />

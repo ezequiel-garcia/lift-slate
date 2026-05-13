@@ -1,11 +1,10 @@
 import { Pressable, Text, TextInput, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import { colors } from "@/lib/theme";
 import { EquipmentType } from "@/types/exercise";
 import { PrescriptionMode } from "@/types/exerciseReference";
-import {
-  ALLOWED_PRESCRIPTIONS_BY_EQUIPMENT,
-  PRESCRIPTION_LABELS,
-} from "./types";
+import { usePrescriptionLabel } from "@/hooks/usePrescriptionLabel";
+import { ALLOWED_PRESCRIPTIONS_BY_EQUIPMENT } from "./types";
 
 type Props = {
   equipmentType: EquipmentType;
@@ -28,13 +27,15 @@ export function PrescriptionPicker({
   onChangePercentage,
   onChangeWeightKg,
 }: Props) {
+  const { t } = useTranslation();
+  const getPrescriptionLabel = usePrescriptionLabel();
   const allowed = ALLOWED_PRESCRIPTIONS_BY_EQUIPMENT[equipmentType];
   const showNumericInput = mode && MODES_WITH_NUMERIC_INPUT.includes(mode);
 
   return (
     <View className="gap-2">
       <Text className="text-muted text-[10px] uppercase tracking-wider ml-1">
-        Prescription
+        {t("workout.prescription_label")}
       </Text>
 
       <View className="flex-row flex-wrap gap-1.5">
@@ -58,7 +59,7 @@ export function PrescriptionPicker({
                   selected ? "text-accent font-semibold" : "text-muted"
                 }`}
               >
-                {PRESCRIPTION_LABELS[m]}
+                {getPrescriptionLabel(m)}
               </Text>
             </Pressable>
           );
@@ -77,7 +78,9 @@ export function PrescriptionPicker({
                 onChangeText={onChangePercentage}
                 keyboardType="numeric"
               />
-              <Text className="text-muted text-xs pr-3">% of 1RM</Text>
+              <Text className="text-muted text-xs pr-3">
+                {t("prescription.percentage")}
+              </Text>
             </>
           ) : (
             <>

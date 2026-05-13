@@ -1,5 +1,6 @@
 import { useRef, useEffect, useState } from "react";
 import { Modal, View, Text, Pressable, Dimensions } from "react-native";
+import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 import LottieView from "lottie-react-native";
 import Animated, {
@@ -33,6 +34,7 @@ export function PRCelebrationModal({
   onClose,
   onViewHistory,
 }: Props) {
+  const { t } = useTranslation();
   const lottieRef = useRef<LottieView>(null);
   const scale = useSharedValue(0.7);
   const opacity = useSharedValue(0);
@@ -49,7 +51,7 @@ export function PRCelebrationModal({
       : null;
   const deltaDisplay =
     delta != null && delta > 0
-      ? `+${formatWeight(delta, unit)} from last PR`
+      ? t("pr.delta", { delta: formatWeight(delta, unit) })
       : null;
 
   useEffect(() => {
@@ -133,7 +135,7 @@ export function PRCelebrationModal({
           >
             {/* Label */}
             <Text className="text-muted text-[11px] font-semibold tracking-widest uppercase mb-3">
-              Personal Record
+              {t("pr.label")}
             </Text>
 
             {/* Exercise name */}
@@ -169,7 +171,9 @@ export function PRCelebrationModal({
               style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
               onPress={onClose}
             >
-              <Text className="text-bg font-bold text-[16px]">Done</Text>
+              <Text className="text-bg font-bold text-[16px]">
+                {t("pr.done")}
+              </Text>
             </Pressable>
 
             {onViewHistory && (
@@ -178,7 +182,9 @@ export function PRCelebrationModal({
                 onPress={handleViewHistory}
                 className="items-center py-2"
               >
-                <Text className="text-muted text-sm">View history</Text>
+                <Text className="text-muted text-sm">
+                  {t("pr.view_history")}
+                </Text>
               </Pressable>
             )}
           </Animated.View>

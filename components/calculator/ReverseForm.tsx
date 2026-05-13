@@ -1,5 +1,6 @@
 import { View, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { UnitPill } from "@/components/calculator/FromOneRMForm";
 import { formatWeight } from "@/lib/units";
 import { MAX_RELIABLE_REPS } from "@/lib/estimate";
@@ -36,28 +37,29 @@ export function ReverseForm({
   onSave,
   showPlaceholder,
 }: Props) {
+  const { t } = useTranslation();
   return (
     <>
       <View className="mb-5">
         <Input
-          label="Weight Lifted"
+          label={t("calculator.weight_lifted")}
           placeholder={unit === "kg" ? "e.g. 100" : "e.g. 225"}
           keyboardType="decimal-pad"
           value={weightInput}
           onChangeText={onChangeWeight}
-          error={showWeightError ? "Enter a weight greater than 0" : undefined}
+          error={showWeightError ? t("calculator.weight_error") : undefined}
           rightElement={<UnitPill unit={unit} />}
         />
       </View>
 
       <View className="mb-5">
         <Input
-          label="Reps Performed"
-          placeholder="e.g. 5"
+          label={t("calculator.reps_performed")}
+          placeholder={t("calculator.reps_placeholder")}
           keyboardType="number-pad"
           value={repsInput}
           onChangeText={onChangeReps}
-          error={showRepsError ? "Enter at least 1 rep" : undefined}
+          error={showRepsError ? t("calculator.reps_error") : undefined}
         />
       </View>
 
@@ -65,7 +67,7 @@ export function ReverseForm({
         <View className="flex-row items-center gap-2 mb-4 px-1">
           <Ionicons name="warning-outline" size={16} color={colors.error} />
           <Text className="text-error text-sm flex-1">
-            Estimates above {MAX_RELIABLE_REPS} reps are less accurate.
+            {t("calculator.unreliable_warning", { max: MAX_RELIABLE_REPS })}
           </Text>
         </View>
       )}
@@ -79,10 +81,10 @@ export function ReverseForm({
             style={{ marginBottom: 12 }}
           />
           <Text className="text-base font-semibold text-foreground mb-2 text-center">
-            Estimate your 1RM
+            {t("calculator.estimate_title")}
           </Text>
           <Text className="text-sm text-muted text-center">
-            Enter a weight and number of reps.
+            {t("calculator.estimate_description")}
           </Text>
         </View>
       ) : (
@@ -90,7 +92,7 @@ export function ReverseForm({
           {estimatedOneRM != null && (
             <View className="bg-surface rounded-2xl p-5 mb-6">
               <Text className="text-label uppercase tracking-wider text-muted mb-2">
-                Estimated 1RM
+                {t("calculator.estimated_1rm")}
               </Text>
               <Text
                 className="text-display text-accent"
@@ -100,14 +102,18 @@ export function ReverseForm({
               </Text>
               {weightInput && repsNum >= 1 && (
                 <Text className="text-xs text-muted mt-1">
-                  Based on {weightInput} {unit} x {repsNum} reps (Epley formula)
+                  {t("calculator.based_on", {
+                    weight: weightInput,
+                    unit,
+                    reps: repsNum,
+                  })}
                 </Text>
               )}
             </View>
           )}
           {canSave && (
             <View className="mb-6">
-              <Button label="Save as 1RM" onPress={onSave} />
+              <Button label={t("calculator.save_as_1rm")} onPress={onSave} />
             </View>
           )}
         </>

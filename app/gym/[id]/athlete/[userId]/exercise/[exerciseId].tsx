@@ -1,8 +1,9 @@
 import { Ionicons } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { ActivityIndicator, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useTranslation } from "react-i18next";
 
 import { CalculatorTab } from "@/components/calculator/CalculatorTab";
 import { NotesTab } from "@/components/exercises/NotesTab";
@@ -14,6 +15,7 @@ import {
   useAthleteReferences,
   useDeleteAthleteReference,
 } from "@/hooks/useExerciseReferences";
+import { useExerciseName } from "@/hooks/useExerciseName";
 import { useGymMembers, useMyGym } from "@/hooks/useGym";
 import { isValidUUID } from "@/lib/constants";
 import { colors } from "@/lib/theme";
@@ -22,13 +24,9 @@ import { EquipmentType } from "@/types/exercise";
 
 type Tab = "calculator" | "history" | "notes";
 
-const TAB_SEGMENTS = [
-  { value: "calculator" as const, label: "Calculator" },
-  { value: "history" as const, label: "History" },
-  { value: "notes" as const, label: "Notes" },
-];
-
 export default function AthleteExerciseDetailScreen() {
+  const { t } = useTranslation();
+  const getExerciseName = useExerciseName();
   const {
     id: gymId,
     userId,
@@ -53,6 +51,18 @@ export default function AthleteExerciseDetailScreen() {
   const [addModalVisible, setAddModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
+  const tabSegments = useMemo(
+    () => [
+      {
+        value: "calculator" as const,
+        label: t("exercise.tab_calculator"),
+      },
+      { value: "history" as const, label: t("exercise.tab_history") },
+      { value: "notes" as const, label: t("exercise.tab_notes") },
+    ],
+    [t],
+  );
+
   if (!isValidUUID(gymId) || !isValidUUID(userId) || !isValidUUID(exerciseId)) {
     router.replace("/(tabs)/gym");
     return null;
@@ -65,7 +75,8 @@ export default function AthleteExerciseDetailScreen() {
   const canEdit = isCoachOrAdmin && allowCoachEdit;
 
   const history = allMaxes?.filter((m) => m.exercise_id === exerciseId) ?? [];
-  const exerciseName = history[0]?.exercises?.name ?? "Exercise";
+  const rawExerciseName = history[0]?.exercises?.name ?? "Exercise";
+  const exerciseName = getExerciseName(rawExerciseName);
   const equipmentType = history[0]?.exercises?.equipment_type as
     | EquipmentType
     | undefined;
@@ -97,7 +108,6 @@ export default function AthleteExerciseDetailScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg" edges={["top"]}>
-      {/* Header */}
       <View className="flex-row items-center px-4 py-3">
         <Pressable
           onPress={() => router.back()}
@@ -114,21 +124,19 @@ export default function AthleteExerciseDetailScreen() {
         >
           {exerciseName}
         </Text>
-        {/* spacer to balance header */}
         <View className="w-10 h-10" />
       </View>
 
       {isError ? (
         <ErrorState
-          message="Failed to load history"
+          message={t("exercise.error_load")}
           onRetry={() => refetch()}
         />
       ) : (
         <>
-          {/* Tab bar */}
           <View className="mx-5 mt-1 mb-3">
             <SegmentedControl
-              segments={TAB_SEGMENTS}
+              segments={tabSegments}
               selected={activeTab}
               onChange={setActiveTab}
             />
@@ -156,7 +164,9 @@ export default function AthleteExerciseDetailScreen() {
                 onAddMax={canEdit ? () => setAddModalVisible(true) : undefined}
                 onDeleteMax={canEdit ? (id) => deleteMax(id) : undefined}
                 addButtonLabel={
-                  isWorkingWeight ? "Update Working Weight" : undefined
+                  isWorkingWeight
+                    ? t("exercise.update_working_weight")
+                    : undefined
                 }
                 refreshing={refreshing}
                 onRefresh={handleRefresh}
@@ -171,7 +181,7 @@ export default function AthleteExerciseDetailScreen() {
         userId={userId}
         unit={athleteUnit}
         initialExerciseId={exerciseId}
-        initialExerciseName={exerciseName}
+        initialExerciseName={rawExerciseName}
         onClose={() => setAddModalVisible(false)}
       />
     </SafeAreaView>

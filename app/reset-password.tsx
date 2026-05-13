@@ -10,6 +10,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/lib/supabase";
 import * as authService from "@/services/auth.service";
 import { colors } from "@/lib/theme";
@@ -19,6 +20,7 @@ import { Input } from "@/components/ui/Input";
 type ScreenState = "loading" | "form" | "success" | "error";
 
 export default function ResetPasswordScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const params = useLocalSearchParams<{
     code?: string;
@@ -44,7 +46,7 @@ export default function ResetPasswordScreen() {
         params.error_description?.replace(/\+/g, " ") || params.error;
       setSessionError(
         params.error_code === "otp_expired"
-          ? "This reset link has expired. Please request a new one."
+          ? t("reset_password.link_expired")
           : desc,
       );
       setScreenState("error");
@@ -67,21 +69,21 @@ export default function ResetPasswordScreen() {
       return;
     }
 
-    setSessionError("Invalid or missing reset link. Please request a new one.");
+    setSessionError(t("reset_password.link_missing"));
     setScreenState("error");
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleReset = async () => {
     if (!password) {
-      setError("Please enter a new password.");
+      setError(t("reset_password.error_password_required"));
       return;
     }
     if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError(t("reset_password.error_password_length"));
       return;
     }
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t("reset_password.error_passwords_match"));
       return;
     }
 
@@ -91,7 +93,7 @@ export default function ResetPasswordScreen() {
       await authService.updatePassword(password);
       setScreenState("success");
     } catch (e: unknown) {
-      setError("Failed to update password. Please try again.");
+      setError(t("reset_password.error_update"));
     } finally {
       setLoading(false);
     }
@@ -103,7 +105,9 @@ export default function ResetPasswordScreen() {
     return (
       <SafeAreaView className="flex-1 bg-bg justify-center items-center gap-4">
         <ActivityIndicator size="large" color={colors.accent} />
-        <Text className="text-muted text-[15px]">Verifying reset link...</Text>
+        <Text className="text-muted text-[15px]">
+          {t("reset_password.verifying")}
+        </Text>
       </SafeAreaView>
     );
   }
@@ -113,12 +117,15 @@ export default function ResetPasswordScreen() {
       <SafeAreaView className="flex-1 bg-bg justify-center items-center px-6 gap-4">
         <Ionicons name="alert-circle-outline" size={48} color={colors.error} />
         <Text className="text-[22px] font-bold text-foreground">
-          Link Invalid
+          {t("reset_password.link_invalid")}
         </Text>
         <Text className="text-[15px] text-muted text-center leading-relaxed">
           {sessionError}
         </Text>
-        <Button label="Back to Sign In" onPress={goToLogin} />
+        <Button
+          label={t("reset_password.back_to_sign_in")}
+          onPress={goToLogin}
+        />
       </SafeAreaView>
     );
   }
@@ -132,12 +139,15 @@ export default function ResetPasswordScreen() {
           color={colors.accent}
         />
         <Text className="text-[28px] font-extrabold text-foreground">
-          Password updated
+          {t("reset_password.success_title")}
         </Text>
         <Text className="text-[15px] text-muted text-center leading-relaxed">
-          Your password has been reset successfully. You&apos;re now signed in.
+          {t("reset_password.success_description")}
         </Text>
-        <Button label="Continue" onPress={() => router.replace("/(tabs)")} />
+        <Button
+          label={t("reset_password.continue")}
+          onPress={() => router.replace("/(tabs)")}
+        />
       </SafeAreaView>
     );
   }
@@ -153,15 +163,15 @@ export default function ResetPasswordScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <Text className="text-[28px] font-extrabold text-foreground mb-2">
-            Set new password
+            {t("reset_password.title")}
           </Text>
           <Text className="text-[15px] text-muted leading-relaxed mb-8">
-            Enter your new password below. Must be at least 8 characters.
+            {t("reset_password.description")}
           </Text>
 
           <View className="gap-4">
             <Input
-              placeholder="New password"
+              placeholder={t("reset_password.new_password_placeholder")}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -169,7 +179,7 @@ export default function ResetPasswordScreen() {
               autoFocus
             />
             <Input
-              placeholder="Confirm new password"
+              placeholder={t("reset_password.confirm_password_placeholder")}
               value={confirmPassword}
               onChangeText={setConfirmPassword}
               secureTextEntry
@@ -179,7 +189,7 @@ export default function ResetPasswordScreen() {
             {!!error && <Text className="text-error text-sm">{error}</Text>}
 
             <Button
-              label="Reset Password"
+              label={t("reset_password.reset_button")}
               onPress={handleReset}
               loading={loading}
               disabled={loading}

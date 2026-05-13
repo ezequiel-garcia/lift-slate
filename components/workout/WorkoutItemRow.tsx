@@ -1,12 +1,10 @@
 import { useState } from "react";
 import { View, Text, TextInput, Pressable } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { colors } from "@/lib/theme";
-import {
-  ItemFormData,
-  DEFAULT_PRESCRIPTION_BY_EQUIPMENT,
-  PRESCRIPTION_LABELS,
-} from "./types";
+import { usePrescriptionLabel } from "@/hooks/usePrescriptionLabel";
+import { ItemFormData, DEFAULT_PRESCRIPTION_BY_EQUIPMENT } from "./types";
 import { ExercisePickerModal } from "./ExercisePickerModal";
 import { PrescriptionPicker } from "./PrescriptionPicker";
 
@@ -18,7 +16,12 @@ type Props = {
   onDelete: () => void;
 };
 
-function formatSummary(item: ItemFormData): string {
+function formatSummary(
+  item: ItemFormData,
+  getPrescriptionLabel: (
+    mode: NonNullable<ItemFormData["prescriptionMode"]>,
+  ) => string,
+): string {
   const parts: string[] = [];
   if (item.sets && item.reps) parts.push(`${item.sets}x${item.reps}`);
   else if (item.sets) parts.push(`${item.sets} sets`);
@@ -34,7 +37,7 @@ function formatSummary(item: ItemFormData): string {
     item.prescriptionMode !== "percentage" &&
     item.prescriptionMode !== "absolute"
   ) {
-    parts.push(`(${PRESCRIPTION_LABELS[item.prescriptionMode]})`);
+    parts.push(`(${getPrescriptionLabel(item.prescriptionMode)})`);
   }
   return parts.join(" ");
 }
@@ -46,17 +49,19 @@ export function WorkoutItemRow({
   onUpdate,
   onDelete,
 }: Props) {
+  const { t } = useTranslation();
+  const getPrescriptionLabel = usePrescriptionLabel();
   const [showExercisePicker, setShowExercisePicker] = useState(false);
 
   function update(patch: Partial<ItemFormData>) {
     onUpdate({ ...item, ...patch });
   }
 
-  const summary = formatSummary(item);
+  const summary = formatSummary(item, getPrescriptionLabel);
   const name =
     item.itemType === "exercise"
-      ? item.exerciseName || "Select exercise..."
-      : item.content || "Custom exercise...";
+      ? item.exerciseName || t("workout_item.select_exercise")
+      : item.content || t("workout_item.custom_exercise");
   const hasName =
     item.itemType === "exercise" ? !!item.exerciseName : !!item.content;
 
@@ -108,7 +113,9 @@ export function WorkoutItemRow({
             color={colors.accent}
           />
           <Text className="text-accent text-xs font-semibold uppercase tracking-wider">
-            {item.itemType === "exercise" ? "Exercise" : "Custom"}
+            {item.itemType === "exercise"
+              ? t("workout_item.exercise_label")
+              : t("workout_item.custom_label")}
           </Text>
         </Pressable>
         <View className="flex-row items-center gap-0.5">
@@ -130,14 +137,14 @@ export function WorkoutItemRow({
           <Text
             className={`text-sm ${item.exerciseName ? "text-foreground" : "text-muted"}`}
           >
-            {item.exerciseName ?? "Select exercise..."}
+            {item.exerciseName ?? t("workout_item.select_exercise")}
           </Text>
           <Ionicons name="chevron-down" size={14} color={colors.muted} />
         </Pressable>
       ) : (
         <TextInput
           className="bg-surface text-foreground rounded-lg px-3 py-2.5 border border-border text-sm"
-          placeholder="Exercise name..."
+          placeholder={t("workout_item.exercise_name_placeholder")}
           placeholderTextColor={colors.muted}
           value={item.content ?? ""}
           onChangeText={(v) => update({ content: v })}
@@ -148,7 +155,7 @@ export function WorkoutItemRow({
       <View className="flex-row gap-2">
         <View className="flex-1">
           <Text className="text-muted text-[10px] uppercase tracking-wider mb-1 ml-1">
-            Sets
+            {t("workout_item.sets_label")}
           </Text>
           <TextInput
             className="bg-surface text-foreground rounded-lg px-3 border border-border text-sm text-center h-10"
@@ -161,7 +168,7 @@ export function WorkoutItemRow({
         </View>
         <View className="flex-1">
           <Text className="text-muted text-[10px] uppercase tracking-wider mb-1 ml-1">
-            Reps
+            {t("workout_item.reps_label")}
           </Text>
           <TextInput
             className="bg-surface text-foreground rounded-lg px-3 border border-border text-sm text-center h-10"
@@ -198,7 +205,7 @@ export function WorkoutItemRow({
       {item.itemType === "custom_exercise" && (
         <View>
           <Text className="text-muted text-[10px] uppercase tracking-wider mb-1 ml-1">
-            Weight (kg, optional)
+            {t("workout_item.weight_label")}
           </Text>
           <TextInput
             className="bg-surface text-foreground rounded-lg px-3 py-2 border border-border text-sm text-center"
@@ -214,7 +221,7 @@ export function WorkoutItemRow({
       {/* Notes */}
       <TextInput
         className="bg-surface text-foreground rounded-lg px-3 py-2 border border-border text-sm"
-        placeholder="Notes (e.g. Scale: empty bar, Tempo 3-1-1)"
+        placeholder={t("workout_item.notes_placeholder")}
         placeholderTextColor={colors.muted}
         value={item.notes ?? ""}
         onChangeText={(v) => update({ notes: v || undefined })}

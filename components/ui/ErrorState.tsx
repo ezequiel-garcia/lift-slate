@@ -3,17 +3,17 @@ import Animated, { FadeIn, useReducedMotion } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { colors } from "@/lib/theme";
 import { Button } from "@/components/ui/Button";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   message?: string;
   onRetry: () => void;
 };
 
-export function ErrorState({
-  message = "Something went wrong",
-  onRetry,
-}: Props) {
+export function ErrorState({ message, onRetry }: Props) {
+  const { t } = useTranslation();
   const reduceMotion = useReducedMotion();
+  const displayMessage = message ?? t("error_state.message");
 
   return (
     <Animated.View
@@ -23,8 +23,13 @@ export function ErrorState({
       <View className="w-16 h-16 rounded-2xl bg-surface items-center justify-center mb-1">
         <Ionicons name="cloud-offline-outline" size={28} color={colors.muted} />
       </View>
-      <Text className="text-muted text-body text-center">{message}</Text>
-      <Button label="Retry" variant="secondary" size="md" onPress={onRetry} />
+      <Text className="text-muted text-body text-center">{displayMessage}</Text>
+      <Button
+        label={t("error_state.retry")}
+        variant="secondary"
+        size="md"
+        onPress={onRetry}
+      />
     </Animated.View>
   );
 }

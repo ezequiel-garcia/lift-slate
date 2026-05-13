@@ -14,6 +14,8 @@ import { CalendarPickerModal } from "@/components/workout/CalendarPickerModal";
 import { addDays, format, isValid, parseISO } from "date-fns";
 import { router, useLocalSearchParams } from "expo-router";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { DATE_FNS_LOCALES, formatDate } from "@/lib/i18n";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -42,6 +44,9 @@ export default function NewWorkoutScreen() {
   } = useLocalSearchParams<{ id: string; workoutId?: string; date?: string }>();
   const isEditMode = !!workoutId;
 
+  const { t, i18n } = useTranslation();
+  const locale =
+    DATE_FNS_LOCALES[i18n.language as keyof typeof DATE_FNS_LOCALES];
   const { data: gym } = useMyGym();
 
   useEffect(() => {
@@ -106,7 +111,7 @@ export default function NewWorkoutScreen() {
           })),
         );
       })
-      .catch(() => showToast("Failed to load workout.", "error"))
+      .catch(() => showToast(t("workout.error_load"), "error"))
       .finally(() => setLoading(false));
   }, [workoutId, isEditMode, showToast]);
 
@@ -187,7 +192,7 @@ export default function NewWorkoutScreen() {
       setPendingGymDate(scheduledDate);
       router.back();
     } catch {
-      showToast("Failed to save workout. Please try again.", "error");
+      showToast(t("workout.error_save"), "error");
     }
   }
 
@@ -197,7 +202,11 @@ export default function NewWorkoutScreen() {
   }
 
   const isSaving = createWorkout.isPending || updateWorkout.isPending;
-  const formattedDate = format(scheduledDate, "EEE, MMM d");
+  const formattedDate = formatDate(
+    scheduledDate,
+    locale ? "EEE, d MMM" : "EEE, MMM d",
+    locale,
+  );
 
   if (loading) {
     return (
@@ -225,7 +234,7 @@ export default function NewWorkoutScreen() {
             <Ionicons name="close" size={24} color={colors.foreground} />
           </Pressable>
           <Text className="text-foreground text-base font-semibold">
-            {isEditMode ? "Edit Workout" : "New Workout"}
+            {isEditMode ? t("workout.edit_title") : t("workout.new_title")}
           </Text>
           <Pressable
             onPress={() => setShowPreview(true)}
@@ -286,7 +295,7 @@ export default function NewWorkoutScreen() {
             <View className="px-4 py-3 gap-2">
               <TextInput
                 className="text-muted text-sm"
-                placeholder="General notes (optional)"
+                placeholder={t("workout.notes_placeholder")}
                 placeholderTextColor={colors.muted}
                 value={notes}
                 onChangeText={setNotes}
@@ -319,54 +328,54 @@ export default function NewWorkoutScreen() {
                     color={colors.muted}
                   />
                   <Text className="text-foreground text-base font-semibold mt-2">
-                    Start building your workout
+                    {t("workout.empty_title")}
                   </Text>
                   <Text className="text-muted text-sm text-center">
-                    Pick a block type to get going
+                    {t("workout.empty_description")}
                   </Text>
                 </View>
 
                 <View className="w-full gap-3">
                   <View className="flex-row gap-3">
-                    {QUICK_START_TEMPLATES.slice(0, 2).map((t) => (
+                    {QUICK_START_TEMPLATES.slice(0, 2).map((tpl) => (
                       <Pressable
-                        key={t.key}
+                        key={tpl.key}
                         className="flex-1 bg-surface border border-border rounded-2xl py-4 items-center gap-2"
                         onPress={() => {
-                          const nb = newBlock(t.label);
+                          const nb = newBlock(t(`workout.block_${tpl.key}`));
                           setSections((prev) => [...prev, nb]);
                           setOpenBlockId(nb.localId);
                         }}
                       >
                         <Ionicons
-                          name={t.icon}
+                          name={tpl.icon}
                           size={24}
                           color={colors.accent}
                         />
                         <Text className="text-foreground text-sm font-semibold">
-                          {t.label}
+                          {t(`workout.block_${tpl.key}`)}
                         </Text>
                       </Pressable>
                     ))}
                   </View>
                   <View className="flex-row gap-3">
-                    {QUICK_START_TEMPLATES.slice(2).map((t) => (
+                    {QUICK_START_TEMPLATES.slice(2).map((tpl) => (
                       <Pressable
-                        key={t.key}
+                        key={tpl.key}
                         className="flex-1 bg-surface border border-border rounded-2xl py-4 items-center gap-2"
                         onPress={() => {
-                          const nb = newBlock(t.label);
+                          const nb = newBlock(t(`workout.block_${tpl.key}`));
                           setSections((prev) => [...prev, nb]);
                           setOpenBlockId(nb.localId);
                         }}
                       >
                         <Ionicons
-                          name={t.icon}
+                          name={tpl.icon}
                           size={24}
                           color={colors.accent}
                         />
                         <Text className="text-foreground text-sm font-semibold">
-                          {t.label}
+                          {t(`workout.block_${tpl.key}`)}
                         </Text>
                       </Pressable>
                     ))}
@@ -382,7 +391,9 @@ export default function NewWorkoutScreen() {
                   }}
                 >
                   <Ionicons name="add" size={16} color={colors.muted} />
-                  <Text className="text-muted text-sm">Add empty block</Text>
+                  <Text className="text-muted text-sm">
+                    {t("workout.add_empty_block")}
+                  </Text>
                 </Pressable>
               </View>
             ) : (
@@ -397,7 +408,7 @@ export default function NewWorkoutScreen() {
               >
                 <Ionicons name="add" size={18} color={colors.accent} />
                 <Text className="text-accent text-sm font-semibold">
-                  Add Block
+                  {t("workout.add_block")}
                 </Text>
               </Pressable>
             )}
@@ -409,10 +420,10 @@ export default function NewWorkoutScreen() {
           <Button
             label={
               isSaving
-                ? "Saving..."
+                ? t("workout.saving")
                 : isEditMode
-                  ? "Update Workout"
-                  : "Publish Workout"
+                  ? t("workout.update")
+                  : t("workout.publish")
             }
             onPress={handleSave}
             disabled={isSaving}

@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -23,6 +24,7 @@ import { getExercisesByNames } from "@/services/exercises.service";
 import { colors, animation } from "@/lib/theme";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { useExerciseName } from "@/hooks/useExerciseName";
 import type { WeightUnit } from "@/lib/units";
 
 const POPULAR_EXERCISES = [
@@ -34,6 +36,8 @@ const POPULAR_EXERCISES = [
 ];
 
 export default function OnboardingScreen() {
+  const { t } = useTranslation();
+  const getExerciseName = useExerciseName();
   const router = useRouter();
   const reduceMotion = useReducedMotion();
   const [step, setStep] = useState(1);
@@ -70,7 +74,7 @@ export default function OnboardingScreen() {
   const handleNext = () => {
     if (step === 1) {
       if (!name.trim()) {
-        setError("Please enter your name.");
+        setError(t("onboarding.error_name"));
         return;
       }
       setError("");
@@ -111,7 +115,7 @@ export default function OnboardingScreen() {
 
       router.replace("/(tabs)");
     } catch (e: unknown) {
-      setError("Something went wrong. Please try again.");
+      setError(t("common.error_generic"));
       setLoading(false);
     }
   };
@@ -125,7 +129,7 @@ export default function OnboardingScreen() {
       });
       router.replace("/(tabs)");
     } catch (e: unknown) {
-      setError("Something went wrong. Please try again.");
+      setError(t("common.error_generic"));
       setLoading(false);
     }
   };
@@ -162,14 +166,14 @@ export default function OnboardingScreen() {
                     className="text-[30px] font-extrabold text-foreground"
                     style={{ letterSpacing: -0.5, lineHeight: 36 }}
                   >
-                    What&apos;s your name?
+                    {t("onboarding.step1_title")}
                   </Text>
                   <Text className="text-[15px] text-muted leading-relaxed">
-                    We&apos;ll use this to personalise your experience.
+                    {t("onboarding.step1_description")}
                   </Text>
                 </View>
                 <Input
-                  placeholder="Your name"
+                  placeholder={t("onboarding.name_placeholder")}
                   value={name}
                   onChangeText={setName}
                   autoFocus
@@ -178,7 +182,7 @@ export default function OnboardingScreen() {
                   onSubmitEditing={handleNext}
                 />
                 {!!error && <Text className="text-error text-sm">{error}</Text>}
-                <Button label="Continue" onPress={handleNext} />
+                <Button label={t("onboarding.continue")} onPress={handleNext} />
               </View>
             )}
 
@@ -189,10 +193,10 @@ export default function OnboardingScreen() {
                     className="text-[30px] font-extrabold text-foreground"
                     style={{ letterSpacing: -0.5, lineHeight: 36 }}
                   >
-                    How do you{"\n"}measure weight?
+                    {t("onboarding.step2_title")}
                   </Text>
                   <Text className="text-[15px] text-muted leading-relaxed">
-                    You can change this anytime in settings.
+                    {t("onboarding.step2_description")}
                   </Text>
                 </View>
                 <View className="flex-row gap-4">
@@ -217,7 +221,7 @@ export default function OnboardingScreen() {
                     </Pressable>
                   ))}
                 </View>
-                <Button label="Continue" onPress={handleNext} />
+                <Button label={t("onboarding.continue")} onPress={handleNext} />
               </View>
             )}
 
@@ -228,11 +232,10 @@ export default function OnboardingScreen() {
                     className="text-[30px] font-extrabold text-foreground"
                     style={{ letterSpacing: -0.5, lineHeight: 36 }}
                   >
-                    Add your first lifts
+                    {t("onboarding.step3_title")}
                   </Text>
                   <Text className="text-[15px] text-muted leading-relaxed">
-                    Enter your current 1RM for any lifts you track. Skip if
-                    you&apos;re just getting started.
+                    {t("onboarding.step3_description")}
                   </Text>
                 </View>
 
@@ -243,7 +246,7 @@ export default function OnboardingScreen() {
                       className="flex-row items-center justify-between bg-surface border border-border rounded-xl px-4 py-2.5"
                     >
                       <Text className="text-[15px] font-semibold text-foreground flex-1">
-                        {ex}
+                        {getExerciseName(ex)}
                       </Text>
                       <View className="flex-row items-center gap-2">
                         <TextInput
@@ -271,7 +274,7 @@ export default function OnboardingScreen() {
                 <View className="flex-row gap-4 mt-1">
                   <View className="flex-1">
                     <Button
-                      label="Skip"
+                      label={t("onboarding.skip")}
                       variant="secondary"
                       onPress={handleSkip}
                       disabled={loading}
@@ -279,7 +282,7 @@ export default function OnboardingScreen() {
                   </View>
                   <View className="flex-[2]">
                     <Button
-                      label="Done"
+                      label={t("onboarding.done")}
                       onPress={handleDone}
                       loading={loading}
                       disabled={loading}

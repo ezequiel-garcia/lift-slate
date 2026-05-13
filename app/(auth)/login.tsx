@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Link, useRouter } from "expo-router";
+import { useTranslation } from "react-i18next";
 import * as authService from "@/services/auth.service";
 import * as profileService from "@/services/profile.service";
 import { useAppStore } from "@/stores/appStore";
@@ -16,12 +17,14 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { GoogleIcon } from "@/components/ui/GoogleIcon";
 import { AppleIcon } from "@/components/ui/AppleIcon";
+import { LanguageSwitcher } from "@/components/ui/LanguageSwitcher";
 
 const GOOGLE_CONFIGURED = !!process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
 const APPLE_AVAILABLE = Platform.OS === "ios";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -47,9 +50,8 @@ export default function LoginScreen() {
       const profile = await profileService.getProfile();
       router.replace(getPostLoginRoute(!!profile.display_name));
     } catch (e: unknown) {
-      // ERR_CANCELED means the user dismissed the sheet — not an error
       if ((e as { code?: string })?.code === "ERR_CANCELED") return;
-      setError("Apple sign in failed. Please try again.");
+      setError(t("auth.error_apple"));
     } finally {
       setLoading(false);
     }
@@ -60,11 +62,11 @@ export default function LoginScreen() {
     setLoading(true);
     try {
       const result = await authService.signInWithGoogle();
-      if (!result) return; // user cancelled
+      if (!result) return;
       const profile = await profileService.getProfile();
       router.replace(getPostLoginRoute(!!profile.display_name));
     } catch (e: unknown) {
-      setError("Google sign in failed. Please try again.");
+      setError(t("auth.error_google"));
     } finally {
       setLoading(false);
     }
@@ -72,7 +74,7 @@ export default function LoginScreen() {
 
   const handleSignIn = async () => {
     if (!email || !password) {
-      setError("Please enter your email and password.");
+      setError(t("auth.error_email_password"));
       return;
     }
     setError("");
@@ -82,7 +84,7 @@ export default function LoginScreen() {
       const profile = await profileService.getProfile();
       router.replace(getPostLoginRoute(!!profile.display_name));
     } catch (e: unknown) {
-      setError("Sign in failed. Please check your credentials and try again.");
+      setError(t("auth.error_credentials"));
     } finally {
       setLoading(false);
     }
@@ -103,6 +105,11 @@ export default function LoginScreen() {
           }}
           keyboardShouldPersistTaps="handled"
         >
+          {/* Language switcher */}
+          <View className="items-end mb-2">
+            <LanguageSwitcher />
+          </View>
+
           {/* Logo */}
           <View className="items-center mb-14">
             <Text
@@ -122,7 +129,7 @@ export default function LoginScreen() {
           {/* Form */}
           <View className="gap-4">
             <Input
-              placeholder="Email"
+              placeholder={t("auth.email")}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -130,7 +137,7 @@ export default function LoginScreen() {
               autoComplete="email"
             />
             <Input
-              placeholder="Password"
+              placeholder={t("auth.password")}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -143,14 +150,14 @@ export default function LoginScreen() {
               <Link href="/(auth)/forgot-password" asChild>
                 <Pressable hitSlop={8}>
                   <Text className="text-accent text-sm font-semibold">
-                    Forgot password?
+                    {t("auth.forgot_password")}
                   </Text>
                 </Pressable>
               </Link>
             </View>
 
             <Button
-              label="Sign In"
+              label={t("auth.sign_in")}
               onPress={handleSignIn}
               loading={loading}
               disabled={loading}
@@ -161,13 +168,13 @@ export default function LoginScreen() {
             <>
               <View className="flex-row items-center my-8 gap-4">
                 <View className="flex-1 h-px bg-border" />
-                <Text className="text-muted text-caption">or</Text>
+                <Text className="text-muted text-caption">{t("auth.or")}</Text>
                 <View className="flex-1 h-px bg-border" />
               </View>
               <View className="gap-3">
                 {GOOGLE_CONFIGURED && (
                   <Button
-                    label="Continue with Google"
+                    label={t("auth.continue_google")}
                     variant="secondary"
                     onPress={handleGoogleSignIn}
                     disabled={loading}
@@ -176,7 +183,7 @@ export default function LoginScreen() {
                 )}
                 {APPLE_AVAILABLE && (
                   <Button
-                    label="Continue with Apple"
+                    label={t("auth.continue_apple")}
                     variant="apple"
                     onPress={handleAppleSignIn}
                     disabled={loading}
@@ -189,12 +196,12 @@ export default function LoginScreen() {
 
           <View className="flex-row justify-center mt-8">
             <Text className="text-muted text-subtext">
-              Don&apos;t have an account?{" "}
+              {t("auth.no_account")}{" "}
             </Text>
             <Link href="/(auth)/signup" asChild>
               <Pressable hitSlop={8}>
                 <Text className="text-accent text-subtext font-semibold">
-                  Sign up
+                  {t("auth.sign_up_link")}
                 </Text>
               </Pressable>
             </Link>

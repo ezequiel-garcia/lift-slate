@@ -48,13 +48,3 @@ export const ALLOWED_PRESCRIPTIONS_BY_EQUIPMENT: Record<
   bodyweight: ["reps_only", "absolute", "bodyweight"],
   other: ["absolute", "reps_only"],
 };
-
-export const PRESCRIPTION_LABELS: Record<PrescriptionMode, string> = {
-  percentage: "% of 1RM",
-  working_weight: "Working Weight",
-  heavy: "Heavy",
-  easy: "Easy",
-  absolute: "Exact kg",
-  reps_only: "Reps only",
-  bodyweight: "Bodyweight",
-};

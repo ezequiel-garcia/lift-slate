@@ -1,4 +1,5 @@
-import { EQUIPMENT_LABELS, EQUIPMENT_ORDER } from "@/lib/constants";
+import { EQUIPMENT_ORDER } from "@/lib/constants";
+import { useEquipmentLabel } from "@/hooks/useEquipmentLabel";
 import { colors } from "@/lib/theme";
 import { createExercise } from "@/services/exercises.service";
 import { useAppStore } from "@/stores/appStore";
@@ -7,6 +8,11 @@ import { Ionicons } from "@expo/vector-icons";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { router } from "expo-router";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  useExerciseName,
+  useExerciseSearchMatch,
+} from "@/hooks/useExerciseName";
 import {
   ActivityIndicator,
   FlatList,
@@ -33,6 +39,10 @@ export function AddExerciseModal({
   availableExercises,
   isLoadingExercises,
 }: Props) {
+  const { t } = useTranslation();
+  const getExerciseName = useExerciseName();
+  const matchesSearch = useExerciseSearchMatch();
+  const getEquipmentLabel = useEquipmentLabel();
   const [mode, setMode] = useState<"browse" | "create">("browse");
   const [search, setSearch] = useState("");
   const [customName, setCustomName] = useState("");
@@ -52,7 +62,7 @@ export function AddExerciseModal({
     }) => createExercise(name, equipmentType),
     onSuccess: (exercise) => {
       queryClient.invalidateQueries({ queryKey: ["exercises"] });
-      showToast("Exercise added!");
+      showToast(t("add_exercise.toast_added"));
       handleClose();
       router.push(`/exercise/${exercise.id}?addMax=true` as never);
     },
@@ -79,9 +89,7 @@ export function AddExerciseModal({
 
   const filtered = (
     search
-      ? availableExercises.filter((e) =>
-          e.name.toLowerCase().includes(search.toLowerCase()),
-        )
+      ? availableExercises.filter((e) => matchesSearch(e.name, search))
       : availableExercises
   )
     .slice()
@@ -103,7 +111,9 @@ export function AddExerciseModal({
         {/* Header */}
         <View className="flex-row justify-between items-center px-5 pt-2 pb-4">
           <Text className="text-xl font-bold text-foreground">
-            {mode === "browse" ? "Add Exercise" : "Create Exercise"}
+            {mode === "browse"
+              ? t("add_exercise.title_add")
+              : t("add_exercise.title_create")}
           </Text>
           <Pressable
             onPress={handleClose}
@@ -120,7 +130,7 @@ export function AddExerciseModal({
               <Ionicons name="search" size={18} color={colors.muted} />
               <TextInput
                 className="flex-1 py-3 px-2.5 text-foreground text-[16px]"
-                placeholder="Search exercises..."
+                placeholder={t("add_exercise.search_placeholder")}
                 placeholderTextColor={colors.muted}
                 value={search}
                 onChangeText={setSearch}
@@ -141,10 +151,10 @@ export function AddExerciseModal({
                     onPress={() => handlePickExercise(item.id)}
                   >
                     <Text className="text-[16px] text-foreground flex-1">
-                      {item.name}
+                      {getExerciseName(item.name)}
                     </Text>
                     <Text className="text-sm text-muted ml-3">
-                      {EQUIPMENT_LABELS[item.equipment_type]}
+                      {getEquipmentLabel(item.equipment_type)}
                     </Text>
                   </Pressable>
                 )}
@@ -155,8 +165,8 @@ export function AddExerciseModal({
                   <View className="items-center pt-8">
                     <Text className="text-base text-muted">
                       {search
-                        ? "No exercises found"
-                        : "All exercises already added"}
+                        ? t("add_exercise.no_results")
+                        : t("add_exercise.all_added")}
                     </Text>
                   </View>
                 }
@@ -178,7 +188,7 @@ export function AddExerciseModal({
                 color={colors.accent}
               />
               <Text className="text-accent font-semibold text-[15px]">
-                Create custom exercise
+                {t("add_exercise.create_custom")}
               </Text>
             </Pressable>
           </>
@@ -189,11 +199,11 @@ export function AddExerciseModal({
           >
             <View className="flex-1 p-5">
               <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
-                Name
+                {t("add_exercise.name_label")}
               </Text>
               <TextInput
                 className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-[16px]"
-                placeholder="e.g. Romanian Deadlift"
+                placeholder={t("add_exercise.name_placeholder")}
                 placeholderTextColor={colors.muted}
                 value={customName}
                 onChangeText={setCustomName}
@@ -202,7 +212,7 @@ export function AddExerciseModal({
               />
 
               <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mt-6 mb-3">
-                Equipment
+                {t("add_exercise.equipment_label")}
               </Text>
               <View className="flex-row flex-wrap gap-2">
                 {EQUIPMENT_ORDER.map((eq) => (
@@ -225,7 +235,7 @@ export function AddExerciseModal({
                           : "text-muted"
                       }`}
                     >
-                      {EQUIPMENT_LABELS[eq]}
+                      {getEquipmentLabel(eq)}
                     </Text>
                   </Pressable>
                 ))}
@@ -244,14 +254,14 @@ export function AddExerciseModal({
                   <ActivityIndicator color={colors.bg} />
                 ) : (
                   <Text className="text-bg font-bold text-[16px]">
-                    Create Exercise
+                    {t("add_exercise.create_button")}
                   </Text>
                 )}
               </Pressable>
 
               {createMutation.isError && (
                 <Text className="text-error text-base text-center mt-3">
-                  Failed to create exercise. Try again.
+                  {t("add_exercise.error_create")}
                 </Text>
               )}
             </View>

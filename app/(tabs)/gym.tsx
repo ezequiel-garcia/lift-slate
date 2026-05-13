@@ -8,6 +8,7 @@ import { useLeaveGym, useMyGym } from "@/hooks/useGym";
 import { useExerciseReferences } from "@/hooks/useExerciseReferences";
 import { useProfile } from "@/hooks/useProfile";
 import { useDeleteWorkout, useWorkoutsByDate } from "@/hooks/useWorkouts";
+import { translateError } from "@/lib/translateError";
 import { colors } from "@/lib/theme";
 import { getCurrentExerciseReferences } from "@/services/exerciseReferences.service";
 import { useAppStore } from "@/stores/appStore";
@@ -15,6 +16,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { format } from "date-fns";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   Pressable,
@@ -71,20 +73,21 @@ export default function GymScreen() {
 }
 
 function NoGymView() {
+  const { t } = useTranslation();
   return (
     <SafeAreaView className="flex-1 bg-bg justify-center" edges={["top"]}>
       <EmptyState
         icon="fitness-outline"
-        title="Join your gym community"
-        description="Connect with your gym to view workouts, track progress alongside teammates, and get guidance from coaches."
+        title={t("gym.empty_title")}
+        description={t("gym.empty_description")}
         action={
           <View className="gap-3">
             <Button
-              label="Join a Gym"
+              label={t("gym.join_button")}
               onPress={() => router.push("/gym/join")}
             />
             <Button
-              label="Create a Gym"
+              label={t("gym.create_button")}
               variant="secondary"
               onPress={() => router.push("/gym/create")}
               icon={
@@ -119,6 +122,7 @@ function InGymView({
   onDateChange: (date: Date) => void;
   workoutsQuery: ReturnType<typeof useWorkoutsByDate>;
 }) {
+  const { t } = useTranslation();
   const { data: workouts, isLoading, refetch } = workoutsQuery;
   const [refreshing, setRefreshing] = useState(false);
   const [leaveModalVisible, setLeaveModalVisible] = useState(false);
@@ -132,7 +136,7 @@ function InGymView({
   function handleLeaveGym() {
     if (!gym.membershipId) return;
     leaveGym(gym.membershipId, {
-      onError: (err: Error) => showToast(err.message, "error"),
+      onError: (err: Error) => showToast(translateError(err.message), "error"),
     });
   }
 
@@ -161,15 +165,19 @@ function InGymView({
       {/* Header */}
       <View className="flex-row items-center justify-between px-5 pt-5 pb-3">
         <Text
+          numberOfLines={1}
           style={{
             fontFamily: "CormorantGaramond-Regular",
             fontSize: 56,
             lineHeight: 58,
             color: colors.foreground,
             letterSpacing: -1,
+            flex: 1,
+            marginRight: 8,
           }}
         >
-          My <Text style={{ color: colors.accent }}>Gym</Text>
+          {t("gym.title_my")}{" "}
+          <Text style={{ color: colors.accent }}>{t("gym.title_accent")}</Text>
         </Text>
         <View className="flex-row items-center">
           {canCreateWorkout && (

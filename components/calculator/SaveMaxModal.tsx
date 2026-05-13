@@ -8,12 +8,14 @@ import {
   FlatList,
   ActivityIndicator,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useExercises } from "@/hooks/useExercises";
 import { useCreateExerciseReference } from "@/hooks/useExerciseReferences";
 import { useAppStore } from "@/stores/appStore";
-import { EQUIPMENT_LABELS } from "@/lib/constants";
+import { useExerciseSearchMatch } from "@/hooks/useExerciseName";
+import { useEquipmentLabel } from "@/hooks/useEquipmentLabel";
 import { WeightUnit } from "@/lib/units";
 import { colors } from "@/lib/theme";
 
@@ -34,6 +36,9 @@ export function SaveMaxModal({
   unit,
   sourceDescription,
 }: Props) {
+  const { t } = useTranslation();
+  const getEquipmentLabel = useEquipmentLabel();
+  const matchesSearch = useExerciseSearchMatch();
   const { data: exercises = [], isLoading } = useExercises();
   const { mutate: saveMax, isPending: isSaving } = useCreateExerciseReference();
   const showToast = useAppStore((s) => s.showToast);
@@ -45,9 +50,7 @@ export function SaveMaxModal({
     a.name.localeCompare(b.name),
   );
   const filtered = search
-    ? sortedExercises.filter((e) =>
-        e.name.toLowerCase().includes(search.toLowerCase()),
-      )
+    ? sortedExercises.filter((e) => matchesSearch(e.name, search))
     : sortedExercises;
 
   function handleSave() {
@@ -57,11 +60,13 @@ export function SaveMaxModal({
         exerciseId: selectedId,
         weight: estimatedOneRM,
         unit,
-        notes: `Estimated from ${sourceDescription} (Epley)`,
+        notes: t("save_max.estimated_from_note", {
+          description: sourceDescription,
+        }),
       },
       {
         onSuccess: () => {
-          showToast("1RM saved!");
+          showToast(t("save_max.toast_saved"));
           handleClose();
         },
       },
@@ -90,7 +95,7 @@ export function SaveMaxModal({
         {/* Header */}
         <View className="flex-row justify-between items-center px-5 pt-2 pb-4">
           <Text className="text-xl font-bold text-foreground">
-            Save 1RM to exercise
+            {t("save_max.title")}
           </Text>
           <Pressable
             onPress={handleClose}
@@ -108,10 +113,10 @@ export function SaveMaxModal({
           <View className="flex-1 items-center justify-center px-6">
             <Ionicons name="barbell-outline" size={40} color={colors.muted} />
             <Text className="text-foreground text-lg font-bold mt-4 mb-2 text-center">
-              No exercises yet
+              {t("save_max.empty_title")}
             </Text>
             <Text className="text-muted text-base text-center mb-6">
-              Add an exercise from My Lifts to save your 1RM
+              {t("save_max.empty_description")}
             </Text>
             <Pressable
               className="bg-surface rounded-2xl px-6 py-3.5"
@@ -130,7 +135,7 @@ export function SaveMaxModal({
               <Ionicons name="search" size={18} color={colors.muted} />
               <TextInput
                 className="flex-1 py-3 px-2.5 text-foreground text-[16px]"
-                placeholder="Search exercises..."
+                placeholder={t("save_max.search_placeholder")}
                 placeholderTextColor={colors.muted}
                 value={search}
                 onChangeText={setSearch}
@@ -149,7 +154,7 @@ export function SaveMaxModal({
               ListEmptyComponent={
                 <View className="items-center pt-8">
                   <Text className="text-muted text-base">
-                    No exercises found
+                    {t("save_max.no_results")}
                   </Text>
                 </View>
               }
@@ -174,7 +179,7 @@ export function SaveMaxModal({
                       />
                     ) : (
                       <Text className="text-sm text-muted ml-3">
-                        {EQUIPMENT_LABELS[item.equipment_type]}
+                        {getEquipmentLabel(item.equipment_type)}
                       </Text>
                     )}
                   </Pressable>
@@ -190,7 +195,7 @@ export function SaveMaxModal({
                 onPress={handleClose}
               >
                 <Text className="text-foreground font-semibold text-[15px]">
-                  Cancel
+                  {t("common.cancel")}
                 </Text>
               </Pressable>
               <Pressable
@@ -201,7 +206,9 @@ export function SaveMaxModal({
                 {isSaving ? (
                   <ActivityIndicator color={colors.bg} />
                 ) : (
-                  <Text className="text-bg font-bold text-[15px]">Save</Text>
+                  <Text className="text-bg font-bold text-[15px]">
+                    {t("common.save")}
+                  </Text>
                 )}
               </Pressable>
             </View>

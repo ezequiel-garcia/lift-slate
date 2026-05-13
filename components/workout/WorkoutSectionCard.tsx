@@ -1,6 +1,7 @@
 import { colors } from "@/lib/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { EquipmentType } from "@/types/exercise";
@@ -44,6 +45,7 @@ export function WorkoutSectionCard({
   openBlockId = null,
   onOpenBlockChange,
 }: Props) {
+  const { t } = useTranslation();
   const [showExercisePicker, setShowExercisePicker] = useState(false);
   const [expandedItemId, setExpandedItemId] = useState<string | null>(null);
   const [localCollapsed, setLocalCollapsed] = useState(false);
@@ -131,7 +133,9 @@ export function WorkoutSectionCard({
           <Pressable
             onPress={toggleBlockCollapsed}
             accessibilityLabel={
-              blockCollapsed ? "Expand block" : "Collapse block"
+              blockCollapsed
+                ? t("workout_a11y.expand_block")
+                : t("workout_a11y.collapse_block")
             }
             accessibilityRole="button"
             hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
@@ -149,24 +153,24 @@ export function WorkoutSectionCard({
               onPress={expandThisBlock}
               className="flex-1 min-w-0 pr-1"
               accessibilityRole="button"
-              accessibilityLabel="Expand block"
+              accessibilityLabel={t("workout_a11y.expand_block")}
             >
               <Text
                 className="text-foreground text-base font-semibold"
                 numberOfLines={1}
               >
-                {section.title.trim() || "Untitled block"}
+                {section.title.trim() || t("workout.block_untitled")}
               </Text>
               <Text className="text-muted text-xs mt-0.5">
                 {exerciseCount === 0
-                  ? "No exercises"
-                  : `${exerciseCount} ${exerciseCount === 1 ? "exercise" : "exercises"}`}
+                  ? t("workout.block_no_exercises")
+                  : t("workout.block_exercises", { count: exerciseCount })}
               </Text>
             </Pressable>
           ) : (
             <TextInput
               className="flex-1 text-foreground min-w-0 text-[16px] font-semibold py-0"
-              placeholder="Block name..."
+              placeholder={t("workout.block_name_placeholder")}
               placeholderTextColor={colors.muted}
               value={section.title}
               onChangeText={(v) => onUpdate({ ...section, title: v })}
@@ -175,7 +179,7 @@ export function WorkoutSectionCard({
 
           <Pressable
             onPress={confirmRemoveBlock}
-            accessibilityLabel="Remove block"
+            accessibilityLabel={t("workout_a11y.remove_block")}
             accessibilityRole="button"
             hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             className="p-2 -mr-1"
@@ -194,7 +198,9 @@ export function WorkoutSectionCard({
           <View className="px-3 py-2">
             {section.items.length === 0 ? (
               <View className="py-6 items-center">
-                <Text className="text-muted text-sm">No exercises yet</Text>
+                <Text className="text-muted text-sm">
+                  {t("workout.block_no_exercises_yet")}
+                </Text>
               </View>
             ) : (
               <View className="gap-1">
@@ -225,8 +231,8 @@ export function WorkoutSectionCard({
               <Ionicons name="add" size={16} color={colors.accent} />
               <Text className="text-accent text-sm font-semibold">
                 {section.items.length > 0
-                  ? "Add another exercise"
-                  : "Add exercise"}
+                  ? t("workout.block_add_another")
+                  : t("workout.block_add_exercise")}
               </Text>
             </Pressable>
           </View>
@@ -241,9 +247,11 @@ export function WorkoutSectionCard({
       />
       <ConfirmModal
         visible={deleteBlockVisible}
-        title="Remove Block?"
-        message={`This removes "${section.title?.trim() || "this block"}" and every exercise inside it.`}
-        confirmLabel="Remove"
+        title={t("workout.block_remove_title")}
+        message={t("workout.block_remove_message", {
+          title: section.title?.trim() || t("workout.block_untitled"),
+        })}
+        confirmLabel={t("workout.block_remove_confirm")}
         variant="destructive"
         onCancel={() => setDeleteBlockVisible(false)}
         onConfirm={() => {

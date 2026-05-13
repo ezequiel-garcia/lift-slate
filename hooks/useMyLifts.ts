@@ -1,14 +1,20 @@
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
+import { useExerciseSearchMatch } from "@/hooks/useExerciseName";
 import { useExerciseReferences } from "./useExerciseReferences";
 import { useExercises } from "./useExercises";
 import { useProfile } from "./useProfile";
-import { EQUIPMENT_ORDER, EQUIPMENT_LABELS } from "@/lib/constants";
+import { EQUIPMENT_ORDER } from "@/lib/constants";
 import { ExerciseSummary } from "@/types/exercise";
 import { WeightUnit } from "@/lib/units";
 
 export type MyLiftsSection = { title: string; data: ExerciseSummary[] };
 
 export function useMyLifts(search: string) {
+  const { t } = useTranslation();
+  const matchesSearch = useExerciseSearchMatch();
+  const getEquipmentLabel = (type: (typeof EQUIPMENT_ORDER)[number]) =>
+    t(`equipment.${type}`);
   const {
     data: maxes = [],
     isLoading: maxesLoading,
@@ -68,9 +74,8 @@ export function useMyLifts(search: string) {
 
   const filtered = useMemo(() => {
     if (!search) return exerciseSummaries;
-    const q = search.toLowerCase();
-    return exerciseSummaries.filter((e) => e.name.toLowerCase().includes(q));
-  }, [exerciseSummaries, search]);
+    return exerciseSummaries.filter((e) => matchesSearch(e.name, search));
+  }, [exerciseSummaries, search, matchesSearch]);
 
   const sections = useMemo((): MyLiftsSection[] => {
     const result: MyLiftsSection[] = [];
@@ -80,7 +85,7 @@ export function useMyLifts(search: string) {
         .filter((e) => e.equipmentType === eq)
         .sort((a, b) => a.name.localeCompare(b.name));
       if (items.length)
-        result.push({ title: EQUIPMENT_LABELS[eq], data: items });
+        result.push({ title: getEquipmentLabel(eq), data: items });
     }
 
     return result;

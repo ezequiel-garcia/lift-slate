@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 import { useUpdateAthleteReference } from "@/hooks/useExerciseReferences";
 import { fromKg, WeightUnit } from "@/lib/units";
 import { useAppStore } from "@/stores/appStore";
@@ -37,6 +38,7 @@ export function EditAthleteMaxModal({
   unit,
   onClose,
 }: Props) {
+  const { t } = useTranslation();
   const displayWeight = fromKg(currentWeightKg, unit);
   const [weight, setWeight] = useState(
     displayWeight.toFixed(1).replace(/\.0$/, ""),
@@ -71,7 +73,7 @@ export function EditAthleteMaxModal({
       },
       {
         onSuccess: () => {
-          showToast("Max updated!");
+          showToast(t("edit_athlete_max.toast_updated"));
           onClose();
         },
       },
@@ -98,7 +100,7 @@ export function EditAthleteMaxModal({
 
         <View className="flex-row justify-between items-center px-5 pt-2 pb-4">
           <Text className="text-xl font-bold text-foreground">
-            Edit {exerciseName}
+            {t("edit_athlete_max.title", { name: exerciseName })}
           </Text>
           <Pressable
             onPress={onClose}
@@ -115,7 +117,7 @@ export function EditAthleteMaxModal({
         >
           <View className="flex-1 p-5">
             <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
-              1RM Weight ({unit})
+              {t("add_max.1rm_label", { unit })}
             </Text>
             <TextInput
               className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-[18px] mb-5"
@@ -126,11 +128,11 @@ export function EditAthleteMaxModal({
             />
 
             <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
-              Notes (optional)
+              {t("add_max.notes_label")}
             </Text>
             <TextInput
               className="bg-surface rounded-xl px-4 py-3.5 text-foreground text-base mb-6"
-              placeholder="e.g. Updated by coach"
+              placeholder={t("edit_athlete_max.notes_placeholder")}
               placeholderTextColor={colors.muted}
               value={notes}
               onChangeText={setNotes}
@@ -147,14 +149,14 @@ export function EditAthleteMaxModal({
                 <ActivityIndicator color={colors.bg} />
               ) : (
                 <Text className="text-bg font-bold text-[16px]">
-                  Update Max
+                  {t("edit_athlete_max.update_button")}
                 </Text>
               )}
             </Pressable>
 
             {isError && (
               <Text className="text-error text-base text-center mt-3">
-                Failed to update. Try again.
+                {t("edit_athlete_max.error_update")}
               </Text>
             )}
           </View>
