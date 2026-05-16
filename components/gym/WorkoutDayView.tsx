@@ -1,9 +1,10 @@
 import { useState } from "react";
+import { useExerciseName } from "@/hooks/useExerciseName";
 import { View, Text, Pressable } from "react-native";
 import { router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { WorkoutWithSections, WorkoutItem } from "@/services/workout.service";
-import { BLOCK_TYPE_LABELS } from "@/components/workout/constants";
+import { translateBlockType } from "@/lib/translateError";
 import {
   calculatePercentage,
   formatWeight,
@@ -14,16 +15,23 @@ import { heavyRange, easyRange } from "@/lib/kettlebells";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ActionSheet } from "@/components/ui/ActionSheet";
 import { colors } from "@/lib/theme";
-import { format, isValid, parseISO } from "date-fns";
+import { isValid, parseISO } from "date-fns";
+import type { Locale } from "date-fns";
+import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
+import { DATE_FNS_LOCALES, formatDate } from "@/lib/i18n";
 
 type MaxMap = Record<string, number>;
 
-function workoutHeadingLabel(workout: WorkoutWithSections): string {
+function workoutHeadingLabel(
+  workout: WorkoutWithSections,
+  locale?: Locale,
+): string {
   const custom = workout.title?.trim();
   if (custom) return custom;
   const parsed = parseISO(workout.scheduled_date);
   return isValid(parsed)
-    ? format(parsed, "EEE, MMM d")
+    ? formatDate(parsed, locale ? "EEE, d MMM" : "EEE, MMM d", locale)
     : workout.scheduled_date;
 }
 
@@ -56,6 +64,7 @@ function resolvePrescription(
   item: WorkoutItem,
   maxMap: MaxMap,
   unit: WeightUnit,
+  t: TFunction,
 ): ResolvedPrescription | null {
   const mode = item.prescription_mode;
   const refKg = item.exercise_id ? maxMap[item.exercise_id] : undefined;
@@ -77,11 +86,11 @@ function resolvePrescription(
       return {
         text: (
           <Text className="text-muted text-sm">
-            {item.percentage}% (no max recorded)
+            {t("workout_day.no_max_recorded", { percentage: item.percentage })}
           </Text>
         ),
         needsReference: true,
-        referenceLabel: "1RM",
+        referenceLabel: t("workout_day.ref_1rm"),
       };
     }
     if (item.weight_kg) {
@@ -105,11 +114,13 @@ function resolvePrescription(
         return {
           text: (
             <Text className="text-muted text-sm">
-              {item.percentage}% (no 1RM recorded)
+              {t("workout_day.no_1rm_recorded", {
+                percentage: item.percentage,
+              })}
             </Text>
           ),
           needsReference: true,
-          referenceLabel: "1RM",
+          referenceLabel: t("workout_day.ref_1rm"),
         };
       const w = calculatePercentage(refKg, item.percentage, unit);
       return {
@@ -126,16 +137,20 @@ function resolvePrescription(
       if (!refKg)
         return {
           text: (
-            <Text className="text-muted text-sm">Working weight (not set)</Text>
+            <Text className="text-muted text-sm">
+              {t("workout_day.working_weight_not_set")}
+            </Text>
           ),
           needsReference: true,
-          referenceLabel: "working weight",
+          referenceLabel: t("workout_day.ref_working_weight"),
         };
       const w = fromKg(refKg, unit);
       return {
         text: (
           <Text className="text-accent font-semibold text-sm">
-            Working Weight: {formatWeight(Math.round(w), unit)}
+            {t("workout_day.working_weight_value", {
+              weight: formatWeight(Math.round(w), unit),
+            })}
           </Text>
         ),
         needsReference: false,
@@ -148,18 +163,27 @@ function resolvePrescription(
         return {
           text: (
             <Text className="text-muted text-sm">
-              {mode === "heavy" ? "Heavy" : "Easy"} (no working weight)
+              {mode === "heavy"
+                ? t("workout_day.heavy_not_set")
+                : t("workout_day.easy_not_set")}
             </Text>
           ),
           needsReference: true,
-          referenceLabel: "working weight",
+          referenceLabel: t("workout_day.ref_working_weight"),
         };
       const range = mode === "heavy" ? heavyRange(refKg) : easyRange(refKg);
-      const label = mode === "heavy" ? "Heavy" : "Easy";
+      const rangeLabel =
+        mode === "heavy"
+          ? t("workout_day.heavy_range", {
+              range: formatRangeKg(range, unit),
+            })
+          : t("workout_day.easy_range", {
+              range: formatRangeKg(range, unit),
+            });
       return {
         text: (
           <Text className="text-accent font-semibold text-sm">
-            {label}: ~{formatRangeKg(range, unit)}
+            {rangeLabel}
           </Text>
         ),
         needsReference: false,
@@ -208,17 +232,21 @@ function StructuredItem({
   maxMap: MaxMap;
   unit: WeightUnit;
 }) {
-  const exerciseName = item.exercises?.name ?? "Exercise";
+  const { t } = useTranslation();
+  const getExerciseName = useExerciseName();
+  const exerciseName = item.exercises?.name
+    ? getExerciseName(item.exercises.name)
+    : t("workout_day.exercise_fallback");
   const setsReps =
     item.sets && item.reps
       ? `${item.sets}×${item.reps}`
       : item.sets
-        ? `${item.sets} sets`
+        ? `${item.sets} ${t("workout_day.sets_suffix")}`
         : item.reps
-          ? `${item.reps} reps`
+          ? `${item.reps} ${t("workout_day.reps_suffix")}`
           : null;
 
-  const resolved = resolvePrescription(item, maxMap, unit);
+  const resolved = resolvePrescription(item, maxMap, unit, t);
 
   return (
     <View className="py-3">
@@ -243,7 +271,9 @@ function StructuredItem({
           style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
         >
           <Text className="text-accent text-xs mt-1">
-            + Add {resolved.referenceLabel} to calculate weight
+            {t("workout_day.add_reference", {
+              label: resolved.referenceLabel,
+            })}
           </Text>
         </Pressable>
       )}
@@ -255,20 +285,21 @@ function StructuredItem({
 }
 
 function CustomExerciseItem({ item }: { item: WorkoutItem }) {
+  const { t } = useTranslation();
   const setsReps =
     item.sets && item.reps
       ? `${item.sets}×${item.reps}`
       : item.sets
-        ? `${item.sets} sets`
+        ? `${item.sets} ${t("workout_day.sets_suffix")}`
         : item.reps
-          ? `${item.reps} reps`
+          ? `${item.reps} ${t("workout_day.reps_suffix")}`
           : null;
 
   return (
     <View className="py-3">
       <View className="flex-row items-baseline flex-wrap">
         <Text className="text-foreground text-base font-semibold">
-          {item.content || "Custom Exercise"}
+          {item.content || t("workout_day.custom_exercise_fallback")}
         </Text>
         {setsReps && (
           <Text className="text-muted text-sm">
@@ -293,17 +324,20 @@ export function WorkoutDayView({
   selectedDate,
   onDeleteWorkout,
 }: Props) {
+  const { t, i18n } = useTranslation();
+  const locale =
+    DATE_FNS_LOCALES[i18n.language as keyof typeof DATE_FNS_LOCALES];
   const [activeWorkoutId, setActiveWorkoutId] = useState<string | null>(null);
 
   if (workouts.length === 0) {
     return (
       <EmptyState
         icon="barbell-outline"
-        title="No workout posted"
+        title={t("workout_day.no_workout_title")}
         description={
           canEditWorkout
-            ? "No workout scheduled for this day."
-            : "Check back later or browse other days."
+            ? t("workout_day.no_workout_coach")
+            : t("workout_day.no_workout_athlete")
         }
         action={
           canEditWorkout && gymId ? (
@@ -320,7 +354,9 @@ export function WorkoutDayView({
               className="bg-accent rounded-2xl py-3 items-center"
               style={({ pressed }) => ({ opacity: pressed ? 0.8 : 1 })}
             >
-              <Text className="text-bg font-bold text-base">Add Workout</Text>
+              <Text className="text-bg font-bold text-base">
+                {t("workout_day.add_workout")}
+              </Text>
             </Pressable>
           ) : undefined
         }
@@ -333,7 +369,7 @@ export function WorkoutDayView({
   return (
     <View className="gap-6">
       {workouts.map((workout) => {
-        const heading = workoutHeadingLabel(workout);
+        const heading = workoutHeadingLabel(workout, locale);
         return (
           <View key={workout.id}>
             {/* Workout header */}
@@ -365,10 +401,7 @@ export function WorkoutDayView({
             {workout.sections.map((section) => (
               <View key={section.id} className="mb-5">
                 <Text className="text-accent text-xs font-bold uppercase tracking-wider mb-2">
-                  {section.title ||
-                    (section.block_type
-                      ? BLOCK_TYPE_LABELS[section.block_type]
-                      : "")}
+                  {section.title || translateBlockType(section.block_type)}
                 </Text>
                 <View className="bg-surface rounded-2xl px-4 divide-y divide-border">
                   {section.items.map((item) =>
@@ -392,22 +425,22 @@ export function WorkoutDayView({
 
       <ActionSheet
         visible={!!activeWorkoutId}
-        title={activeWorkout ? workoutHeadingLabel(activeWorkout) : "Workout"}
+        title={activeWorkout ? workoutHeadingLabel(activeWorkout, locale) : ""}
         onClose={() => setActiveWorkoutId(null)}
         options={[
           {
-            label: "Edit",
+            label: t("workout_day.edit"),
             onPress: () =>
               router.push(
                 `/gym/${gymId}/workout/new?workoutId=${activeWorkoutId}`,
               ),
           },
           {
-            label: "Delete",
+            label: t("workout_day.delete"),
             destructive: true,
             onPress: () => onDeleteWorkout?.(activeWorkoutId!),
           },
-          { label: "Cancel", cancel: true, onPress: () => {} },
+          { label: t("common.cancel"), cancel: true, onPress: () => {} },
         ]}
       />
     </View>

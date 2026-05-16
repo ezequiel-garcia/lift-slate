@@ -10,14 +10,12 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, router } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
 
 import { colors } from "@/lib/theme";
 import { WeightUnit } from "@/lib/units";
-import {
-  EQUIPMENT_ORDER,
-  EQUIPMENT_LABELS,
-  isValidUUID,
-} from "@/lib/constants";
+import { EQUIPMENT_ORDER, isValidUUID } from "@/lib/constants";
+import { useEquipmentLabel } from "@/hooks/useEquipmentLabel";
 import { useAthleteReferences } from "@/hooks/useExerciseReferences";
 import { useGymMembers, useMyGym, useRemoveMember } from "@/hooks/useGym";
 import { useUpdateMemberRole } from "@/hooks/useRoles";
@@ -31,6 +29,8 @@ import { ConfirmModal } from "@/components/ui/ConfirmModal";
 type Section = { title: string; data: ExerciseSummary[] };
 
 export default function AthleteProfileScreen() {
+  const { t } = useTranslation();
+  const getEquipmentLabel = useEquipmentLabel();
   const { id: gymId, userId } = useLocalSearchParams<{
     id: string;
     userId: string;
@@ -102,7 +102,7 @@ export default function AthleteProfileScreen() {
         .filter((e) => e.equipmentType === eq)
         .sort((a, b) => a.name.localeCompare(b.name));
       if (items.length)
-        result.push({ title: EQUIPMENT_LABELS[eq], data: items });
+        result.push({ title: getEquipmentLabel(eq), data: items });
     }
     return result;
   })();
@@ -156,7 +156,7 @@ export default function AthleteProfileScreen() {
             {athleteName}
           </Text>
           <Text className="text-muted text-caption">
-            {allowCoachEdit ? "Tap a lift to view" : "View only"}
+            {allowCoachEdit ? t("athlete.tap_to_view") : t("athlete.view_only")}
           </Text>
         </View>
         {!allowCoachEdit && (
@@ -168,15 +168,15 @@ export default function AthleteProfileScreen() {
 
       {isError ? (
         <ErrorState
-          message="Failed to load athlete maxes"
+          message={t("athlete.error_load")}
           onRetry={() => refetch()}
         />
       ) : exerciseSummaries.length === 0 ? (
         <View className="flex-1 justify-center">
           <EmptyState
             icon="barbell-outline"
-            title="No lifts recorded"
-            description={`${athleteName} hasn't recorded any lifts yet.`}
+            title={t("athlete.empty_title")}
+            description={t("athlete.empty_description", { name: athleteName })}
           />
         </View>
       ) : (
@@ -224,7 +224,9 @@ export default function AthleteProfileScreen() {
             disabled={updatingRole || removing}
           >
             <Text className="text-foreground text-[16px]">
-              {member?.role === "coach" ? "Make Athlete" : "Make Coach"}
+              {member?.role === "coach"
+                ? t("athlete.make_athlete")
+                : t("athlete.make_coach")}
             </Text>
           </Pressable>
           <View className="h-px bg-border mx-5" />
@@ -234,7 +236,9 @@ export default function AthleteProfileScreen() {
             onPress={() => setModalType("remove")}
             disabled={updatingRole || removing}
           >
-            <Text className="text-error text-[16px]">Remove from Gym</Text>
+            <Text className="text-error text-[16px]">
+              {t("athlete.remove_from_gym")}
+            </Text>
           </Pressable>
           <View className="pb-8" />
         </View>
@@ -242,9 +246,21 @@ export default function AthleteProfileScreen() {
 
       <ConfirmModal
         visible={modalType === "role"}
-        title={member?.role === "coach" ? "Make Athlete" : "Make Coach"}
-        message={`Make ${athleteName} a ${member?.role === "coach" ? "athlete" : "coach"}?`}
-        confirmLabel={member?.role === "coach" ? "Make Athlete" : "Make Coach"}
+        title={
+          member?.role === "coach"
+            ? t("athlete.make_athlete_title")
+            : t("athlete.make_coach_title")
+        }
+        message={
+          member?.role === "coach"
+            ? t("athlete.make_athlete_message", { name: athleteName })
+            : t("athlete.make_coach_message", { name: athleteName })
+        }
+        confirmLabel={
+          member?.role === "coach"
+            ? t("athlete.make_athlete")
+            : t("athlete.make_coach")
+        }
         variant="primary"
         onCancel={() => setModalType(null)}
         onConfirm={handleModalConfirm}
@@ -252,9 +268,9 @@ export default function AthleteProfileScreen() {
       />
       <ConfirmModal
         visible={modalType === "remove"}
-        title="Remove Member"
-        message={`Remove ${athleteName} from the gym? They will need to rejoin with an invite link.`}
-        confirmLabel="Remove"
+        title={t("athlete.remove_title")}
+        message={t("athlete.remove_message", { name: athleteName })}
+        confirmLabel={t("common.remove")}
         variant="destructive"
         onCancel={() => setModalType(null)}
         onConfirm={handleModalConfirm}

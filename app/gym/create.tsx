@@ -12,6 +12,8 @@ import { Image } from "expo-image";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons } from "@expo/vector-icons";
+import { useTranslation } from "react-i18next";
+import { translateError } from "@/lib/translateError";
 import { useCreateGym } from "@/hooks/useGym";
 import { uploadGymLogo } from "@/services/storage.service";
 import { useAppStore } from "@/stores/appStore";
@@ -20,6 +22,7 @@ import { Input } from "@/components/ui/Input";
 import { colors } from "@/lib/theme";
 
 export default function CreateGymScreen() {
+  const { t } = useTranslation();
   const router = useRouter();
   const createGym = useCreateGym();
   const showToast = useAppStore((s) => s.showToast);
@@ -34,7 +37,7 @@ export default function CreateGymScreen() {
   const pickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
-      setError("Photo library permission is required to pick a logo.");
+      setError(t("create_gym.error_permission"));
       return;
     }
 
@@ -54,7 +57,7 @@ export default function CreateGymScreen() {
   const handleCreate = async () => {
     const trimmedName = name.trim();
     if (!trimmedName) {
-      setError("Gym name is required.");
+      setError(t("create_gym.error_name_required"));
       return;
     }
 
@@ -80,16 +83,14 @@ export default function CreateGymScreen() {
         logoUrl,
       });
 
-      showToast("Gym created successfully!");
+      showToast(t("create_gym.success_toast"));
       router.replace("/(tabs)/gym");
     } catch (e: any) {
       const raw = e?.message || e?.error_description || "";
       if (raw.includes("gym_memberships_user_id_key")) {
-        setError(
-          "You already belong to a gym. Leave your current gym before creating a new one.",
-        );
+        setError(t("create_gym.error_already_in_gym"));
       } else {
-        setError("Something went wrong. Please try again.");
+        setError(translateError(raw) || t("common.error_generic"));
       }
     } finally {
       setLoading(false);
@@ -110,7 +111,7 @@ export default function CreateGymScreen() {
           <Ionicons name="chevron-back" size={20} color={colors.foreground} />
         </Pressable>
         <Text className="flex-1 text-center text-foreground text-lg font-bold -ml-10">
-          Create Gym
+          {t("create_gym.title")}
         </Text>
       </View>
 
@@ -142,7 +143,9 @@ export default function CreateGymScreen() {
                   size={28}
                   color={colors.muted}
                 />
-                <Text className="text-muted text-xs mt-1">Add Logo</Text>
+                <Text className="text-muted text-xs mt-1">
+                  {t("create_gym.add_logo")}
+                </Text>
               </View>
             )}
           </Pressable>
@@ -150,23 +153,23 @@ export default function CreateGymScreen() {
           {/* Form */}
           <View className="gap-4">
             <Input
-              label="Gym Name *"
-              placeholder="e.g. Iron Temple"
+              label={t("create_gym.gym_name_label")}
+              placeholder={t("create_gym.gym_name_placeholder")}
               value={name}
               onChangeText={setName}
               autoCapitalize="words"
             />
             <Input
-              label="Description"
-              placeholder="Tell athletes about your gym..."
+              label={t("create_gym.description_label")}
+              placeholder={t("create_gym.description_placeholder")}
               value={description}
               onChangeText={setDescription}
               multiline
               style={{ minHeight: 100, textAlignVertical: "top" }}
             />
             <Input
-              label="Address"
-              placeholder="123 Main St, City"
+              label={t("create_gym.address_label")}
+              placeholder={t("create_gym.address_placeholder")}
               value={address}
               onChangeText={setAddress}
               autoCapitalize="words"
@@ -177,7 +180,7 @@ export default function CreateGymScreen() {
 
           <View className="mt-6">
             <Button
-              label="Create Gym"
+              label={t("create_gym.create_button")}
               onPress={handleCreate}
               loading={loading}
               disabled={loading}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   View,
   Text,
@@ -37,19 +38,24 @@ function getDeepLink(token: string) {
   return `${INVITE_BASE_URL}/gym/join?token=${token}`;
 }
 
-function formatCountdown(expiresAt: string): string {
+function formatCountdown(
+  expiresAt: string,
+  expired: string,
+  left: string,
+): string {
   const diff = new Date(expiresAt).getTime() - Date.now();
-  if (diff <= 0) return "Expired";
+  if (diff <= 0) return expired;
   const totalSeconds = Math.floor(diff / 1000);
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
-  if (hours > 0) return `${hours}h ${minutes}m left`;
-  if (minutes > 0) return `${minutes}m ${seconds}s left`;
-  return `${seconds}s left`;
+  if (hours > 0) return `${hours}h ${minutes}m ${left}`;
+  if (minutes > 0) return `${minutes}m ${seconds}s ${left}`;
+  return `${seconds}s ${left}`;
 }
 
 export default function GymSettingsScreen() {
+  const { t } = useTranslation();
   const { data: gym, isLoading } = useMyGym();
   const { data: inviteDetails } = useGymInviteDetails(gym?.id);
   const { mutate: updateGym } = useUpdateGym();
@@ -89,7 +95,13 @@ export default function GymSettingsScreen() {
       return;
     }
     const update = () =>
-      setCountdown(formatCountdown(inviteDetails.temp_code_expires!));
+      setCountdown(
+        formatCountdown(
+          inviteDetails.temp_code_expires!,
+          t("gym_settings.countdown_expired"),
+          t("gym_settings.countdown_left"),
+        ),
+      );
     update();
     const id = setInterval(update, 1000);
     return () => clearInterval(id);
@@ -146,7 +158,7 @@ export default function GymSettingsScreen() {
       );
       updateGym({ gymId: gym.id, updates: { logo_url: url } });
     } catch (e: any) {
-      showToast("Failed to upload logo. Please try again.", "error");
+      showToast(t("gym_settings.logo_upload_error"), "error");
     } finally {
       setUploadingLogo(false);
     }
@@ -218,7 +230,7 @@ export default function GymSettingsScreen() {
             <Ionicons name="chevron-back" size={24} color={colors.foreground} />
           </Pressable>
           <Text className="text-foreground text-xl font-bold ml-1">
-            Gym Settings
+            {t("gym_settings.title")}
           </Text>
         </View>
 
@@ -228,7 +240,10 @@ export default function GymSettingsScreen() {
           keyboardShouldPersistTaps="handled"
         >
           {/* === GYM INFO === */}
-          <SectionHeader title="Gym Info" icon="information-circle-outline" />
+          <SectionHeader
+            title={t("gym_settings.gym_info")}
+            icon="information-circle-outline"
+          />
 
           {/* Logo */}
           <Pressable
@@ -250,10 +265,12 @@ export default function GymSettingsScreen() {
             )}
             <View className="flex-1">
               <Text className="text-foreground font-semibold text-[15px]">
-                {uploadingLogo ? "Uploading..." : "Change Logo"}
+                {uploadingLogo
+                  ? t("common.uploading")
+                  : t("gym_settings.change_logo")}
               </Text>
               <Text className="text-muted text-caption mt-0.5">
-                Tap to pick a new image
+                {t("gym_settings.change_logo_description")}
               </Text>
             </View>
             {uploadingLogo && (
@@ -265,39 +282,39 @@ export default function GymSettingsScreen() {
             {isEditing ? (
               <View className="px-4 py-4 gap-4">
                 <Input
-                  label="Gym Name"
+                  label={t("gym_settings.gym_name_label")}
                   value={name}
                   onChangeText={setName}
-                  placeholder="Gym name"
+                  placeholder={t("gym_settings.gym_name_placeholder")}
                   returnKeyType="next"
                   autoFocus
                 />
                 <Input
-                  label="Description"
+                  label={t("gym_settings.description_label")}
                   value={description}
                   onChangeText={setDescription}
-                  placeholder="Optional"
+                  placeholder={t("gym_settings.description_placeholder")}
                   multiline
                   returnKeyType="next"
                 />
                 <Input
-                  label="Address"
+                  label={t("gym_settings.address_label")}
                   value={address}
                   onChangeText={setAddress}
-                  placeholder="Optional"
+                  placeholder={t("gym_settings.address_placeholder")}
                   returnKeyType="done"
                   onSubmitEditing={handleSave}
                 />
                 <View className="flex-row gap-2">
                   <Button
-                    label="Cancel"
+                    label={t("common.cancel")}
                     variant="secondary"
                     size="sm"
                     onPress={handleCancel}
                     style={{ flex: 1 }}
                   />
                   <Button
-                    label="Save"
+                    label={t("common.save")}
                     variant={name.trim() ? "primary" : "secondary"}
                     size="sm"
                     onPress={handleSave}
@@ -315,7 +332,7 @@ export default function GymSettingsScreen() {
                   <View className="flex-1 pr-4 gap-3">
                     <View>
                       <Text className="text-label uppercase tracking-wider text-muted mb-1">
-                        Gym Name
+                        {t("gym_settings.gym_name_label")}
                       </Text>
                       <Text className="text-foreground text-[15px]">
                         {gym.name ?? "—"}
@@ -323,7 +340,7 @@ export default function GymSettingsScreen() {
                     </View>
                     <View>
                       <Text className="text-label uppercase tracking-wider text-muted mb-1">
-                        Description
+                        {t("gym_settings.description_label")}
                       </Text>
                       <Text className="text-foreground text-[15px]">
                         {gym.description ?? "—"}
@@ -331,7 +348,7 @@ export default function GymSettingsScreen() {
                     </View>
                     <View>
                       <Text className="text-label uppercase tracking-wider text-muted mb-1">
-                        Address
+                        {t("gym_settings.address_label")}
                       </Text>
                       <Text className="text-foreground text-[15px]">
                         {gym.address ?? "—"}
@@ -349,16 +366,19 @@ export default function GymSettingsScreen() {
           </Card>
 
           {/* === INVITE MANAGEMENT === */}
-          <SectionHeader title="Invite Management" icon="link-outline" />
+          <SectionHeader
+            title={t("gym_settings.invite_management")}
+            icon="link-outline"
+          />
 
           <Card className="mx-5">
             {/* Permanent link */}
             <View className="px-4 py-4">
               <Text className="text-label uppercase tracking-wider text-muted mb-2">
-                Permanent Link
+                {t("gym_settings.permanent_link")}
               </Text>
               <Text className="text-muted text-caption mb-3 leading-relaxed">
-                Anyone with this link can join your gym.
+                {t("gym_settings.permanent_link_description")}
               </Text>
               {deepLink ? (
                 <Text
@@ -372,7 +392,7 @@ export default function GymSettingsScreen() {
               <View className="flex-row gap-2">
                 <View className="flex-1">
                   <Button
-                    label="Share Link"
+                    label={t("gym_settings.share_link")}
                     size="md"
                     onPress={handleShareLink}
                     disabled={!inviteDetails?.invite_token}
@@ -387,7 +407,11 @@ export default function GymSettingsScreen() {
                 </View>
                 <View className="flex-1">
                   <Button
-                    label={regeneratingToken ? "Regenerating..." : "Regenerate"}
+                    label={
+                      regeneratingToken
+                        ? t("gym_settings.regenerating")
+                        : t("gym_settings.regenerate")
+                    }
                     variant="secondary"
                     size="md"
                     onPress={handleRegenerateToken}
@@ -402,11 +426,10 @@ export default function GymSettingsScreen() {
             {/* Temp code */}
             <View className="px-4 py-4">
               <Text className="text-label uppercase tracking-wider text-muted mb-2">
-                Temporary Code
+                {t("gym_settings.temp_code")}
               </Text>
               <Text className="text-muted text-caption mb-3 leading-relaxed">
-                Share a short code valid for 2 hours. Great for in-person
-                sign-ups.
+                {t("gym_settings.temp_code_description")}
               </Text>
               {hasActiveCode && (
                 <View className="items-center mb-4 py-2">
@@ -424,10 +447,10 @@ export default function GymSettingsScreen() {
               <Button
                 label={
                   generatingCode
-                    ? "Generating..."
+                    ? t("gym_settings.generating")
                     : hasActiveCode
-                      ? "Generate New Code"
-                      : "Generate Code"
+                      ? t("gym_settings.generate_new_code")
+                      : t("gym_settings.generate_code")
                 }
                 variant="secondary"
                 onPress={handleGenerateCode}
@@ -437,10 +460,17 @@ export default function GymSettingsScreen() {
           </Card>
 
           {/* === DANGER ZONE === */}
-          <SectionHeader title="Danger Zone" icon="warning-outline" />
+          <SectionHeader
+            title={t("gym_settings.danger_zone")}
+            icon="warning-outline"
+          />
           <View className="mx-5 mb-4">
             <Button
-              label={deleting ? "Deleting..." : "Delete Gym"}
+              label={
+                deleting
+                  ? t("gym_settings.deleting")
+                  : t("gym_settings.delete_gym")
+              }
               variant="destructive"
               onPress={handleDeleteGym}
               disabled={deleting}
@@ -449,7 +479,7 @@ export default function GymSettingsScreen() {
               }
             />
             <Text className="text-muted text-caption text-center mt-2">
-              Removes all members, workouts, and gym data permanently.
+              {t("gym_settings.delete_gym_description")}
             </Text>
           </View>
         </ScrollView>
@@ -457,9 +487,9 @@ export default function GymSettingsScreen() {
 
       <ConfirmModal
         visible={regenerateLinkVisible}
-        title="Regenerate Link?"
-        message="The old invite link will stop working immediately. All new members must use the new link."
-        confirmLabel="Regenerate"
+        title={t("gym_settings.regenerate_link_title")}
+        message={t("gym_settings.regenerate_link_message")}
+        confirmLabel={t("gym_settings.regenerate_confirm")}
         variant="destructive"
         onCancel={() => setRegenerateLinkVisible(false)}
         onConfirm={() => {
@@ -469,9 +499,9 @@ export default function GymSettingsScreen() {
       />
       <ConfirmModal
         visible={generateCodeVisible}
-        title="Generate New Code?"
-        message="The current code will stop working immediately."
-        confirmLabel="Generate"
+        title={t("gym_settings.generate_code_title")}
+        message={t("gym_settings.generate_code_message")}
+        confirmLabel={t("gym_settings.generate_code")}
         variant="primary"
         onCancel={() => setGenerateCodeVisible(false)}
         onConfirm={() => {
@@ -481,9 +511,9 @@ export default function GymSettingsScreen() {
       />
       <ConfirmModal
         visible={deleteGymVisible}
-        title="Delete Gym?"
-        message={`"${gym?.name}" and all its data — members, workouts, history — will be permanently deleted. This cannot be undone.`}
-        confirmLabel="Delete Forever"
+        title={t("gym_settings.delete_gym_title")}
+        message={t("gym_settings.delete_gym_message", { gymName: gym?.name })}
+        confirmLabel={t("gym_settings.delete_forever")}
         variant="destructive"
         isPending={deleting}
         onCancel={() => setDeleteGymVisible(false)}
@@ -493,7 +523,7 @@ export default function GymSettingsScreen() {
               onSuccess: () => router.replace("/(tabs)/gym"),
               onError: () => {
                 setDeleteGymVisible(false);
-                showToast("Something went wrong. Please try again.", "error");
+                showToast(t("common.error_generic"), "error");
               },
             });
         }}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import {
   View,
   Text,
@@ -21,23 +22,30 @@ import { Input } from "@/components/ui/Input";
 type Role = "admin" | "coach" | "athlete";
 
 function RoleBadge({ role }: { role: Role }) {
+  const { t } = useTranslation();
   if (role === "admin") {
     return (
       <View className="px-2.5 py-0.5 rounded-full bg-accent">
-        <Text className="text-bg text-tiny font-bold">ADMIN</Text>
+        <Text className="text-bg text-tiny font-bold">
+          {t("members.role_admin")}
+        </Text>
       </View>
     );
   }
   if (role === "coach") {
     return (
       <View className="px-2.5 py-0.5 rounded-full bg-surface2 border border-border">
-        <Text className="text-foreground text-tiny font-bold">COACH</Text>
+        <Text className="text-foreground text-tiny font-bold">
+          {t("members.role_coach")}
+        </Text>
       </View>
     );
   }
   return (
     <View className="px-2.5 py-0.5 rounded-full bg-surface2">
-      <Text className="text-muted text-tiny font-bold">ATHLETE</Text>
+      <Text className="text-muted text-tiny font-bold">
+        {t("members.role_athlete")}
+      </Text>
     </View>
   );
 }
@@ -63,6 +71,7 @@ function MemberAvatar({ member }: { member: GymMember }) {
 
 export default function GymMembersScreen() {
   const { id: gymId } = useLocalSearchParams<{ id: string }>();
+  const { t } = useTranslation();
 
   const { data: gym } = useMyGym();
   const { data: members, isLoading } = useGymMembers(gymId);
@@ -105,10 +114,12 @@ export default function GymMembersScreen() {
           <Ionicons name="chevron-back" size={24} color={colors.foreground} />
         </Pressable>
         <View className="flex-1 ml-1">
-          <Text className="text-foreground text-xl font-bold">Members</Text>
+          <Text className="text-foreground text-xl font-bold">
+            {t("members.title")}
+          </Text>
           {members && (
             <Text className="text-muted text-caption">
-              {members.length} member{members.length !== 1 ? "s" : ""}
+              {t("members.count", { count: members.length })}
             </Text>
           )}
         </View>
@@ -117,7 +128,7 @@ export default function GymMembersScreen() {
       {/* Search */}
       <View className="px-5 pb-3">
         <Input
-          placeholder="Search members..."
+          placeholder={t("members.search_placeholder")}
           value={search}
           onChangeText={setSearch}
           autoCapitalize="none"
@@ -191,8 +202,8 @@ export default function GymMembersScreen() {
             <View className="items-center py-12">
               <Text className="text-muted text-body">
                 {search.length > 0
-                  ? `No members match "${search}"`
-                  : "No members yet"}
+                  ? t("members.no_results", { search })
+                  : t("members.empty")}
               </Text>
             </View>
           )}

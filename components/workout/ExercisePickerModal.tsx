@@ -1,9 +1,14 @@
 import { useExercises } from "@/hooks/useExercises";
-import { EQUIPMENT_LABELS } from "@/lib/constants";
+import { useEquipmentLabel } from "@/hooks/useEquipmentLabel";
+import {
+  useExerciseName,
+  useExerciseSearchMatch,
+} from "@/hooks/useExerciseName";
 import { colors } from "@/lib/theme";
 import { EquipmentType } from "@/types/exercise";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   FlatList,
   Modal,
@@ -30,12 +35,14 @@ export function ExercisePickerModal({
   onSelect,
   onAddCustom,
 }: Props) {
+  const { t } = useTranslation();
+  const getExerciseName = useExerciseName();
+  const getEquipmentLabel = useEquipmentLabel();
+  const matchesSearch = useExerciseSearchMatch();
   const [search, setSearch] = useState("");
   const { data: exercises = [] } = useExercises();
 
-  const filtered = exercises.filter((e) =>
-    e.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filtered = exercises.filter((e) => matchesSearch(e.name, search));
 
   function handleSelect(
     exerciseId: string,
@@ -63,17 +70,19 @@ export function ExercisePickerModal({
       <View className="flex-1 bg-bg">
         <View className="flex-row items-center justify-between px-4 pt-6 pb-4 border-b border-border">
           <Text className="text-foreground text-lg font-semibold">
-            Select Exercise
+            {t("workout.picker_title")}
           </Text>
           <Pressable onPress={onClose}>
-            <Text className="text-accent font-medium">Cancel</Text>
+            <Text className="text-accent font-medium">
+              {t("common.cancel")}
+            </Text>
           </Pressable>
         </View>
 
         <View className="px-4 py-3 border-b border-border">
           <TextInput
             className="bg-surface text-foreground rounded-xl px-4 py-3 border border-border"
-            placeholder="Search exercises..."
+            placeholder={t("workout.picker_search")}
             placeholderTextColor={colors.muted}
             value={search}
             onChangeText={setSearch}
@@ -88,8 +97,8 @@ export function ExercisePickerModal({
             <Ionicons name="create-outline" size={16} color={colors.muted} />
             <Text className="text-muted text-sm" numberOfLines={1}>
               {search.trim()
-                ? `Add "${search.trim()}" as custom exercise`
-                : "Add custom exercise"}
+                ? t("workout.picker_add_custom_named", { name: search.trim() })
+                : t("workout.picker_add_custom")}
             </Text>
           </Pressable>
         )}
@@ -104,9 +113,11 @@ export function ExercisePickerModal({
                 handleSelect(item.id, item.name, item.equipment_type)
               }
             >
-              <Text className="text-foreground text-base">{item.name}</Text>
+              <Text className="text-foreground text-base">
+                {getExerciseName(item.name)}
+              </Text>
               <Text className="text-muted text-sm">
-                {EQUIPMENT_LABELS[item.equipment_type]}
+                {getEquipmentLabel(item.equipment_type)}
               </Text>
             </Pressable>
           )}
@@ -126,11 +137,15 @@ export function ExercisePickerModal({
                     className="text-accent text-sm font-semibold"
                     numberOfLines={1}
                   >
-                    {`Add "${search.trim()}" as custom exercise`}
+                    {t("workout.picker_add_custom_named", {
+                      name: search.trim(),
+                    })}
                   </Text>
                 </Pressable>
               ) : (
-                <Text className="text-muted text-sm">No exercises found</Text>
+                <Text className="text-muted text-sm">
+                  {t("workout.picker_no_results")}
+                </Text>
               )}
             </View>
           }

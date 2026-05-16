@@ -1,5 +1,6 @@
 import { View, Text } from "react-native";
 import { Input } from "@/components/ui/Input";
+import { useTranslation } from "react-i18next";
 
 type Props = {
   unit: string;
@@ -24,15 +25,16 @@ export function FromOneRMForm({
   onChangeInput,
   showError,
 }: Props) {
+  const { t } = useTranslation();
   return (
     <View className="mb-5">
       <Input
-        label="1RM – Your Max"
+        label={t("calculator.1rm_label")}
         placeholder={unit === "kg" ? "e.g. 120" : "e.g. 265"}
         keyboardType="decimal-pad"
         value={input}
         onChangeText={onChangeInput}
-        error={showError ? "Enter a weight greater than 0" : undefined}
+        error={showError ? t("calculator.weight_error") : undefined}
         rightElement={<UnitPill unit={unit} />}
       />
     </View>

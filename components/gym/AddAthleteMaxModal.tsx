@@ -1,4 +1,9 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import {
+  useExerciseName,
+  useExerciseSearchMatch,
+} from "@/hooks/useExerciseName";
 import {
   Modal,
   View,
@@ -18,15 +23,10 @@ import { WeightUnit, formatWeight } from "@/lib/units";
 import { estimate1RM, MAX_RELIABLE_REPS } from "@/lib/estimate";
 import { useAppStore } from "@/stores/appStore";
 import { colors } from "@/lib/theme";
-import { EQUIPMENT_LABELS } from "@/lib/constants";
+import { useEquipmentLabel } from "@/hooks/useEquipmentLabel";
 import { SegmentedControl } from "@/components/ui/SegmentedControl";
 
 type EntryMode = "direct" | "estimate";
-
-const MODE_SEGMENTS = [
-  { value: "direct" as const, label: "Known 1RM" },
-  { value: "estimate" as const, label: "Estimate" },
-];
 
 type Props = {
   visible: boolean;
@@ -45,6 +45,14 @@ export function AddAthleteMaxModal({
   initialExerciseId,
   initialExerciseName,
 }: Props) {
+  const { t } = useTranslation();
+  const getExerciseName = useExerciseName();
+  const matchesSearch = useExerciseSearchMatch();
+  const getEquipmentLabel = useEquipmentLabel();
+  const MODE_SEGMENTS = [
+    { value: "direct" as const, label: t("add_max.mode_known") },
+    { value: "estimate" as const, label: t("add_max.mode_estimate") },
+  ];
   const [step, setStep] = useState<"exercise" | "weight">(
     initialExerciseId ? "weight" : "exercise",
   );
@@ -71,9 +79,7 @@ export function AddAthleteMaxModal({
   const showToast = useAppStore((s) => s.showToast);
 
   const filtered = search
-    ? exercises.filter((e) =>
-        e.name.toLowerCase().includes(search.toLowerCase()),
-      )
+    ? exercises.filter((e) => matchesSearch(e.name, search))
     : exercises;
 
   const weightNum = parseFloat(weight);
@@ -114,7 +120,11 @@ export function AddAthleteMaxModal({
 
     const autoNote =
       mode === "estimate" && weightValid && repsValid
-        ? `Estimated from ${formatWeight(weightNum, unit)} x ${repsNum} reps (Epley)`
+        ? t("add_max.estimated_from_note", {
+            weight: formatWeight(weightNum, unit),
+            unit,
+            reps: repsNum,
+          })
         : "";
     const userNote = notes.trim();
     const combinedNotes =
@@ -131,7 +141,7 @@ export function AddAthleteMaxModal({
       },
       {
         onSuccess: () => {
-          showToast("Max saved!");
+          showToast(t("add_max.toast_max"));
           handleClose();
         },
       },
@@ -167,7 +177,11 @@ export function AddAthleteMaxModal({
               </Pressable>
             )}
             <Text className="text-xl font-bold text-foreground">
-              {step === "exercise" ? "Select Exercise" : selectedExercise?.name}
+              {step === "exercise"
+                ? t("workout.picker_title")
+                : selectedExercise
+                  ? getExerciseName(selectedExercise.name)
+                  : ""}
             </Text>
           </View>
           <Pressable
@@ -185,7 +199,7 @@ export function AddAthleteMaxModal({
               <Ionicons name="search" size={18} color={colors.muted} />
               <TextInput
                 className="flex-1 py-3 px-2.5 text-foreground text-[16px]"
-                placeholder="Search exercises..."
+                placeholder={t("add_exercise.search_placeholder")}
                 placeholderTextColor={colors.muted}
                 value={search}
                 onChangeText={setSearch}
@@ -206,10 +220,10 @@ export function AddAthleteMaxModal({
                     onPress={() => handleSelectExercise(item.id, item.name)}
                   >
                     <Text className="text-[16px] text-foreground flex-1">
-                      {item.name}
+                      {getExerciseName(item.name)}
                     </Text>
                     <Text className="text-sm text-muted ml-3">
-                      {EQUIPMENT_LABELS[item.equipment_type]}
+                      {getEquipmentLabel(item.equipment_type)}
                     </Text>
                   </Pressable>
                 )}
@@ -219,7 +233,7 @@ export function AddAthleteMaxModal({
                 ListEmptyComponent={
                   <View className="items-center pt-8">
                     <Text className="text-base text-muted">
-                      No exercises found
+                      {t("add_exercise.no_results")}
                     </Text>
                   </View>
                 }

@@ -7,6 +7,7 @@ import {
   Platform,
   TextInput,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import { useProfile } from "@/hooks/useProfile";
@@ -32,6 +33,7 @@ function CustomPercentageSection({
   customPct: string;
   onChangePct: (v: string) => void;
 }) {
+  const { t } = useTranslation();
   const parsed = parseFloat(customPct);
   const valid = !isNaN(parsed) && parsed > 0;
   const result = valid ? calculatePercentage(oneRMKg, parsed, unit) : null;
@@ -43,12 +45,12 @@ function CustomPercentageSection({
   return (
     <View className="bg-surface rounded-2xl overflow-hidden mb-2">
       <Text className="text-label uppercase tracking-wider text-muted px-4 pt-4 pb-3">
-        Custom Percentage
+        {t("calculator.custom_percentage")}
       </Text>
       <View className="flex-row items-center px-4 pb-4 gap-3">
         <TextInput
           className="flex-1 bg-surface2 rounded-xl px-4 py-3 text-foreground text-[16px]"
-          placeholder="e.g. 67.5"
+          placeholder={t("calculator.custom_placeholder")}
           placeholderTextColor={colors.muted}
           keyboardType="decimal-pad"
           value={customPct}
@@ -87,15 +89,16 @@ function CustomPercentageSection({
   );
 }
 
-const MODE_SEGMENTS = [
-  { value: "from1rm" as const, label: "From 1RM" },
-  { value: "reverse" as const, label: "Estimate 1RM" },
-];
-
 export default function QuickCalculatorScreen() {
+  const { t } = useTranslation();
   const { data: profile } = useProfile();
 
   const unit = (profile?.unit_preference ?? "kg") as "kg" | "lbs";
+
+  const MODE_SEGMENTS = [
+    { value: "from1rm" as const, label: t("calculator.from_1rm") },
+    { value: "reverse" as const, label: t("calculator.estimate_1rm") },
+  ];
 
   const [mode, setMode] = useState<Mode>("from1rm");
   const [saveModalOpen, setSaveModalOpen] = useState(false);
@@ -148,7 +151,7 @@ export default function QuickCalculatorScreen() {
                 letterSpacing: -1,
               }}
             >
-              Calculator
+              {t("calculator.title")}
             </Text>
           </View>
 
@@ -189,10 +192,10 @@ export default function QuickCalculatorScreen() {
                       style={{ marginBottom: 12 }}
                     />
                     <Text className="text-base font-semibold text-foreground mb-2 text-center">
-                      Enter your 1RM
+                      {t("calculator.enter_1rm_title")}
                     </Text>
                     <Text className="text-sm text-muted text-center">
-                      See your training weights at every percentage.
+                      {t("calculator.enter_1rm_description")}
                     </Text>
                   </View>
                 )}

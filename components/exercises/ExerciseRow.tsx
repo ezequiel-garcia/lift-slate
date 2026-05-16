@@ -5,6 +5,8 @@ import type { EquipmentType } from "@/types/exercise";
 import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { Pressable, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
+import { useExerciseName } from "@/hooks/useExerciseName";
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import type { SharedValue } from "react-native-reanimated";
 import Animated, {
@@ -109,6 +111,7 @@ function DeleteAction({
   progress: SharedValue<number>;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
   const style = useAnimatedStyle(() => ({
     opacity: interpolate(progress.value, [0, 1], [0, 1]),
   }));
@@ -126,7 +129,9 @@ function DeleteAction({
         onPress={onDelete}
       >
         <Ionicons name="trash-outline" size={22} color="#fff" />
-        <Text className="text-white font-medium text-xs mt-1">Delete</Text>
+        <Text className="text-white font-medium text-xs mt-1">
+          {t("common.delete")}
+        </Text>
       </Pressable>
     </Animated.View>
   );
@@ -155,6 +160,7 @@ export function ExerciseRow({
   onDelete,
   index = 0,
 }: Props) {
+  const getExerciseName = useExerciseName();
   const isRepsOnly = referenceType === "max_reps";
   const hasValue = isRepsOnly
     ? currentReps != null && currentReps > 0
@@ -203,7 +209,7 @@ export function ExerciseRow({
               numberOfLines={2}
               ellipsizeMode="tail"
             >
-              {name}
+              {getExerciseName(name)}
             </Text>
           </View>
           {hasValue ? (

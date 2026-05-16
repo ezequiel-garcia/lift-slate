@@ -9,6 +9,7 @@ import {
   Platform,
   InputAccessoryView,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { useExerciseNote } from "@/hooks/useExerciseNote";
 import { colors } from "@/lib/theme";
 
@@ -20,6 +21,7 @@ const accessoryNativeId = (exerciseId: string) =>
   `exercise-note-accessory-${exerciseId.replace(/-/g, "")}`;
 
 export function ExerciseNotes({ exerciseId }: Props) {
+  const { t } = useTranslation();
   const { draft, setDraft, handleSave, isSaving, isDirty } =
     useExerciseNote(exerciseId);
   const [focused, setFocused] = useState(false);
@@ -40,10 +42,10 @@ export function ExerciseNotes({ exerciseId }: Props) {
               onPress={() => Keyboard.dismiss()}
               hitSlop={12}
               accessibilityRole="button"
-              accessibilityLabel="Dismiss keyboard"
+              accessibilityLabel={t("exercise_notes.a11y_dismiss")}
             >
               <Text className="text-[17px] font-semibold text-accent">
-                Done
+                {t("exercise_notes.done")}
               </Text>
             </Pressable>
           </View>
@@ -51,7 +53,7 @@ export function ExerciseNotes({ exerciseId }: Props) {
       )}
 
       <Text className="text-sm text-muted leading-5 mb-3">
-        Form cues, coach notes, or goals — private to you and tied to this lift.
+        {t("exercise_notes.description")}
       </Text>
 
       {Platform.OS === "android" && focused ? (
@@ -61,10 +63,10 @@ export function ExerciseNotes({ exerciseId }: Props) {
             hitSlop={12}
             className="py-1.5 px-1"
             accessibilityRole="button"
-            accessibilityLabel="Dismiss keyboard"
+            accessibilityLabel={t("exercise_notes.a11y_dismiss")}
           >
             <Text className="text-[15px] font-semibold text-accent">
-              Hide keyboard
+              {t("exercise_notes.hide_keyboard")}
             </Text>
           </Pressable>
         </View>
@@ -72,7 +74,7 @@ export function ExerciseNotes({ exerciseId }: Props) {
 
       <TextInput
         className="flex-1 bg-surface rounded-xl px-4 py-4 text-foreground text-[16px] leading-[22px] border border-border"
-        placeholder="Tap to write…"
+        placeholder={t("exercise_notes.placeholder")}
         placeholderTextColor={colors.muted}
         value={draft}
         onChangeText={setDraft}
@@ -82,7 +84,7 @@ export function ExerciseNotes({ exerciseId }: Props) {
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
         inputAccessoryViewID={Platform.OS === "ios" ? accessoryId : undefined}
-        accessibilityLabel="Exercise notes"
+        accessibilityLabel={t("exercise_notes.a11y_notes")}
       />
 
       <Pressable
@@ -97,7 +99,7 @@ export function ExerciseNotes({ exerciseId }: Props) {
         onPress={onSavePress}
         disabled={!isDirty || isSaving}
         accessibilityRole="button"
-        accessibilityLabel="Save notes"
+        accessibilityLabel={t("exercise_notes.a11y_save")}
         accessibilityState={{ disabled: !isDirty || isSaving }}
       >
         {isSaving ? (
@@ -108,7 +110,7 @@ export function ExerciseNotes({ exerciseId }: Props) {
               isDirty ? "text-bg" : "text-muted"
             }`}
           >
-            Save
+            {t("exercise_notes.save")}
           </Text>
         )}
       </Pressable>

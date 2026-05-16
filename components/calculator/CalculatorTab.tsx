@@ -1,4 +1,5 @@
 import { COMMON_PERCENTAGES } from "@/lib/constants";
+import { useTranslation } from "react-i18next";
 import { easyRange, heavyRange } from "@/lib/kettlebells";
 import { colors } from "@/lib/theme";
 import {
@@ -81,6 +82,7 @@ export function CalculatorTab({
   isLoading,
   readonly,
 }: Props) {
+  const { t } = useTranslation();
   const [selectedPct, setSelectedPct] = useState<number | null>(null);
   const [customPct, setCustomPct] = useState("");
 
@@ -127,8 +129,8 @@ export function CalculatorTab({
       <View className="items-center py-7 mb-4">
         <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-3">
           {isWorkingWeight
-            ? "Current Working Weight"
-            : "Current One-Rep Maximum"}
+            ? t("calculator.current_working_weight")
+            : t("calculator.current_1rm")}
         </Text>
         {isLoading ? (
           <ActivityIndicator color={colors.accent} />
@@ -162,7 +164,9 @@ export function CalculatorTab({
           </View>
         ) : (
           <Text className="text-muted text-base">
-            {currentMax ? "Not relevant" : "No weight recorded yet"}
+            {currentMax
+              ? t("calculator.not_relevant")
+              : t("calculator.no_weight_recorded")}
           </Text>
         )}
       </View>
@@ -170,8 +174,8 @@ export function CalculatorTab({
       {/* Kettlebell / machine: heavy + easy range chips */}
       {isWorkingWeight && currentMax && currentMax.weight_kg > 0 && (
         <View className="flex-row gap-3 mb-6">
-          <RangeCard label="Easy" range={easy} unit={unit} />
-          <RangeCard label="Heavy" range={heavy} unit={unit} />
+          <RangeCard label={t("calculator.easy")} range={easy} unit={unit} />
+          <RangeCard label={t("calculator.heavy")} range={heavy} unit={unit} />
         </View>
       )}
 
@@ -179,7 +183,7 @@ export function CalculatorTab({
       {!isWorkingWeight && currentMax && currentMax.weight_kg > 0 && (
         <>
           <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-3">
-            Selected Intensity
+            {t("calculator.selected_intensity")}
           </Text>
           <View
             style={{
@@ -228,12 +232,12 @@ export function CalculatorTab({
           </View>
 
           <Text className="text-[13px] font-semibold text-muted uppercase tracking-widest mb-2">
-            Custom
+            {t("calculator.custom")}
           </Text>
           <View className="flex-row items-center gap-3 mb-6">
             <TextInput
               className="flex-1 bg-surface rounded-xl px-4 py-3.5 text-foreground text-[16px]"
-              placeholder="e.g. 67.5"
+              placeholder={t("calculator.custom_placeholder")}
               placeholderTextColor={colors.muted}
               keyboardType="decimal-pad"
               value={customPct}
@@ -257,7 +261,7 @@ export function CalculatorTab({
               }}
             >
               <Text className="text-[12px] font-semibold text-muted uppercase tracking-widest mb-3">
-                Prescribed Load • {activePct}%
+                {t("calculator.prescribed_load", { percentage: activePct })}
               </Text>
               <View
                 style={{ flexDirection: "row", alignItems: "flex-end", gap: 6 }}
@@ -306,7 +310,9 @@ export function CalculatorTab({
         >
           <Ionicons name="add-circle-outline" size={20} color={colors.accent} />
           <Text className="text-accent font-semibold text-[15px]">
-            {isWorkingWeight ? "Update Working Weight" : "Add New Max"}
+            {isWorkingWeight
+              ? t("calculator.update_working_weight")
+              : t("calculator.add_new_max")}
           </Text>
         </Pressable>
       )}

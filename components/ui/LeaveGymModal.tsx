@@ -1,6 +1,7 @@
 import { colors } from "@/lib/theme";
 import { useEffect } from "react";
 import { ActivityIndicator, Modal, Pressable, Text, View } from "react-native";
+import { useTranslation } from "react-i18next";
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -28,6 +29,7 @@ export function LeaveGymModal({
   onConfirm,
   isLeaving,
 }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
   const translateY = useSharedValue(SHEET_OFFSET);
   const backdropOpacity = useSharedValue(0);
@@ -114,7 +116,7 @@ export function LeaveGymModal({
               marginBottom: 6,
             }}
           >
-            Leave {gymName}?
+            {t("leave_gym.title", { gymName })}
           </Text>
           <Text
             style={{
@@ -125,9 +127,7 @@ export function LeaveGymModal({
               marginBottom: 24,
             }}
           >
-            {
-              "You'll lose access to gym workouts and coach edits. You can rejoin later with an invite."
-            }
+            {t("leave_gym.message")}
           </Text>
 
           <Pressable
@@ -139,7 +139,7 @@ export function LeaveGymModal({
               <ActivityIndicator size="small" color="#fff" />
             ) : (
               <Text style={{ color: "#fff", fontSize: 16, fontWeight: "600" }}>
-                Leave Gym
+                {t("leave_gym.confirm")}
               </Text>
             )}
           </Pressable>
@@ -157,7 +157,7 @@ export function LeaveGymModal({
                 fontWeight: "600",
               }}
             >
-              Cancel
+              {t("leave_gym.cancel")}
             </Text>
           </Pressable>
         </View>

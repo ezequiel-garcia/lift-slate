@@ -1,4 +1,5 @@
 import "../global.css";
+import "@/lib/i18n";
 import { View } from "react-native";
 import { Stack, useNavigationContainerRef } from "expo-router";
 import { isRunningInExpoGo } from "expo";
@@ -12,9 +13,10 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
 import * as Sentry from "@sentry/react-native";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { colors } from "@/lib/theme";
 import { Toast } from "@/components/ui/Toast";
+import i18n, { loadSavedLanguage } from "@/lib/i18n";
 
 const navigationIntegration = Sentry.reactNavigationIntegration({
   enableTimeToInitialDisplay: !isRunningInExpoGo(),
@@ -87,11 +89,23 @@ function RootLayout() {
     "CormorantGaramond-Italic": require("../assets/fonts/CormorantGaramond-Italic.ttf"),
   });
 
+  const [langReady, setLangReady] = useState(false);
+
   useEffect(() => {
     if (ref) navigationIntegration.registerNavigationContainer(ref);
   }, [ref]);
 
-  if (!fontsLoaded) {
+  useEffect(() => {
+    loadSavedLanguage().then((lang) => {
+      if (i18n.language === lang) {
+        setLangReady(true);
+        return;
+      }
+      void i18n.changeLanguage(lang).finally(() => setLangReady(true));
+    });
+  }, []);
+
+  if (!fontsLoaded || !langReady) {
     return <View style={{ flex: 1, backgroundColor: colors.bg }} />;
   }
 

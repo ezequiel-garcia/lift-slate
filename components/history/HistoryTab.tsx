@@ -6,6 +6,7 @@ import {
   ActivityIndicator,
   Pressable,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import Swipeable from "react-native-gesture-handler/ReanimatedSwipeable";
 import Animated, {
   FadeIn,
@@ -16,7 +17,9 @@ import Animated, {
 import type { SharedValue } from "react-native-reanimated";
 import { Ionicons } from "@expo/vector-icons";
 import { format, isValid } from "date-fns";
+import type { Locale } from "date-fns";
 import { useMemo, useState } from "react";
+import { DATE_FNS_LOCALES, formatDate } from "@/lib/i18n";
 import Svg, {
   Circle,
   Defs,
@@ -33,9 +36,11 @@ import { ConfirmModal } from "@/components/ui/ConfirmModal";
 function DeleteAction({
   progress,
   onDelete,
+  label,
 }: {
   progress: SharedValue<number>;
   onDelete: () => void;
+  label: string;
 }) {
   const style = useAnimatedStyle(() => ({
     opacity: interpolate(progress.value, [0, 1], [0, 1]),
@@ -54,7 +59,7 @@ function DeleteAction({
         onPress={onDelete}
       >
         <Ionicons name="trash-outline" size={20} color="#fff" />
-        <Text className="text-white font-medium text-xs mt-1">Delete</Text>
+        <Text className="text-white font-medium text-xs mt-1">{label}</Text>
       </Pressable>
     </Animated.View>
   );
@@ -89,6 +94,11 @@ export function HistoryTab({
   onRefresh,
   isLoading,
 }: Props) {
+  const { t, i18n } = useTranslation();
+  const locale =
+    DATE_FNS_LOCALES[i18n.language as keyof typeof DATE_FNS_LOCALES];
+  const formatMonth = (date: Date) =>
+    isValid(date) ? formatDate(date, "MMM", locale).toUpperCase() : "";
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
   const reducedMotion = useReducedMotion();
   const sortedHistory = useMemo(
@@ -112,8 +122,8 @@ export function HistoryTab({
     : 0;
 
   const addLabel = isRepsMode
-    ? "Log Max Reps"
-    : (addButtonLabel ?? "Add New Max");
+    ? t("history.log_max_reps")
+    : (addButtonLabel ?? t("history.add_new_max"));
   const recordEntry = hasHistory
     ? (sortedHistory.find((m) =>
         isRepsMode
@@ -180,7 +190,7 @@ export function HistoryTab({
 
     const date = new Date(item.recorded_at);
     const validDate = isValid(date);
-    const monthLabel = validDate ? format(date, "MMM").toUpperCase() : "---";
+    const monthLabel = validDate ? formatMonth(date) : "---";
     const dayLabel = validDate ? format(date, "dd") : "--";
     const yearLabel = validDate ? format(date, "yyyy") : "----";
     const primaryDisplay = isRepsMode
@@ -205,6 +215,7 @@ export function HistoryTab({
             onDeleteMax ? (
               <DeleteAction
                 progress={progress}
+                label={t("history.delete_swipe")}
                 onDelete={() => {
                   swipeableMethods.close();
                   setPendingDeleteId(item.id);
@@ -269,7 +280,7 @@ export function HistoryTab({
                           color: colors.accent,
                         }}
                       >
-                        Record
+                        {t("history.record")}
                       </Text>
                     </View>
                   )}
@@ -321,7 +332,7 @@ export function HistoryTab({
           hasHistory && recordEntry ? (
             <View className="px-5 pt-3 pb-4">
               <Text className="text-muted text-[11px] uppercase tracking-[2px] mb-2">
-                All-Time Record
+                {t("history.all_time_record")}
               </Text>
               <View className="flex-row items-start gap-1.5 mb-2">
                 <Text
@@ -406,13 +417,13 @@ export function HistoryTab({
                         const d = new Date(
                           sortedHistory[sortedHistory.length - 1].recorded_at,
                         );
-                        return isValid(d) ? format(d, "MMM").toUpperCase() : "";
+                        return formatMonth(d);
                       })()}
                     </Text>
                     <Text className="text-muted text-[11px] tracking-[1.5px]">
                       {(() => {
                         const d = new Date(sortedHistory[0].recorded_at);
-                        return isValid(d) ? format(d, "MMM").toUpperCase() : "";
+                        return formatMonth(d);
                       })()}
                     </Text>
                   </View>
@@ -431,7 +442,7 @@ export function HistoryTab({
                         color: colors.accent,
                       }}
                     >
-                      The Record
+                      {t("history.the_record")}
                     </Text>
                   </View>
                 </View>
@@ -448,8 +459,8 @@ export function HistoryTab({
             <View className="flex-1 justify-center">
               <EmptyState
                 icon="time-outline"
-                title="No history yet"
-                description="Start tracking to see your progress here"
+                title={t("history.empty_title")}
+                description={t("history.empty_description")}
                 action={
                   onAddMax ? (
                     <Button label={addLabel} onPress={onAddMax} />
@@ -489,9 +500,9 @@ export function HistoryTab({
       />
       <ConfirmModal
         visible={pendingDeleteId !== null}
-        title="Delete Entry"
-        message="Remove this entry from your history?"
-        confirmLabel="Delete"
+        title={t("history.delete_title")}
+        message={t("history.delete_message")}
+        confirmLabel={t("common.delete")}
         variant="destructive"
         onCancel={() => setPendingDeleteId(null)}
         onConfirm={() => {

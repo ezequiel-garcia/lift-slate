@@ -15,6 +15,9 @@ import Constants from "expo-constants";
 import * as Linking from "expo-linking";
 import * as WebBrowser from "expo-web-browser";
 import { router } from "expo-router";
+import { useTranslation } from "react-i18next";
+import { ActionSheet } from "@/components/ui/ActionSheet";
+import { saveLanguage, type SupportedLanguage } from "@/lib/i18n";
 
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useQueryClient } from "@tanstack/react-query";
@@ -30,19 +33,32 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { colors } from "@/lib/theme";
 
+const LANGUAGE_LABELS: Record<string, string> = {
+  en: "English",
+  es: "Español",
+};
+
 export default function ProfileScreen() {
   const { data: profile, isLoading } = useProfile();
   const queryClient = useQueryClient();
   const { mutate: update, isPending } = useUpdateProfile();
   const { data: gym, isLoading: gymLoading } = useMyGym();
   const { mutate: leaveGym, isPending: isLeaving } = useLeaveGym();
+  const { t, i18n } = useTranslation();
 
   const unit = (profile?.unit_preference ?? "kg") as WeightUnit;
+  const currentLang = i18n.language as SupportedLanguage;
 
   const [displayName, setDisplayName] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [showLangSheet, setShowLangSheet] = useState(false);
+
+  async function handleLanguageSelect(code: SupportedLanguage) {
+    await i18n.changeLanguage(code);
+    await saveLanguage(code);
+  }
 
   useEffect(() => {
     if (!profile) return;
@@ -124,21 +140,21 @@ export default function ProfileScreen() {
                 letterSpacing: -1,
               }}
             >
-              Profile
+              {t("profile.title")}
             </Text>
           </View>
 
-          <SectionHeader title="Account" icon="person-outline" />
+          <SectionHeader title={t("profile.account")} icon="person-outline" />
 
           <Card className="mx-5">
             <View className="px-4 py-4 gap-4">
               {isEditingName ? (
                 <View className="gap-3">
                   <Input
-                    label="Display Name"
+                    label={t("profile.display_name")}
                     value={displayName}
                     onChangeText={setDisplayName}
-                    placeholder="Your name"
+                    placeholder={t("profile.display_name_placeholder")}
                     returnKeyType="done"
                     autoCapitalize="words"
                     autoFocus
@@ -146,14 +162,14 @@ export default function ProfileScreen() {
                   />
                   <View className="flex-row gap-2">
                     <Button
-                      label="Cancel"
+                      label={t("common.cancel")}
                       variant="secondary"
                       size="sm"
                       onPress={handleCancelDisplayName}
                       style={{ flex: 1 }}
                     />
                     <Button
-                      label={isPending ? "Saving..." : "Save"}
+                      label={isPending ? t("common.saving") : t("common.save")}
                       variant={displayName.trim() ? "primary" : "secondary"}
                       size="sm"
                       onPress={handleSaveDisplayName}
@@ -169,7 +185,7 @@ export default function ProfileScreen() {
                 >
                   <View>
                     <Text className="text-label uppercase tracking-wider text-muted mb-1">
-                      Display Name
+                      {t("profile.display_name")}
                     </Text>
                     <Text className="text-foreground text-[15px]">
                       {profile?.display_name ?? "—"}
@@ -185,22 +201,68 @@ export default function ProfileScreen() {
               <View className="h-px bg-border" />
               <View>
                 <Text className="text-label uppercase tracking-wider text-muted mb-1">
-                  Email
+                  {t("profile.email")}
                 </Text>
                 <Text className="text-muted text-[15px]">
                   {profile?.email ?? "—"}
                 </Text>
               </View>
+              <View className="h-px bg-border" />
+              <Pressable
+                onPress={() => setShowLangSheet(true)}
+                className="flex-row items-center justify-between active:opacity-60"
+              >
+                <View className="flex-row items-center gap-2">
+                  <Ionicons
+                    name="earth-outline"
+                    size={16}
+                    color={colors.muted}
+                  />
+                  <Text className="text-label uppercase tracking-wider text-muted">
+                    {t("profile.language")}
+                  </Text>
+                </View>
+                <View className="flex-row items-center gap-1">
+                  <Text className="text-foreground text-[15px]">
+                    {LANGUAGE_LABELS[currentLang] ?? currentLang.toUpperCase()}
+                  </Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={16}
+                    color={colors.muted}
+                  />
+                </View>
+              </Pressable>
             </View>
           </Card>
 
-          <SectionHeader title="Units & Weights" icon="scale-outline" />
+          <ActionSheet
+            visible={showLangSheet}
+            title={t("profile.language")}
+            options={[
+              {
+                label: `${currentLang === "en" ? "✓  " : "    "}English`,
+                onPress: () => handleLanguageSelect("en"),
+              },
+              {
+                label: `${currentLang === "es" ? "✓  " : "    "}Español`,
+                onPress: () => handleLanguageSelect("es"),
+              },
+              { label: t("common.cancel"), onPress: () => {}, cancel: true },
+            ]}
+            onClose={() => setShowLangSheet(false)}
+          />
+
+          <SectionHeader
+            title={t("profile.units_weights")}
+            icon="scale-outline"
+          />
 
           <Card className="mx-5">
             {/* Unit preference */}
             <View className="px-4 py-4">
               <Text className="text-label uppercase tracking-wider text-muted mb-3">
-                Unit Preference
+                {t("profile.unit_preference")}
               </Text>
               <View className="flex-row bg-surface2 rounded-xl p-1">
                 {(["kg", "lbs"] as WeightUnit[]).map((u) => (
@@ -220,7 +282,10 @@ export default function ProfileScreen() {
             </View>
           </Card>
 
-          <SectionHeader title="Gym" icon="fitness-outline" />
+          <SectionHeader
+            title={t("profile.gym_section")}
+            icon="fitness-outline"
+          />
 
           <Card className="mx-5">
             {gymLoading ? (
@@ -234,13 +299,13 @@ export default function ProfileScreen() {
                     <Text className="text-foreground text-body font-medium">
                       {gym.name}
                     </Text>
-                    <Text className="text-muted text-caption mt-0.5 capitalize">
-                      {gym.myRole}
+                    <Text className="text-muted text-caption mt-0.5">
+                      {t(`members.role_${gym.myRole}`)}
                     </Text>
                   </View>
                   {gym.myRole !== "admin" && (
                     <Button
-                      label="Leave"
+                      label={t("common.leave")}
                       variant="destructive"
                       size="sm"
                       onPress={() => setShowLeaveModal(true)}
@@ -249,7 +314,7 @@ export default function ProfileScreen() {
                   )}
                   {gym.myRole === "admin" && (
                     <Text className="text-muted text-sm font-medium">
-                      Owner
+                      {t("common.owner")}
                     </Text>
                   )}
                 </View>
@@ -258,17 +323,17 @@ export default function ProfileScreen() {
             ) : (
               <View className="px-4 py-4">
                 <Text className="text-muted text-[15px]">
-                  Not part of a gym
+                  {t("profile.not_in_gym")}
                 </Text>
               </View>
             )}
             <View className="px-4 py-4 flex-row items-center justify-between">
               <View className="flex-1 pr-4">
                 <Text className="text-foreground text-body font-medium">
-                  Allow Coach Edits
+                  {t("profile.allow_coach_edits")}
                 </Text>
                 <Text className="text-muted text-caption mt-0.5">
-                  Let coaches add and edit your maxes
+                  {t("profile.allow_coach_edits_description")}
                 </Text>
               </View>
               <Switch
@@ -281,7 +346,7 @@ export default function ProfileScreen() {
             </View>
           </Card>
 
-          <SectionHeader title="Help" icon="help-circle-outline" />
+          <SectionHeader title={t("profile.help")} icon="help-circle-outline" />
 
           <Card className="mx-5">
             <Pressable
@@ -294,13 +359,16 @@ export default function ProfileScreen() {
                 color={colors.muted}
               />
               <Text className="text-foreground text-[15px] flex-1 ml-3">
-                FAQ
+                {t("profile.faq")}
               </Text>
               <Ionicons name="chevron-forward" size={16} color={colors.muted} />
             </Pressable>
           </Card>
 
-          <SectionHeader title="Legal" icon="document-text-outline" />
+          <SectionHeader
+            title={t("profile.legal")}
+            icon="document-text-outline"
+          />
 
           <Card className="mx-5">
             <Pressable
@@ -317,7 +385,7 @@ export default function ProfileScreen() {
                 color={colors.muted}
               />
               <Text className="text-foreground text-[15px] flex-1 ml-3">
-                Privacy Policy
+                {t("profile.privacy_policy")}
               </Text>
               <Ionicons name="chevron-forward" size={16} color={colors.muted} />
             </Pressable>
@@ -332,7 +400,7 @@ export default function ProfileScreen() {
             >
               <Ionicons name="reader-outline" size={18} color={colors.muted} />
               <Text className="text-foreground text-[15px] flex-1 ml-3">
-                Terms of Service
+                {t("profile.terms_of_service")}
               </Text>
               <Ionicons name="chevron-forward" size={16} color={colors.muted} />
             </Pressable>
@@ -345,7 +413,7 @@ export default function ProfileScreen() {
             >
               <Ionicons name="mail-outline" size={18} color={colors.muted} />
               <Text className="text-foreground text-[15px] flex-1 ml-3">
-                Contact Support
+                {t("profile.contact_support")}
               </Text>
               <Ionicons name="chevron-forward" size={16} color={colors.muted} />
             </Pressable>
@@ -356,11 +424,16 @@ export default function ProfileScreen() {
               onPress={handleSignOut}
               className="px-4 py-4 active:opacity-60"
             >
-              <Text className="text-foreground text-[15px]">Sign Out</Text>
+              <Text className="text-foreground text-[15px]">
+                {t("profile.sign_out")}
+              </Text>
             </Pressable>
           </Card>
 
-          <SectionHeader title="Danger Zone" icon="warning-outline" />
+          <SectionHeader
+            title={t("profile.danger_zone")}
+            icon="warning-outline"
+          />
 
           <Card className="mx-5">
             <Pressable
@@ -368,10 +441,10 @@ export default function ProfileScreen() {
               className="px-4 py-4 active:opacity-60"
             >
               <Text className="text-error text-[15px] font-medium">
-                Delete Account
+                {t("profile.delete_account")}
               </Text>
               <Text className="text-muted text-caption mt-0.5">
-                Permanently delete your account and all data
+                {t("profile.delete_account_description")}
               </Text>
             </Pressable>
           </Card>
@@ -396,7 +469,7 @@ export default function ProfileScreen() {
 
           <View className="items-center mt-8 mb-4">
             <Text className="text-muted text-caption">
-              LiftSlate v{appVersion}
+              {t("profile.version", { version: appVersion })}
             </Text>
           </View>
         </ScrollView>

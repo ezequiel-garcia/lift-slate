@@ -9,6 +9,7 @@ import {
   NativeSyntheticEvent,
   NativeScrollEvent,
 } from "react-native";
+import { useTranslation } from "react-i18next";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import Animated, {
@@ -31,6 +32,7 @@ import { colors, animation } from "@/lib/theme";
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export default function HomeScreen() {
+  const { t } = useTranslation();
   const [search, setSearch] = useState("");
   const [modalVisible, setModalVisible] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
@@ -105,7 +107,10 @@ export default function HomeScreen() {
               letterSpacing: -1,
             }}
           >
-            My <Text style={{ color: colors.accent }}>Lifts</Text>
+            {t("lifts.title_my")}{" "}
+            <Text style={{ color: colors.accent }}>
+              {t("lifts.title_accent")}
+            </Text>
           </Text>
         </View>
         <ExerciseListSkeleton count={6} />
@@ -116,10 +121,7 @@ export default function HomeScreen() {
   if (isError) {
     return (
       <SafeAreaView className="flex-1 bg-bg">
-        <ErrorState
-          message="Failed to load your lifts"
-          onRetry={() => refetch()}
-        />
+        <ErrorState message={t("lifts.error_load")} onRetry={() => refetch()} />
       </SafeAreaView>
     );
   }
@@ -130,11 +132,11 @@ export default function HomeScreen() {
         <View className="flex-1 justify-center">
           <EmptyState
             icon="barbell-outline"
-            title="No lifts yet"
-            description={"Track your 1RMs to auto-calculate\ntraining weights"}
+            title={t("lifts.empty_title")}
+            description={t("lifts.empty_description")}
             action={
               <Button
-                label="Add your first exercise"
+                label={t("lifts.add_first")}
                 onPress={() => setModalVisible(true)}
               />
             }
@@ -153,7 +155,10 @@ export default function HomeScreen() {
                 marginBottom: 20,
               }}
             >
-              My <Text style={{ color: colors.accent }}>Lifts</Text>
+              {t("lifts.title_my")}{" "}
+              <Text style={{ color: colors.accent }}>
+                {t("lifts.title_accent")}
+              </Text>
             </Text>
             <View
               style={{
@@ -176,7 +181,7 @@ export default function HomeScreen() {
                 }}
                 placeholderTextColor={colors.muted}
                 selectionColor={colors.accent}
-                placeholder="Search exercises"
+                placeholder={t("lifts.search_placeholder")}
                 value={search}
                 onChangeText={setSearch}
               />
@@ -186,7 +191,7 @@ export default function HomeScreen() {
           {filtered.length === 0 && search ? (
             <View className="flex-1 items-center pt-12">
               <Text className="text-body text-muted">
-                No results for &quot;{search}&quot;
+                {t("lifts.no_results", { search })}
               </Text>
             </View>
           ) : (
@@ -259,7 +264,9 @@ export default function HomeScreen() {
           onPress={() => setModalVisible(true)}
         >
           <Ionicons name="add" size={22} color={colors.bg} />
-          <Text className="text-bg font-bold text-[15px]">Add Exercise</Text>
+          <Text className="text-bg font-bold text-[15px]">
+            {t("lifts.add_fab")}
+          </Text>
         </AnimatedPressable>
       )}
 
@@ -271,9 +278,11 @@ export default function HomeScreen() {
       />
       <ConfirmModal
         visible={pendingDeleteExercise !== null}
-        title="Remove Exercise"
-        message={`Remove ${pendingDeleteExercise?.name ?? "this exercise"} from your lifts? All recorded maxes will be deleted.`}
-        confirmLabel="Remove"
+        title={t("lifts.remove_title")}
+        message={t("lifts.remove_message", {
+          name: pendingDeleteExercise?.name ?? "",
+        })}
+        confirmLabel={t("common.remove")}
         variant="destructive"
         onCancel={() => setPendingDeleteExercise(null)}
         onConfirm={() => {

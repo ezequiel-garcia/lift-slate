@@ -1,21 +1,27 @@
-import { View, Text, Pressable } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
-import { format, addDays, isToday, isYesterday, isTomorrow } from "date-fns";
 import { colors } from "@/lib/theme";
+import { Ionicons } from "@expo/vector-icons";
+import { addDays, isToday, isTomorrow, isYesterday } from "date-fns";
+import { useTranslation } from "react-i18next";
+import { DATE_FNS_LOCALES, formatDate } from "@/lib/i18n";
+import { Pressable, Text, View } from "react-native";
 
 interface Props {
   date: Date;
   onDateChange: (date: Date) => void;
 }
 
-function formatLabel(date: Date): string {
-  if (isToday(date)) return "Today";
-  if (isYesterday(date)) return "Yesterday";
-  if (isTomorrow(date)) return "Tomorrow";
-  return format(date, "EEE, MMM d");
-}
-
 export function DateNavigator({ date, onDateChange }: Props) {
+  const { t, i18n } = useTranslation();
+  const locale =
+    DATE_FNS_LOCALES[i18n.language as keyof typeof DATE_FNS_LOCALES];
+
+  function formatLabel(d: Date): string {
+    if (isToday(d)) return t("gym.today");
+    if (isYesterday(d)) return t("gym.yesterday");
+    if (isTomorrow(d)) return t("gym.tomorrow");
+    return formatDate(d, locale ? "EEE, d MMM" : "EEE, MMM d", locale);
+  }
+
   return (
     <View className="flex-row items-center justify-between px-1 py-2">
       <Pressable

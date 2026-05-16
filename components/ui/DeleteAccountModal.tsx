@@ -1,6 +1,8 @@
 import { colors } from "@/lib/theme";
+import { translateError } from "@/lib/translateError";
 import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -30,16 +32,6 @@ interface Props {
 
 const SPRING = { damping: 28, stiffness: 200, mass: 0.8 };
 const SHEET_OFFSET = 600;
-const CONFIRM_WORD = "DELETE";
-
-const CONSEQUENCES = [
-  {
-    icon: "barbell-outline" as const,
-    label: "All your lifts and personal maxes",
-  },
-  { icon: "time-outline" as const, label: "Your complete training history" },
-  { icon: "person-outline" as const, label: "Your account and profile data" },
-];
 
 export function DeleteAccountModal({
   visible,
@@ -47,7 +39,18 @@ export function DeleteAccountModal({
   onConfirmDelete,
   isGymOwner,
 }: Props) {
+  const { t } = useTranslation();
   const insets = useSafeAreaInsets();
+
+  const CONFIRM_WORD = t("delete_account.confirm_word");
+  const CONSEQUENCES = [
+    { icon: "barbell-outline" as const, label: t("delete_account.item_lifts") },
+    { icon: "time-outline" as const, label: t("delete_account.item_history") },
+    {
+      icon: "person-outline" as const,
+      label: t("delete_account.item_account"),
+    },
+  ];
   const [confirmText, setConfirmText] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -85,7 +88,7 @@ export function DeleteAccountModal({
       await onConfirmDelete();
       onCancel();
     } catch (err: any) {
-      setError(err?.message ?? "Something went wrong. Please try again.");
+      setError(translateError(err?.message ?? ""));
     } finally {
       setIsSubmitting(false);
     }
@@ -168,7 +171,7 @@ export function DeleteAccountModal({
                 marginBottom: 6,
               }}
             >
-              Delete account
+              {t("delete_account.title")}
             </Text>
 
             {isGymOwner ? (
@@ -199,8 +202,7 @@ export function DeleteAccountModal({
                       flex: 1,
                     }}
                   >
-                    You are the owner of a gym. You must delete or transfer your
-                    gym before you can delete your account.
+                    {t("delete_account.gym_owner_warning")}
                   </Text>
                 </View>
               </>
@@ -216,8 +218,7 @@ export function DeleteAccountModal({
                     marginBottom: 16,
                   }}
                 >
-                  This is permanent and cannot be undone.{"\n"}All your lifts,
-                  history, and account data will be lost.
+                  {t("delete_account.message")}
                 </Text>
 
                 {/* Consequences list */}
@@ -266,7 +267,7 @@ export function DeleteAccountModal({
                     ref={inputRef}
                     value={confirmText}
                     onChangeText={setConfirmText}
-                    placeholder="Type DELETE to confirm"
+                    placeholder={t("delete_account.type_placeholder")}
                     placeholderTextColor={colors.muted}
                     autoCapitalize="characters"
                     autoCorrect={false}
@@ -335,7 +336,7 @@ export function DeleteAccountModal({
                 className="h-[52px] rounded-2xl items-center justify-center bg-surface2 active:opacity-85"
               >
                 <Text className="text-base font-semibold text-foreground">
-                  Got it
+                  {t("delete_account.got_it")}
                 </Text>
               </Pressable>
             ) : (
@@ -360,14 +361,14 @@ export function DeleteAccountModal({
                         fontWeight: "600",
                       }}
                     >
-                      Deleting…
+                      {t("delete_account.deleting")}
                     </Text>
                   </View>
                 ) : (
                   <Text
                     className={`text-base font-semibold ${isConfirmed ? "text-white" : "text-muted"}`}
                   >
-                    Delete account
+                    {t("delete_account.confirm_button")}
                   </Text>
                 )}
               </Pressable>
@@ -387,7 +388,7 @@ export function DeleteAccountModal({
                     fontWeight: "600",
                   }}
                 >
-                  Cancel
+                  {t("common.cancel")}
                 </Text>
               </Pressable>
             )}

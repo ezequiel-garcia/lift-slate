@@ -23,9 +23,11 @@ import {
 import { GymPreview } from "@/services/invite.service";
 import { useAuth } from "@/hooks/useAuth";
 import { useAppStore } from "@/stores/appStore";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/Button";
 
 export default function JoinGymScreen() {
+  const { t } = useTranslation();
   const { token } = useLocalSearchParams<{ token?: string }>();
   const { session, isLoading: authLoading } = useAuth();
   const setPendingInviteToken = useAppStore((s) => s.setPendingInviteToken);
@@ -80,14 +82,11 @@ export default function JoinGymScreen() {
   function onJoinError(e: Error) {
     const msg = e.message.toLowerCase();
     if (msg.includes("already")) {
-      showToast(
-        "You're already in a gym. Leave it first to join another.",
-        "error",
-      );
+      showToast(t("join_gym.error_already_in_gym"), "error");
     } else if (msg.includes("limit") || msg.includes("full")) {
-      showToast("This gym has reached its member limit.", "error");
+      showToast(t("join_gym.error_gym_full"), "error");
     } else {
-      showToast("Something went wrong. Please try again.", "error");
+      showToast(t("common.error_generic"), "error");
     }
   }
 
@@ -126,7 +125,7 @@ export default function JoinGymScreen() {
             <Ionicons name="chevron-back" size={24} color={colors.foreground} />
           </Pressable>
           <Text className="text-foreground text-xl font-bold ml-1">
-            Join a Gym
+            {t("join_gym.title")}
           </Text>
         </View>
 
@@ -140,7 +139,7 @@ export default function JoinGymScreen() {
             <View className="bg-surface2 rounded-2xl px-4 py-3 flex-row items-center gap-3 mb-6">
               <Ionicons name="link" size={18} color={colors.accent} />
               <Text className="text-muted text-caption flex-1">
-                You opened an invite link
+                {t("join_gym.invite_link_opened")}
               </Text>
             </View>
           )}
@@ -149,13 +148,13 @@ export default function JoinGymScreen() {
           {!token && (
             <View className="mb-6">
               <Text className="text-label uppercase tracking-wider text-muted mb-2">
-                Enter Invite Code
+                {t("join_gym.enter_code_label")}
               </Text>
               <TextInput
                 className="bg-surface rounded-2xl px-5 text-foreground text-[28px] font-bold tracking-[6px] text-center py-5"
                 value={code}
                 onChangeText={handleCodeChange}
-                placeholder="XXXXXXXX"
+                placeholder={t("join_gym.code_placeholder")}
                 placeholderTextColor={colors.border}
                 autoCapitalize="characters"
                 autoCorrect={false}
@@ -163,7 +162,7 @@ export default function JoinGymScreen() {
                 returnKeyType="done"
               />
               <Text className="text-muted text-caption text-center mt-2">
-                8-character code from your coach or gym admin
+                {t("join_gym.code_description")}
               </Text>
             </View>
           )}
@@ -184,10 +183,10 @@ export default function JoinGymScreen() {
               />
               <Text className="text-error text-subtext flex-1">
                 {previewError.message?.toLowerCase().includes("too many")
-                  ? "Too many attempts. Please wait 15 minutes before trying again."
+                  ? t("join_gym.error_too_many")
                   : token
-                    ? "Invalid or expired invite link."
-                    : "Invalid or expired code."}
+                    ? t("join_gym.error_invalid_link")
+                    : t("join_gym.error_invalid_code")}
               </Text>
             </View>
           )}
@@ -204,8 +203,9 @@ export default function JoinGymScreen() {
                       {activePreview.name}
                     </Text>
                     <Text className="text-muted text-caption">
-                      {activePreview.member_count} member
-                      {activePreview.member_count !== 1 ? "s" : ""}
+                      {t("join_gym.preview_members", {
+                        count: activePreview.member_count,
+                      })}
                     </Text>
                   </View>
                 </View>
@@ -217,7 +217,9 @@ export default function JoinGymScreen() {
                 )}
 
                 <Button
-                  label={`Join ${activePreview.name}`}
+                  label={t("join_gym.join_button", {
+                    gymName: activePreview.name,
+                  })}
                   onPress={handleJoin}
                   loading={joining}
                   disabled={joining}
@@ -230,8 +232,7 @@ export default function JoinGymScreen() {
           {!token && (
             <View className="mt-8 items-center gap-3">
               <Text className="text-muted text-caption text-center">
-                Have an invite link? Ask your coach to share it — it will open
-                this screen automatically.
+                {t("join_gym.invite_hint")}
               </Text>
             </View>
           )}

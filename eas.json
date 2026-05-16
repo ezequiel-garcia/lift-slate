@@ -6,6 +6,7 @@
   "build": {
     "development": {
       "autoIncrement": true,
+      "channel": "development",
       "env": {
         "APP_VARIANT": "development"
       },
@@ -13,8 +14,17 @@
         "simulator": false
       }
     },
+    "preview": {
+      "autoIncrement": true,
+      "channel": "preview",
+      "distribution": "internal",
+      "env": {
+        "APP_VARIANT": "production"
+      }
+    },
     "production": {
       "autoIncrement": true,
+      "channel": "production",
       "env": {
         "APP_VARIANT": "production"
       }
