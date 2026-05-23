@@ -19,6 +19,7 @@ import { uploadGymLogo } from "@/services/storage.service";
 import { useAppStore } from "@/stores/appStore";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { ScreenHeader } from "@/components/ui/ScreenHeader";
 import { colors } from "@/lib/theme";
 
 export default function CreateGymScreen() {
@@ -99,21 +100,12 @@ export default function CreateGymScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-bg">
-      {/* Header */}
-      <View className="flex-row items-center px-4 py-3">
-        <Pressable
-          onPress={() =>
-            router.canGoBack() ? router.back() : router.replace("/(tabs)/gym")
-          }
-          className="w-10 h-10 rounded-full bg-surface items-center justify-center"
-          style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
-        >
-          <Ionicons name="chevron-back" size={20} color={colors.foreground} />
-        </Pressable>
-        <Text className="flex-1 text-center text-foreground text-lg font-bold -ml-10">
-          {t("create_gym.title")}
-        </Text>
-      </View>
+      <ScreenHeader
+        title={t("create_gym.title")}
+        onBack={() =>
+          router.canGoBack() ? router.back() : router.replace("/(tabs)/gym")
+        }
+      />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}

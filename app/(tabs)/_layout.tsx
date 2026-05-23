@@ -3,8 +3,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { colors } from "@/lib/theme";
 import { Ionicons } from "@expo/vector-icons";
 import { Redirect, Tabs } from "expo-router";
-import { Platform } from "react-native";
 import { useQueryClient } from "@tanstack/react-query";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { getMyGym } from "@/services/gym.service";
 import { useTranslation } from "react-i18next";
 
@@ -20,10 +20,17 @@ function tabIcon(name: IoniconName, focused: boolean) {
   );
 }
 
+const TAB_BAR_TOP_PAD = 10;
+const TAB_BAR_CONTENT_HEIGHT = 48;
+
 export default function TabsLayout() {
   const { session, isLoading } = useAuth();
   const queryClient = useQueryClient();
   const { t } = useTranslation();
+  const { bottom: bottomInset } = useSafeAreaInsets();
+  const tabBarPaddingBottom = Math.max(bottomInset, 8);
+  const tabBarHeight =
+    TAB_BAR_TOP_PAD + TAB_BAR_CONTENT_HEIGHT + tabBarPaddingBottom;
 
   useEffect(() => {
     if (!session) return;
@@ -40,9 +47,9 @@ export default function TabsLayout() {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
           borderTopWidth: 0.5,
-          height: Platform.OS === "ios" ? 88 : 68,
-          paddingBottom: Platform.OS === "ios" ? 28 : 10,
-          paddingTop: 10,
+          height: tabBarHeight,
+          paddingBottom: tabBarPaddingBottom,
+          paddingTop: TAB_BAR_TOP_PAD,
         },
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.muted,

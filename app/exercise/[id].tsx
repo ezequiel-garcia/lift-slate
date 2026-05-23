@@ -160,6 +160,7 @@ export default function ExerciseDetailScreen() {
           <Ionicons name="chevron-back" size={20} color={colors.foreground} />
         </Pressable>
         <Text
+          pointerEvents="none"
           className="flex-1 text-center mx-3"
           style={{
             fontFamily: "CormorantGaramond-Regular",

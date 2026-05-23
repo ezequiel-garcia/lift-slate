@@ -1,5 +1,7 @@
 # LiftSlate — Technical Implementation Spec (Phase 1 MVP)
 
+> **This document is the original bootstrapping spec.** The codebase has evolved since it was written — several schemas, enums, and service names differ from what you see below. For the current authoritative reference, read **`ARCHITECTURE.md`** and **`CLAUDE.md`**. Notable divergences are called out inline.
+
 ## Overview
 
 LiftSlate is a mobile application designed for strength training athletes and coaches. It solves a daily friction point in gyms worldwide: when a workout prescribes loads as percentages of a one-rep max (1RM), athletes must manually look up their numbers, calculate the weight, and round to available plates. This process is slow, error-prone, and especially problematic in fast-paced group classes like CrossFit.
@@ -105,10 +107,14 @@ Run this in the Supabase SQL Editor or save as a migration file:
 ```sql
 -- ============================================
 -- ENUMS
+-- ⚠️  Current schema — differs from original spec
 -- ============================================
 CREATE TYPE unit_preference AS ENUM ('kg', 'lbs');
-CREATE TYPE max_source AS ENUM ('manual', 'workout_log', 'coach');
-CREATE TYPE exercise_category AS ENUM ('squat', 'press', 'pull', 'olympic', 'accessory');
+CREATE TYPE max_source AS ENUM ('manual', 'coach');          -- 'workout_log' removed
+CREATE TYPE equipment_type AS ENUM ('barbell', 'dumbbell', 'kettlebell', 'bodyweight', 'machine', 'other');
+CREATE TYPE reference_type AS ENUM ('one_rep_max', 'max_reps', 'working_weight');
+CREATE TYPE prescription_mode AS ENUM ('percentage', 'fixed_weight', 'bodyweight', 'heavy', 'easy');
+-- exercise_category enum was replaced by equipment_type
 
 -- ============================================
 -- USERS TABLE
@@ -154,11 +160,12 @@ CREATE TRIGGER users_updated_at
 
 -- ============================================
 -- EXERCISES TABLE
+-- ⚠️  Uses equipment_type, not category
 -- ============================================
 CREATE TABLE exercises (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
-  category exercise_category,
+  equipment_type equipment_type,          -- barbell | dumbbell | kettlebell | bodyweight | machine | other
   is_default BOOLEAN NOT NULL DEFAULT false,
   created_by UUID REFERENCES users(id) ON DELETE CASCADE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -170,13 +177,16 @@ CREATE TRIGGER exercises_updated_at
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 -- ============================================
--- MAXES TABLE
+-- EXERCISE REFERENCES TABLE (replaces "maxes")
+-- ⚠️  Table is exercise_references, not maxes
 -- ============================================
-CREATE TABLE maxes (
+CREATE TABLE exercise_references (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   exercise_id UUID NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
-  weight_kg DECIMAL(7,3) NOT NULL,
+  reference_type reference_type NOT NULL DEFAULT 'one_rep_max',
+  weight_kg DECIMAL(7,3),                -- NULL for max_reps reference type
+  reps INTEGER,                          -- NULL unless reference_type = 'max_reps'
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   notes TEXT,
   source max_source NOT NULL DEFAULT 'manual',
@@ -184,10 +194,10 @@ CREATE TABLE maxes (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE INDEX idx_maxes_user_exercise ON maxes(user_id, exercise_id);
+CREATE INDEX idx_exercise_references_user_exercise ON exercise_references(user_id, exercise_id);
 
-CREATE TRIGGER maxes_updated_at
-  BEFORE UPDATE ON maxes
+CREATE TRIGGER exercise_references_updated_at
+  BEFORE UPDATE ON exercise_references
   FOR EACH ROW EXECUTE FUNCTION update_updated_at();
 
 -- ============================================
@@ -222,48 +232,35 @@ CREATE POLICY "Users can delete own exercises"
   ON exercises FOR DELETE
   USING (created_by = auth.uid() AND is_default = false);
 
--- Maxes
-ALTER TABLE maxes ENABLE ROW LEVEL SECURITY;
+-- Exercise References (replaces Maxes)
+ALTER TABLE exercise_references ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view own maxes"
-  ON maxes FOR SELECT USING (user_id = auth.uid());
+CREATE POLICY "Users can view own references"
+  ON exercise_references FOR SELECT USING (user_id = auth.uid());
 
-CREATE POLICY "Users can create own maxes"
-  ON maxes FOR INSERT WITH CHECK (user_id = auth.uid());
+CREATE POLICY "Users can create own references"
+  ON exercise_references FOR INSERT WITH CHECK (user_id = auth.uid());
 
-CREATE POLICY "Users can update own maxes"
-  ON maxes FOR UPDATE USING (user_id = auth.uid());
+CREATE POLICY "Users can update own references"
+  ON exercise_references FOR UPDATE USING (user_id = auth.uid());
 
-CREATE POLICY "Users can delete own maxes"
-  ON maxes FOR DELETE USING (user_id = auth.uid());
+CREATE POLICY "Users can delete own references"
+  ON exercise_references FOR DELETE USING (user_id = auth.uid());
 
 -- ============================================
 -- SEED DEFAULT EXERCISES
+-- ⚠️  Uses equipment_type, not category. Full seed list is in migrations.
 -- ============================================
-INSERT INTO exercises (name, category, is_default) VALUES
-  ('Back Squat', 'squat', true),
-  ('Front Squat', 'squat', true),
-  ('Overhead Squat', 'squat', true),
-  ('Goblet Squat', 'squat', true),
-  ('Bench Press', 'press', true),
-  ('Overhead Press', 'press', true),
-  ('Push Press', 'press', true),
-  ('Incline Bench Press', 'press', true),
-  ('Deadlift', 'pull', true),
-  ('Sumo Deadlift', 'pull', true),
-  ('Romanian Deadlift', 'pull', true),
-  ('Barbell Row', 'pull', true),
-  ('Clean', 'olympic', true),
-  ('Clean & Jerk', 'olympic', true),
-  ('Snatch', 'olympic', true),
-  ('Power Clean', 'olympic', true),
-  ('Power Snatch', 'olympic', true),
-  ('Hang Clean', 'olympic', true),
-  ('Hip Thrust', 'accessory', true),
-  ('Lunges', 'accessory', true),
-  ('Good Morning', 'accessory', true),
-  ('Pendlay Row', 'accessory', true),
-  ('Thruster', 'accessory', true);
+INSERT INTO exercises (name, equipment_type, is_default) VALUES
+  ('Back Squat', 'barbell', true),
+  ('Front Squat', 'barbell', true),
+  ('Deadlift', 'barbell', true),
+  ('Bench Press', 'barbell', true),
+  ('Clean & Jerk', 'barbell', true),
+  ('Snatch', 'barbell', true),
+  ('Goblet Squat', 'kettlebell', true),
+  ('Pull-ups', 'bodyweight', true);
+  -- Full list in supabase/migrations/
 ```
 
 ---
@@ -321,19 +318,20 @@ export function formatWeight(value: number, unit: WeightUnit): string {
 
 ### 3.2 Constants (`lib/constants.ts`)
 
+> ⚠️ `EXERCISE_CATEGORIES` was replaced by `EQUIPMENT_TYPES` / `EQUIPMENT_ORDER`. `roundToPlate` was removed from `units.ts` — rounding uses `rounding_increment_kg` from the user profile.
+
 ```typescript
-export const COMMON_PERCENTAGES = [50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100];
-
-export const EXERCISE_CATEGORIES = [
-  { value: "squat" as const, label: "Squat" },
-  { value: "press" as const, label: "Press" },
-  { value: "pull" as const, label: "Pull" },
-  { value: "olympic" as const, label: "Olympic" },
-  { value: "accessory" as const, label: "Accessory" },
+// Current constants (see lib/constants.ts for full source)
+export const COMMON_PERCENTAGES = [50, 55, 60, 65, 70, 75, 80, 85, 90, 95];
+export const INVITE_BASE_URL = "https://liftslate-invite.vercel.app";
+export const EQUIPMENT_TYPES = [
+  { value: "barbell", label: "Barbell" },
+  { value: "dumbbell", label: "Dumbbell" },
+  { value: "kettlebell", label: "Kettlebell" },
+  { value: "bodyweight", label: "Bodyweight" },
+  { value: "machine", label: "Machine" },
+  { value: "other", label: "Other" },
 ];
-
-export const DEFAULT_ROUNDING_KG = 2.5;
-export const DEFAULT_ROUNDING_LBS = 5;
 ```
 
 ---
@@ -342,114 +340,33 @@ export const DEFAULT_ROUNDING_LBS = 5;
 
 ### 4.1 Exercises Service (`services/exercises.service.ts`)
 
-```typescript
-import { supabase } from "@/lib/supabase";
+> ⚠️ Orders by `equipment_type` in the live code, not `category`.
 
+```typescript
+// Current implementation orders by equipment_type + name
 export async function getExercises() {
   const { data, error } = await supabase
     .from("exercises")
     .select("*")
-    .order("category")
+    .order("equipment_type")
     .order("name");
   if (error) throw error;
   return data;
 }
-
-export async function createExercise(name: string, category?: string) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const { data, error } = await supabase
-    .from("exercises")
-    .insert({ name, category, created_by: user.id, is_default: false })
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
-}
-
-export async function deleteExercise(id: string) {
-  const { error } = await supabase.from("exercises").delete().eq("id", id);
-  if (error) throw error;
-}
 ```
 
-### 4.2 Maxes Service (`services/maxes.service.ts`)
+### 4.2 Exercise References Service (`services/exerciseReferences.service.ts`)
+
+> ⚠️ The live service is `exerciseReferences.service.ts`, not `maxes.service.ts`. It handles `reference_type` (one_rep_max / max_reps / working_weight).
 
 ```typescript
-import { supabase } from "@/lib/supabase";
-import { toKg, WeightUnit } from "@/lib/units";
-
-export interface CreateMaxInput {
-  exerciseId: string;
-  weight: number;
-  unit: WeightUnit;
-  recordedAt?: string;
-  notes?: string;
-}
-
-export async function getCurrentMaxes() {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const { data, error } = await supabase
-    .from("maxes")
-    .select("*, exercises(name, category)")
-    .eq("user_id", user.id)
-    .order("recorded_at", { ascending: false });
-  if (error) throw error;
-  return data;
-}
-
-export async function getMaxHistory(exerciseId: string) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const { data, error } = await supabase
-    .from("maxes")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("exercise_id", exerciseId)
-    .order("recorded_at", { ascending: false });
-
-  if (error) throw error;
-  return data;
-}
-
-export async function createMax(input: CreateMaxInput) {
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Not authenticated");
-
-  const weightKg = toKg(input.weight, input.unit);
-
-  const { data, error } = await supabase
-    .from("maxes")
-    .insert({
-      user_id: user.id,
-      exercise_id: input.exerciseId,
-      weight_kg: weightKg,
-      recorded_at: input.recordedAt || new Date().toISOString(),
-      notes: input.notes || null,
-      source: "manual",
-    })
-    .select()
-    .single();
-  if (error) throw error;
-  return data;
-}
-
-export async function deleteMax(id: string) {
-  const { error } = await supabase.from("maxes").delete().eq("id", id);
-  if (error) throw error;
-}
+// See services/exerciseReferences.service.ts for the full current implementation.
+// Key differences from the original maxes service:
+// - Table is exercise_references, not maxes
+// - Supports reference_type: 'one_rep_max' | 'max_reps' | 'working_weight'
+// - weight_kg is nullable (null for max_reps type)
+// - reps field added for max_reps type
+// - Coach can create references for athletes via createAthleteReference()
 ```
 
 ### 4.3 Profile Service (`services/profile.service.ts`)
@@ -523,35 +440,10 @@ export function useCreateExercise() {
 }
 ```
 
-### 5.2 useMaxes (`hooks/useMaxes.ts`)
+### 5.2 useExerciseReferences (`hooks/useExerciseReferences.ts`)
 
-```typescript
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import * as maxesService from "@/services/maxes.service";
-
-export function useCurrentMaxes() {
-  return useQuery({
-    queryKey: ["maxes", "current"],
-    queryFn: maxesService.getCurrentMaxes,
-  });
-}
-
-export function useMaxHistory(exerciseId: string) {
-  return useQuery({
-    queryKey: ["maxes", "history", exerciseId],
-    queryFn: () => maxesService.getMaxHistory(exerciseId),
-    enabled: !!exerciseId,
-  });
-}
-
-export function useCreateMax() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: maxesService.createMax,
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["maxes"] }),
-  });
-}
-```
+> ⚠️ Hook is `useExerciseReferences`, not `useMaxes`. Query key is `["exercise_references"]`.
+> See `hooks/useExerciseReferences.ts` for the full implementation including coach/athlete mutations.
 
 ---
 
@@ -561,8 +453,11 @@ export function useCreateMax() {
 
 In the Supabase Dashboard:
 
-1. **Email/Password:** Enabled by default. Consider disabling "Confirm email" for MVP.
-2. **Google:** Create OAuth credentials in Google Cloud Console. Add Client ID to Supabase.
+1. **Email/Password:** Enabled. Email confirmation disabled for smoother onboarding.
+2. **Google OAuth:** OAuth credentials in Google Cloud Console. Redirect URI added to Supabase.
+3. **Apple Sign In:** App registered with Apple, `expo-apple-authentication` handles the native dialog, identity token exchanged via `supabase.auth.signInWithIdToken`. Required for App Store (Apple mandates it when any OAuth is offered).
+
+PKCE flow (`flowType: "pkce"`) is set in `lib/supabase.ts` — required for mobile OAuth.
 
 ### 6.2 Expo Config (`app.json`)
 
@@ -587,7 +482,8 @@ In the Supabase Dashboard:
 ### 7.1 Home Screen (My Lifts) — `app/(tabs)/index.tsx`
 
 - Search bar (filters by name)
-- Exercise list grouped by category: name, current 1RM in user unit, trend indicator (↑↓→)
+- Exercise list grouped by **equipment type** (barbell, dumbbell, kettlebell, bodyweight, machine, other): name, current reference in user unit, trend indicator (↑↓→)
+- `one_rep_max` references show weight; `max_reps` references show rep count
 - FAB: "+ Add Exercise"
 - Tapping exercise → `exercise/[id]`
 - Empty state: illustration + "Add your first exercise" + button

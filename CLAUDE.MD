@@ -22,19 +22,20 @@ Strength training app. Stores athlete lift maxes, auto-calculates percentage-bas
 
 ```
 app/(auth)/         → login, signup, onboarding
-app/(tabs)/         → index (My Lifts), gym, calculator, history, profile
+app/(tabs)/         → index (My Lifts), gym, calculator, profile
 app/exercise/[id]   → exercise detail + calculator + history
 app/gym/create.tsx  → create gym form
 app/gym/join.tsx    → join gym (code input + deep link)
 app/gym/[id]/       → gym home, settings, members, workout screens
 components/ui/      → generic UI components
 components/exercises/, calculator/, history/, gym/, workout/
-lib/                → supabase.ts, units.ts, rounding.ts, constants.ts
-hooks/              → useAuth, useExercises, useMaxes, useProfile, useGym, useInvite, useRoles, useWorkouts
-services/           → auth, exercises, maxes, profile, gym, invite, roles, workout, storage (.service.ts)
+lib/                → supabase.ts, units.ts, estimate.ts, kettlebells.ts, translateError.ts, constants.ts, theme.ts, i18n.ts
+hooks/              → useAuth, useExercises, useExerciseReferences, useMyLifts, useProfile, useGym, useInvite, useRoles, useWorkouts
+services/           → auth, exercises, exerciseReferences, exercise_notes, profile, gym, invite, roles, workout, storage (.service.ts)
 stores/             → appStore.ts (Zustand, UI-only state)
-types/              → database.types.ts (auto-generated), exercise.ts, max.ts, gym.ts, workout.ts
+types/              → database.types.ts (auto-generated), exercise.ts, exerciseReference.ts, gym.ts, workout.ts
 supabase/migrations/, functions/
+web/                → Vercel invite redirect (universal links)
 ```
 
 ## Critical Rules
@@ -66,13 +67,13 @@ Avoid dynamic class string interpolation (`text-${color}`). Use full conditional
 
 ## Key Packages
 
-expo-router, @supabase/supabase-js, @tanstack/react-query, zustand, expo-secure-store, date-fns, react-native-reanimated, nativewind, expo-image-picker (Phase 2), expo-linking (Phase 2)
+expo-router, @supabase/supabase-js, @tanstack/react-query, zustand, expo-secure-store, date-fns, react-native-reanimated, nativewind, expo-image-picker, expo-linking, expo-updates, @sentry/react-native, react-i18next
 
 ## DB Tables (Phase 1 — MVP)
 
-- **users**: id (=auth.uid), email, display_name, unit_preference (kg|lbs), rounding_increment_kg (default 2.5), allow_coach_edit (default true)
-- **exercises**: id, name, category (squat|press|pull|olympic|accessory), is_default, created_by
-- **maxes**: id, user_id, exercise_id, weight_kg (DECIMAL, always kg), recorded_at, notes, source (manual|workout_log|coach)
+- **users**: id (=auth.uid), email, display_name, unit_preference (kg|lbs), rounding_increment_kg (default 2.5), allow_coach_edit (default true), avatar_url
+- **exercises**: id, name, equipment_type (barbell|dumbbell|kettlebell|bodyweight|machine|other), is_default, created_by
+- **exercise_references**: id, user_id, exercise_id, reference_type (one_rep_max|max_reps|working_weight), weight_kg (DECIMAL, nullable — null for max_reps), reps (INTEGER, nullable — only for max_reps), recorded_at, notes, source (manual|coach)
 
 ## DB Tables (Phase 2 — Gym & Coach)
 
@@ -85,6 +86,9 @@ expo-router, @supabase/supabase-js, @tanstack/react-query, zustand, expo-secure-
 
 ### Phase 2 Enums
 gym_membership_role, workout_item_type, subscription_plan, subscription_status
+
+### Core Enums (live)
+equipment_type, reference_type, max_source, prescription_mode
 
 ### Phase 2 Auto-triggers
 - New gym → auto-creates gym_subscription (free plan) + gym_membership (admin role for owner)
@@ -100,7 +104,7 @@ gym_membership_role, workout_item_type, subscription_plan, subscription_status
 ### Phase 1
 - users: own row only
 - exercises: SELECT defaults + own; INSERT/UPDATE/DELETE own only
-- maxes: full CRUD own rows only
+- exercise_references: full CRUD own rows; coaches can INSERT/UPDATE for athletes who allow it
 
 ### Phase 2
 - gyms: SELECT for any authenticated user; INSERT for authenticated; UPDATE/DELETE by owner only
@@ -111,8 +115,24 @@ gym_membership_role, workout_item_type, subscription_plan, subscription_status
 
 ## Auth
 
-Email+password, Google. Supabase Auth with expo-secure-store adapter.
+Email+password, Google OAuth, Apple Sign In. Supabase Auth with expo-secure-store adapter (PKCE flow).
+
+## Key lib/ files
+
+- `units.ts` — kg/lbs conversion and display formatting
+- `estimate.ts` — Epley 1RM estimation from weight × reps
+- `kettlebells.ts` — snap to standard KB sizes; heavy/easy prescription ranges
+- `translateError.ts` — map raw service errors → localized i18n keys
+- `constants.ts` — `INVITE_BASE_URL`, equipment order, common percentages
+
+## Gym Invites
+
+Permanent invite links use `INVITE_BASE_URL = "https://liftslate-invite.vercel.app"` (Vercel universal link host). The Vercel page redirects to the `liftslate://` deep link, which opens the app. If the user is logged out, the token is held in Zustand (`pendingInviteToken`) until after login.
+
+## OTA Updates (EAS Updates)
+
+Configured in `app.config.ts`: `runtimeVersion.policy = "appVersion"`. JS/asset fixes ship OTA via `u.expo.dev` without a store release, as long as the native binary version matches. Bump `appVersion` (and build a new store binary) only when native code changes.
 
 ## Env Vars (.env, not committed)
 
-EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY
+EXPO_PUBLIC_SUPABASE_URL, EXPO_PUBLIC_SUPABASE_ANON_KEY, EXPO_PUBLIC_SENTRY_DSN

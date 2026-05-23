@@ -117,6 +117,7 @@ export default function AthleteExerciseDetailScreen() {
           <Ionicons name="chevron-back" size={20} color={colors.foreground} />
         </Pressable>
         <Text
+          pointerEvents="none"
           className={`flex-1 ${titleClassName} font-bold text-foreground text-center mx-3`}
           numberOfLines={1}
           adjustsFontSizeToFit
