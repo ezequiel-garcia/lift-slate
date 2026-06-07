@@ -4,7 +4,7 @@
     "target": {
       "namespace": "android_app",
       "package_name": "com.iekekel.LiftSlate",
-      "sha256_cert_fingerprints": ["REPLACE_WITH_SHA256_FROM_EAS_CREDENTIALS"]
+      "sha256_cert_fingerprints": ["21:6C:D3:58:D2:1C:18:FF:76:5A:36:B7:E8:01:95:72:35:EE:D4:61:06:50:46:C0:39:73:86:33:BC:E3:DB:9A"]
     }
   }
 ]
